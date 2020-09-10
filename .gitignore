@@ -1,0 +1,5 @@
+*.RData
+/EflaloAndTacsat/*.RData
+/EflaloAndTacsat/*.csv
+/outputs2020/*
+
