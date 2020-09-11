@@ -1,5 +1,7 @@
 *.RData
 /EflaloAndTacsat/*.RData
+!/EflaloAndTacsat/eflalo_2019_example.RData
+!/EflaloAndTacsat/tacsat_2019_example.RData
 /EflaloAndTacsat/*.csv
 /outputs2020/*
 benthisMapping2020.r
