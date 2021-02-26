@@ -9,6 +9,7 @@ rm(list=ls())
 library(vmstools)
 library(maps)
 library(mapdata)
+library(doBy)
 
 if(.Platform$OS.type == "unix") {
  codePath  <- file.path("/zhome","fe","8","43283","BENTHIS")
@@ -26,7 +27,7 @@ if(.Platform$OS.type == "unix") {
   if(length(args)==0){
     print("No arguments supplied.")
     ##supply default values
-    year1 <- 2017
+    year1 <- 2012
     year2 <- 2019
     years <- year1:year2
   }else{
@@ -43,7 +44,7 @@ if(.Platform$OS.type == "unix") {
     dataPath  <- "D:/FBA/BENTHIS_2020/EflaloAndTacsat/"
     outPath   <- file.path("D:","FBA","BENTHIS_2020", "outputs2020")
     polPath   <- "D:/FBA/BENTHIS/BalanceMaps"
-    years <- 2017:2019
+    years <- 2012:2019
  }
  
  
@@ -271,6 +272,7 @@ if(.Platform$OS.type == "unix") {
     colkg <- colnames(tacsatIntGearVEREF) [ grep('KG', colnames(tacsatIntGearVEREF)) ]
     coleuro <- colnames(tacsatIntGearVEREF) [grep('EURO', colnames(tacsatIntGearVEREF))]
   
+    
     #colums_to_keep  <- colnames(tacsatIntGearVEREF) [ ! c(1:ncol(tacsatIntGearVEREF))  %in%  c(colkg, coleuro)  ]
     cols2keep
     colkg_to_keep   <- c(paste('LE_KG_', spp, sep=''))
@@ -292,6 +294,7 @@ if(.Platform$OS.type == "unix") {
      tacsatIntGearVEREF$LE_KG_OTH <- apply(tacsatIntGearVEREF[,colkg_to_sum], 1, sum, na.rm=TRUE)
      tacsatIntGearVEREF$LE_EURO_OTH <- apply(tacsatIntGearVEREF[,coleuro_to_sum], 1, sum, na.rm=TRUE)
 
+   
      # compute the swept area
      tacsatIntGearVEREF <- compute_swept_area (tacsatIntGearVEREF, gear_param_per_metier, towedGears, seineGears, VMS_ping_rate_in_hour, already_informed_width_for=NULL)
 
@@ -338,6 +341,14 @@ if(.Platform$OS.type == "unix") {
     load(file=file.path(outPath, a_year, "interpolated", "plus",
                                                 paste("tacsatSweptAreaPlus_", a_year, ".RData", sep="")))
  
+     # compute effort in nmin
+     tacsatSweptArea$effort_mins <- c(0,as.numeric(diff(tacsatSweptArea$SI_DATIM), units='mins'))
+     idx <- which( tacsatSweptArea$effort_mins & tacsatSweptArea$LE_GEAR %in% towedGears > 15) # if interval > 15 min 
+     tacsatSweptArea[ idx, "effort_mins"] <- NA  # exclude change of haul
+     idx <- which( tacsatSweptArea$effort_mins & tacsatSweptArea$LE_GEAR %in% seineGears > 75) # if interval > 75 min 
+     tacsatSweptArea[ idx, "effort_mins"] <- NA  # exclude change of haul
+
+    
     library(vmstools)
     xrange  <- c(-30,50) # ALL
     yrange  <- c(30,81) # ALL
@@ -384,7 +395,8 @@ if(.Platform$OS.type == "unix") {
     idx.col.euro   <- grep('LE_EURO_', nm)
     idx.col.kg     <- grep('LE_KG_', nm)
     idx.col.swpt     <- grep('SWEPT_AREA_KM2', nm)
-    idx.col <- c(idx.col.euro, idx.col.kg, idx.col.swpt)
+    idx.col.effectiveeffort     <- grep('effort_mins', nm)
+    idx.col <- c(idx.col.euro, idx.col.kg, idx.col.swpt, idx.col.effectiveeffort)
     DT  <- data.table(tacsatSweptArea) # library data.table for fast grouping replacing aggregate()
     # AGGREGATE PER SPECIES -----> SUM (IF WEIGHT) OR MEAN (IF CPUE)
     eq1  <- c.listquote( paste ("sum(",nm[idx.col],",na.rm=TRUE)",sep="") )

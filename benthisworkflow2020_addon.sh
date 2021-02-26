@@ -19,7 +19,7 @@
 
 
 R_exe=/appl/R/bin/R-3.4.1
-$R_exe R CMD BATCH '--args year1=2017 year2=2019' couplingInterpolatedVmsToLandings2020.r wk201719addon.R.out &
+$R_exe R CMD BATCH '--args year1=2012 year2=2019' couplingInterpolatedVmsToLandings2020.r wk201719addon.R.out &
 
 # need to install first the R libraries for vmstools on the 'linuxsh' node
 # e.g. first look after the R packages online on cran
