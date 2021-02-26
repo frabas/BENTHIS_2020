@@ -51,7 +51,7 @@ if(.Platform$OS.type == "unix") {
   overwrite <- TRUE
  
   
- #if(TRUE){  # do not re-run...this takes ages!
+ if(FALSE){  # do not re-run...this takes ages!
 
   ##-----------------------------------
   ## SPLIT CATCH AND FUEL AMONG THE INTERPOLATED PINGS
@@ -138,7 +138,7 @@ if(.Platform$OS.type == "unix") {
    }   # end a_year
 
 
-  
+} # end splitAmongPings  
  
   ##-----------------------------------
   ## COMPUTE SWEPT AREA
@@ -257,7 +257,7 @@ if(.Platform$OS.type == "unix") {
            'SOL', 'SPR', 'TUR', 'WHB', 'WIT', 'WHG',
             'OTH')
 
-   cols2keep <- c("VE_REF", "VE_LEN", "VE_KW", "SI_LATI","SI_LONG","SI_DATE","LE_GEAR","LE_MET","SWEPT_AREA_KM2","SWEPT_AREA_KM2_LOWER","SWEPT_AREA_KM2_UPPER", "GEAR_WIDTH", "SI_DATIM", "SI_FT" ) 
+   cols2keep <- c("VE_REF", "VE_LEN", "VE_KW", "SI_LATI","SI_LONG","SI_DATE","LE_GEAR","LE_MET","LE_MET_init","SWEPT_AREA_KM2","SWEPT_AREA_KM2_LOWER","SWEPT_AREA_KM2_UPPER", "GEAR_WIDTH", "SI_DATIM", "SI_FT" ) 
 
    for (a_year in years){
     cat(paste(a_year, "\n"))
@@ -319,7 +319,7 @@ if(.Platform$OS.type == "unix") {
    } # end year
 
 
-   # } # end FALSE
+    } # end FALSE
 
 
 
@@ -390,7 +390,9 @@ if(.Platform$OS.type == "unix") {
     }
     return(as.call(lstquote))
    }
-   library(data.table)
+   
+    # aggregate per LE_MET
+    library(data.table)
     nm <- names(tacsatSweptArea)
     idx.col.euro   <- grep('LE_EURO_', nm)
     idx.col.kg     <- grep('LE_KG_', nm)
@@ -402,7 +404,7 @@ if(.Platform$OS.type == "unix") {
     eq1  <- c.listquote( paste ("sum(",nm[idx.col],",na.rm=TRUE)",sep="") )
     tacsatSweptArea.agg <- DT[,eval(eq1),by=list(grID, LE_MET)]
     tacsatSweptArea.agg <- data.frame( tacsatSweptArea.agg)
-    colnames(tacsatSweptArea.agg) <- c("grID", "LE_MET",  nm[idx.col.euro], nm[idx.col.kg], nm[idx.col.swpt])
+    colnames(tacsatSweptArea.agg) <- c("grID", "LE_MET",  nm[idx.col.euro], nm[idx.col.kg], nm[idx.col.swpt], nm[idx.col.effectiveeffort])
 
     
      #- Add midpoint of gridcell to dataset
@@ -415,7 +417,31 @@ if(.Platform$OS.type == "unix") {
      save(aggResult,file=file.path(outPath,  paste("AggregatedSweptAreaPlus_", a_year, ".RData", sep=""))) 
 
 
-    # DO the plot ordering cell from large revenue to lower revenue  and plot cumsum
+    # aggregate per LE_MET_init
+    library(data.table)
+    nm <- names(tacsatSweptArea)
+    idx.col.euro   <- grep('LE_EURO_', nm)
+    idx.col.kg     <- grep('LE_KG_', nm)
+    idx.col.swpt     <- grep('SWEPT_AREA_KM2', nm)
+    idx.col.effectiveeffort     <- grep('effort_mins', nm)
+    idx.col <- c(idx.col.euro, idx.col.kg, idx.col.swpt, idx.col.effectiveeffort)
+    DT  <- data.table(tacsatSweptArea) # library data.table for fast grouping replacing aggregate()
+    # AGGREGATE PER SPECIES -----> SUM (IF WEIGHT) OR MEAN (IF CPUE)
+    eq1  <- c.listquote( paste ("sum(",nm[idx.col],",na.rm=TRUE)",sep="") )
+    tacsatSweptArea.agg <- DT[,eval(eq1),by=list(grID, LE_MET_init)]
+    tacsatSweptArea.agg <- data.frame( tacsatSweptArea.agg)
+    colnames(tacsatSweptArea.agg) <- c("grID", "LE_MET_init",  nm[idx.col.euro], nm[idx.col.kg], nm[idx.col.swpt], nm[idx.col.effectiveeffort])
+
+    
+     #- Add midpoint of gridcell to dataset
+     aggResult <- cbind(tacsatSweptArea.agg,CELL_LONG=coordinates(grd)[tacsatSweptArea.agg$grID,1],
+                        CELL_LATI=coordinates(grd)[tacsatSweptArea.agg$grID,2])
+
+     #- Remove records that are not in the study area 
+     aggResult       <- subset(aggResult,is.na(grID)==F)
+
+     save(aggResult,file=file.path(outPath,  paste("AggregatedSweptAreaPlusMet6_", a_year, ".RData", sep=""))) 
+  # DO the plot ordering cell from large revenue to lower revenue  and plot cumsum
     
     
    } # end year
