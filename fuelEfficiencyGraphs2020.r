@@ -60,8 +60,25 @@
  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
- per_metier_level6 <- FALSE
-
+ #---
+ per_metier_level6 <- TRUE
+ # find metiers lvl6 to merge
+ if(per_metier_level6){
+   res <- NULL
+   for (y in years){
+      load(file.path(getwd(),  paste0("AggregatedSweptAreaPlusMet6_",y,".RData") ))  # aggResult
+      dd <- tapply(aggResult$effort_mins, aggResult$LE_MET_init, sum)
+      res <- rbind.data.frame(res, cbind.data.frame(names(dd), dd))
+      }
+   res2 <- aggregate(res$dd, list(res[,1]), sum)
+   res3 <- orderBy(~ -x, res2)
+   oth_mets <- as.character(res3[cumsum(res3[,2])/sum(res3[,2])>.95,1])
+ }
+ #----
+ 
+ 
+ 
+      
  # aggregation per metier this year
  for (y in years){
     if(!per_metier_level6){
@@ -75,6 +92,24 @@
     }
     if(per_metier_level6) {
        load(file.path(getwd(),  paste0("AggregatedSweptAreaPlusMet6_",y,".RData") ))  # aggResult
+       # dd <- tapply(aggResult$effort_mins, aggResult$LE_MET_init, sum)
+       # dd <- dd[order(-dd)]
+       # names(dd[cumsum(dd)/sum(dd)>.99])
+       colnames(aggResult)[ colnames(aggResult) =="LE_MET_init"] <- "LE_MET"
+       aggResult$LE_MET <- factor(aggResult$LE_MET)
+       levels(aggResult$LE_MET)[levels(aggResult$LE_MET) %in% oth_mets] <- "OTHER_0_0"
+       levels(aggResult$LE_MET)[levels(aggResult$LE_MET) %in% "No_matrix6"] <- "OTHER_0_0"
+       levels(aggResult$LE_MET)[levels(aggResult$LE_MET) %in% "NA"] <- "OTHER_0_0"
+       levels(aggResult$LE_MET)[levels(aggResult$LE_MET) %in% "DRB_MOL_>=0_0_0"] <- "DRB_MOL_>0_0_0"
+
+      # code small vs large mesh
+      aggResult$target <- aggResult$LE_MET # init
+      code <- sapply(strsplit(levels(aggResult$target), split="_"), function(x) x[3])
+      levels(aggResult$target) <- code
+      levels(aggResult$target)[levels(aggResult$target) %in% c(">=105","90-119",">=120")] <- "LargeMesh"
+      levels(aggResult$target)[!levels(aggResult$target) %in% "LargeMesh"] <- "SmallMesh"
+      aggResult$LE_MET <- paste0(aggResult$target,"_",aggResult$LE_MET)
+
     }
     #head(aggResult)
     #range(aggResult$effort_mins)
@@ -107,7 +142,6 @@
 
 
     agg_by <- "LE_MET"
-    #agg_by <- "LE_MET_init"
 
    # aggregate ("sum" if absolute value, "mean" if ratio)
     nm <- names(aggResult)
@@ -219,15 +253,33 @@
  if(a_variable=="VPUFallsp") {a_ylab <- "VPUF  (euro per litre)";  ylims=c(0,max(as.data.frame(agg)[,a_variable],15))}
  if(a_variable=="VPUFSWAallsp") {a_ylab <- "VPUFSWA  (euro per swept area)";  ylims=c(0,max(as.data.frame(agg)[,a_variable],100000))}
 
-  a_width <- 6000 ; a_height <- 3000
- namefile <- paste0("barplot_fuel_efficiency", a_variable, "_", years[1], "-", years[length(years)], ".tif")
+  a_width <- 7000 ; a_height <- 3000
+   a_comment <- "" ; if(per_metier_level6) a_comment <- "_met6"
+
+ # dem
+ namefile <- paste0("barplot_fuel_efficiency", a_variable, "_", years[1], "-", years[length(years)], a_comment, "_DEM.tif")
  tiff(filename=file.path(getwd(), "output_plots",  namefile),   width = a_width, height = a_height,
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
-  p <- ggplot(data=agg, aes(x=LE_MET, y=value, fill=Stock)) + #  geom_bar(stat="identity", position=position_dodge())
+  the_agg <- agg[grep("LargeMesh",agg$LE_MET),]
+  the_agg$LE_MET <- gsub("LargeMesh_", "", the_agg$LE_MET)
+  p <- ggplot(data=the_agg, aes(x=LE_MET, y=value, fill=Stock)) + #  geom_bar(stat="identity", position=position_dodge())
   geom_bar(stat="identity")   + labs(y = a_ylab, x = "Fleet-segments")  + #ylim(ylims[1], ylims[2]) +
-       scale_fill_manual(values=color_species) + facet_wrap(. ~ year, scales = "free_y") + theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))
+       scale_fill_manual(values=color_species) + facet_grid(. ~ year) + theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5, size=8))
   print(p)
 dev.off()
+
+ # pel
+ namefile <- paste0("barplot_fuel_efficiency", a_variable, "_", years[1], "-", years[length(years)], a_comment, "_PEL.tif")
+ tiff(filename=file.path(getwd(), "output_plots",  namefile),   width = a_width, height = a_height,
+                                   units = "px", pointsize = 12,  res=600, compression = c("lzw"))
+  the_agg <- agg[grep("SmallMesh",agg$LE_MET),]
+  the_agg$LE_MET <- gsub("SmallMesh_", "", the_agg$LE_MET)
+  p <- ggplot(data=the_agg, aes(x=LE_MET, y=value, fill=Stock)) + #  geom_bar(stat="identity", position=position_dodge())
+  geom_bar(stat="identity")   + labs(y = a_ylab, x = "Fleet-segments")  + #ylim(ylims[1], ylims[2]) +
+       scale_fill_manual(values=color_species) + facet_grid(. ~ year) + theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5, size=8))
+  print(p)
+dev.off()
+
  ##!!!!!!!!!!!!!!!!!!!!!!!!!##
  ##!!!!!!!!!!!!!!!!!!!!!!!!!##
  ##!!!!!!!!!!!!!!!!!!!!!!!!!##
@@ -238,16 +290,33 @@ dev.off()
  ##!!!!!!!!!!!!!!!!!!!!!!!!!##
  ##!!!!!!!!!!!!!!!!!!!!!!!!!##
  ##!!!!!!!!!!!!!!!!!!!!!!!!!##
- a_width <- 6000 ; a_height <- 3000
- namefile <- paste0("ts_fuel_efficiency", a_variable, "_", years[1], "-", years[length(years)],  ".tif")
+ a_width <- 7000 ; a_height <- 3000
  library(ggplot2)
+
+ # dem
+ namefile <- paste0("ts_fuel_efficiency", a_variable, "_", years[1], "-", years[length(years)],  a_comment, "_DEM.tif")
  tiff(filename=file.path(getwd(), "output_plots",  namefile),   width = a_width, height = a_height,
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
- p <- ggplot(agg, aes(x=as.character(year), y=value, group=Stock)) +    facet_wrap(. ~ LE_MET, scales = "free_y")  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +   labs(y = a_ylab) +
+ the_agg <- agg[grep("LargeMesh",agg$LE_MET),]
+  the_agg$LE_MET <- gsub("LargeMesh_", "", the_agg$LE_MET)
+ p <- ggplot(the_agg, aes(x=as.character(year), y=value, group=Stock)) +    facet_wrap(. ~ LE_MET, scales = "free_y")  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +   labs(y = a_ylab) +
   geom_line(aes(color=Stock), size=1.5) +     labs(y = a_ylab, x = "Year")     + geom_point(aes(color=Stock), size=3)   + scale_color_manual(values=color_species) +
   xlab("")     #    + ylim(ylims[1], ylims[2])
  print(p)
 dev.off()
+
+# pel
+ namefile <- paste0("ts_fuel_efficiency", a_variable, "_", years[1], "-", years[length(years)],  a_comment, "_PEL.tif")
+ tiff(filename=file.path(getwd(), "output_plots",  namefile),   width = a_width, height = a_height,
+                                   units = "px", pointsize = 12,  res=600, compression = c("lzw"))
+ the_agg <- agg[grep("SmallMesh",agg$LE_MET),]
+  the_agg$LE_MET <- gsub("SmallMesh_", "", the_agg$LE_MET)
+ p <- ggplot(the_agg, aes(x=as.character(year), y=value, group=Stock)) +    facet_wrap(. ~ LE_MET, scales = "free_y")  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +   labs(y = a_ylab) +
+  geom_line(aes(color=Stock), size=1.5) +     labs(y = a_ylab, x = "Year")     + geom_point(aes(color=Stock), size=3)   + scale_color_manual(values=color_species) +
+  xlab("")     #    + ylim(ylims[1], ylims[2])
+ print(p)
+dev.off()
+
  ##!!!!!!!!!!!!!!!!!!!!!!!!!##
  ##!!!!!!!!!!!!!!!!!!!!!!!!!##
  ##!!!!!!!!!!!!!!!!!!!!!!!!!##
