@@ -4,7 +4,7 @@
  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
  ## Add-on to the BENTHIS WP2 workflow. Therefore possible repetation of some steps
 
- 
+cat("start couplingInterpolatedVmsToLandings2020.r\n")  
 rm(list=ls())
 library(vmstools)
 library(maps)
@@ -138,7 +138,6 @@ if(.Platform$OS.type == "unix") {
    }   # end a_year
 
 
-} # end splitAmongPings  
  
   ##-----------------------------------
   ## COMPUTE SWEPT AREA
@@ -333,6 +332,10 @@ if(.Platform$OS.type == "unix") {
    # 1. from the catches, figure out what has been fished for, close to each benthic stations....
    # 2. from catches, compute an efficiency indicator: catch per swept area => a way to identify the effective fisheries and priorities areas...
    #                                                                         i.e. what we aim for is high catches with low total swept area.
+   # Gear codes to keep (with assumed severe bottom impact)
+   gears2keep            <- c("TBB","OTT","OTB","SSC","SDN","PTB","DRB")
+   towedGears            <- c("TBB","OTT","OTB","PTB","DRB")
+   seineGears            <- c("SSC","SDN")
 
    for (a_year in years){
     cat(paste(a_year, "\n"))
@@ -347,7 +350,9 @@ if(.Platform$OS.type == "unix") {
      tacsatSweptArea[ idx, "effort_mins"] <- NA  # exclude change of haul
      idx <- which( tacsatSweptArea$effort_mins & tacsatSweptArea$LE_GEAR %in% seineGears > 75) # if interval > 75 min 
      tacsatSweptArea[ idx, "effort_mins"] <- NA  # exclude change of haul
-
+     idx <- which( tacsatSweptArea$effort_mins <0) #   
+     tacsatSweptArea[ idx, "effort_mins"] <- NA  # exclude change of vessel id
+     
     
     library(vmstools)
     xrange  <- c(-30,50) # ALL
