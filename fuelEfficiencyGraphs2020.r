@@ -5,12 +5,19 @@
 # aggregation per metier
 
 # aggregation per metier per region
+#  overlay with D:\FBA\BENTHIS_2020\FAO_AREAS
+ 
+# and compare with AER fleet segmentation and footprint estimates:
+# in D:\FBA\ADVICES\STECF\AERdata\STECF 19-06 - AER - Economic and Transversal data tables
+# "2019-08_STECF 19-06 - EU Fleet Landings species_FAO sub-region_all years.csv"
  
 # separate pelagic vs demersal
 
 # panel plot for years
  
-# independent workflow for passive gears (just using eflalo)
+# independent workflow for passive gears (just using (Danish) eflalo files)
+
+ library(doBy)
  
  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
@@ -52,8 +59,14 @@
                    "indianred2", "#EEC591", "#458B00", "#F0F8FF", "black", "#e3dcbf", "#CD5B45", "lightseagreen",
                    "#6495ED", "#CDC8B1", "#00FFFF", "#8B0000", "#008B8B", "#A9A9A9", "#76a5c4", "red", "yellow", "blue")
 
- #cbind.data.frame(spp,color_species)
+ some_color_species<- c("COD"="#E69F00", "CSH"="hotpink", "DAB"="#56B4E9", "ELE"="#F0E442", "FLE"="green",
+                       "HAD"="#0072B2", "HER"="mediumorchid4", "HKE"="#CC79A7","HOM"="indianred2", "LEM"="#EEC591",
+                        "MAC"="#458B00", "MON"="#F0F8FF", "MUS"="black", "NEP"="#e3dcbf", "NOP"="#CD5B45", "PLE"="lightseagreen",
+                        "POK"="#6495ED", "PRA"="#CDC8B1", "SAN"="#00FFFF", "SOL"="#8B0000", "SPR"="#008B8B", "TUR"="#A9A9A9", "WHB"="#76a5c4",
+                         "WIT"="red", "WHG"="yellow", "OTH"="blue")
 
+ per_metier_level6 <- TRUE
+ per_vessel_size <- TRUE
  
  
  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
@@ -61,9 +74,8 @@
  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
  #---
- per_metier_level6 <- TRUE
  # find metiers lvl6 to merge
- if(per_metier_level6){
+ if(per_metier_level6 && !per_vessel_size){
    res <- NULL
    for (y in years){
       load(file.path(getwd(),  paste0("AggregatedSweptAreaPlusMet6_",y,".RData") ))  # aggResult
@@ -76,12 +88,31 @@
  }
  #----
  
+  #---
+ # find metiers lvl6-Vsize to merge
+ if(per_metier_level6 && per_vessel_size){
+   res <- NULL
+   for (y in years){
+      load(file.path(getwd(),  paste0("AggregatedSweptAreaPlusMet6AndVsize_",y,".RData") ))  # aggResult
+      dd <- tapply(aggResult$effort_mins, paste0(aggResult$LE_MET_init, "_", aggResult$VesselSize), sum)
+      res <- rbind.data.frame(res, cbind.data.frame(names(dd), dd))
+      }
+   res2 <- aggregate(res$dd, list(res[,1]), sum)
+   res3 <- orderBy(~ -x, res2)
+   oth_mets <- as.character(res3[cumsum(res3[,2])/sum(res3[,2])>.95,1])
+ # met to keep
+ seg_to_keep <- as.character(res3[cumsum(res3[,2])/sum(res3[,2])<.95,1])
+ seg_to_keep[order(seg_to_keep)]
+ }
+ #----
  
+ 
+
  
       
  # aggregation per metier this year
  for (y in years){
-    if(!per_metier_level6){
+    if(!per_metier_level6 && !per_vessel_size){
         load(file.path(getwd(),  paste0("AggregatedSweptAreaPlus_",y,".RData") ))  # aggResult
         #correct some met:
         levels(aggResult$LE_MET)[levels(aggResult$LE_MET)=="OT_CRU"] <- "OT_MIX_NEP"
@@ -90,7 +121,7 @@
         levels(aggResult$LE_MET)[levels(aggResult$LE_MET)=="OT_DMF_PEL"] <- "OT_DMF"
         aggResult <- aggResult[!is.na(aggResult$LE_MET),]
     }
-    if(per_metier_level6) {
+    if(per_metier_level6 && !per_vessel_size) {
        load(file.path(getwd(),  paste0("AggregatedSweptAreaPlusMet6_",y,".RData") ))  # aggResult
        # dd <- tapply(aggResult$effort_mins, aggResult$LE_MET_init, sum)
        # dd <- dd[order(-dd)]
@@ -111,7 +142,30 @@
       aggResult$LE_MET <- paste0(aggResult$target,"_",aggResult$LE_MET)
 
     }
-    #head(aggResult)
+   
+     if(per_metier_level6 && per_vessel_size) {
+       load(file.path(getwd(),  paste0("AggregatedSweptAreaPlusMet6AndVsize_",y,".RData") ))  # aggResult
+       # dd <- tapply(aggResult$effort_mins, aggResult$LE_MET_init, sum)
+       # dd <- dd[order(-dd)]
+       # names(dd[cumsum(dd)/sum(dd)>.99])
+       colnames(aggResult)[ colnames(aggResult) =="LE_MET_init"] <- "LE_MET"
+       aggResult$LE_MET <- factor(paste0(aggResult$LE_MET, "_", aggResult$VesselSize))
+       levels(aggResult$LE_MET)[levels(aggResult$LE_MET) %in% oth_mets] <- "OTHER_0_0"
+       levels(aggResult$LE_MET)[levels(aggResult$LE_MET) %in% "No_matrix6"] <- "OTHER_0_0"
+       levels(aggResult$LE_MET)[levels(aggResult$LE_MET) %in% "NA"] <- "OTHER_0_0"
+       levels(aggResult$LE_MET)[levels(aggResult$LE_MET) %in% "DRB_MOL_>=0_0_0"] <- "DRB_MOL_>0_0_0"
+
+      # code small vs large mesh
+      aggResult$target <- aggResult$LE_MET # init
+      code <- sapply(strsplit(levels(aggResult$target), split="_"), function(x) x[3])
+      levels(aggResult$target) <- code
+      levels(aggResult$target)[levels(aggResult$target) %in% c(">=105","90-119",">=120","90-104")] <- "LargeMesh"
+      levels(aggResult$target)[!levels(aggResult$target) %in% "LargeMesh"] <- "SmallMesh"
+      aggResult$LE_MET <- paste0(aggResult$target,"_",aggResult$LE_MET)
+
+    }
+
+ #head(aggResult)
     #range(aggResult$effort_mins)
  
 
@@ -253,8 +307,8 @@
  if(a_variable=="VPUFallsp") {a_ylab <- "VPUF  (euro per litre)";  ylims=c(0,max(as.data.frame(agg)[,a_variable],15))}
  if(a_variable=="VPUFSWAallsp") {a_ylab <- "VPUFSWA  (euro per swept area)";  ylims=c(0,max(as.data.frame(agg)[,a_variable],100000))}
 
-  a_width <- 7000 ; a_height <- 3000
-   a_comment <- "" ; if(per_metier_level6) a_comment <- "_met6"
+  a_width <- 9000 ; a_height <- 4000
+   a_comment <- "" ; if(per_metier_level6) a_comment <- "_met6";  if(per_vessel_size) a_comment <- paste0(a_comment,"_vsize")
 
  # dem
  namefile <- paste0("barplot_fuel_efficiency", a_variable, "_", years[1], "-", years[length(years)], a_comment, "_DEM.tif")
@@ -264,7 +318,7 @@
   the_agg$LE_MET <- gsub("LargeMesh_", "", the_agg$LE_MET)
   p <- ggplot(data=the_agg, aes(x=LE_MET, y=value, fill=Stock)) + #  geom_bar(stat="identity", position=position_dodge())
   geom_bar(stat="identity")   + labs(y = a_ylab, x = "Fleet-segments")  + #ylim(ylims[1], ylims[2]) +
-       scale_fill_manual(values=color_species) + facet_grid(. ~ year) + theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5, size=8))
+       scale_fill_manual(values=some_color_species) + facet_grid(. ~ year) + theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5, size=8))
   print(p)
 dev.off()
 
@@ -276,7 +330,7 @@ dev.off()
   the_agg$LE_MET <- gsub("SmallMesh_", "", the_agg$LE_MET)
   p <- ggplot(data=the_agg, aes(x=LE_MET, y=value, fill=Stock)) + #  geom_bar(stat="identity", position=position_dodge())
   geom_bar(stat="identity")   + labs(y = a_ylab, x = "Fleet-segments")  + #ylim(ylims[1], ylims[2]) +
-       scale_fill_manual(values=color_species) + facet_grid(. ~ year) + theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5, size=8))
+       scale_fill_manual(values=some_color_species) + facet_grid(. ~ year) + theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5, size=8))
   print(p)
 dev.off()
 
@@ -290,7 +344,7 @@ dev.off()
  ##!!!!!!!!!!!!!!!!!!!!!!!!!##
  ##!!!!!!!!!!!!!!!!!!!!!!!!!##
  ##!!!!!!!!!!!!!!!!!!!!!!!!!##
- a_width <- 7000 ; a_height <- 3000
+ a_width <- 9000 ; a_height <- 4000
  library(ggplot2)
 
  # dem
@@ -300,7 +354,8 @@ dev.off()
  the_agg <- agg[grep("LargeMesh",agg$LE_MET),]
   the_agg$LE_MET <- gsub("LargeMesh_", "", the_agg$LE_MET)
  p <- ggplot(the_agg, aes(x=as.character(year), y=value, group=Stock)) +    facet_wrap(. ~ LE_MET, scales = "free_y")  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +   labs(y = a_ylab) +
-  geom_line(aes(color=Stock), size=1.5) +     labs(y = a_ylab, x = "Year")     + geom_point(aes(color=Stock), size=3)   + scale_color_manual(values=color_species) +
+  geom_line(aes(color=Stock), size=1.5) +     labs(y = a_ylab, x = "Year")     + geom_point(aes(color=Stock), size=3)   +
+   scale_color_manual(values=some_color_species) +
   xlab("")     #    + ylim(ylims[1], ylims[2])
  print(p)
 dev.off()
@@ -310,9 +365,9 @@ dev.off()
  tiff(filename=file.path(getwd(), "output_plots",  namefile),   width = a_width, height = a_height,
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
  the_agg <- agg[grep("SmallMesh",agg$LE_MET),]
-  the_agg$LE_MET <- gsub("SmallMesh_", "", the_agg$LE_MET)
+  the_agg$LE_MET <- gsub("SmallMesh_", "", the_agg$LE_MET)  
  p <- ggplot(the_agg, aes(x=as.character(year), y=value, group=Stock)) +    facet_wrap(. ~ LE_MET, scales = "free_y")  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +   labs(y = a_ylab) +
-  geom_line(aes(color=Stock), size=1.5) +     labs(y = a_ylab, x = "Year")     + geom_point(aes(color=Stock), size=3)   + scale_color_manual(values=color_species) +
+  geom_line(aes(color=Stock), size=1.5) +     labs(y = a_ylab, x = "Year")     + geom_point(aes(color=Stock), size=3)   + scale_color_manual(values=some_color_species) +
   xlab("")     #    + ylim(ylims[1], ylims[2])
  print(p)
 dev.off()
@@ -326,3 +381,7 @@ dev.off()
 } # end a_variable
  
  
+
+
+
+

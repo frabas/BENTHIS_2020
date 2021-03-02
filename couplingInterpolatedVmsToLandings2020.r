@@ -353,7 +353,10 @@ if(.Platform$OS.type == "unix") {
      idx <- which( tacsatSweptArea$effort_mins <0) #   
      tacsatSweptArea[ idx, "effort_mins"] <- NA  # exclude change of vessel id
      
-    
+     # vessel size
+     #12-18, 18-24, 24-40, o40
+     tacsatSweptArea$VesselSize <- cut(tacsatSweptArea$VE_LEN, breaks=c(0,11.99,17.99,23.99,39.99,100), right=FALSE)
+     
     library(vmstools)
     xrange  <- c(-30,50) # ALL
     yrange  <- c(30,81) # ALL
@@ -447,7 +450,34 @@ if(.Platform$OS.type == "unix") {
 
      save(aggResult,file=file.path(outPath,  paste("AggregatedSweptAreaPlusMet6_", a_year, ".RData", sep=""))) 
   # DO the plot ordering cell from large revenue to lower revenue  and plot cumsum
+  
+  
+     # aggregate per LE_MET_init & Vessel size
+    library(data.table)
+    nm <- names(tacsatSweptArea)
+    idx.col.euro   <- grep('LE_EURO_', nm)
+    idx.col.kg     <- grep('LE_KG_', nm)
+    idx.col.swpt     <- grep('SWEPT_AREA_KM2', nm)
+    idx.col.effectiveeffort     <- grep('effort_mins', nm)
+    idx.col <- c(idx.col.euro, idx.col.kg, idx.col.swpt, idx.col.effectiveeffort)
+    DT  <- data.table(tacsatSweptArea) # library data.table for fast grouping replacing aggregate()
+    # AGGREGATE PER SPECIES -----> SUM (IF WEIGHT) OR MEAN (IF CPUE)
+    eq1  <- c.listquote( paste ("sum(",nm[idx.col],",na.rm=TRUE)",sep="") )
+    tacsatSweptArea.agg <- DT[,eval(eq1),by=list(grID, LE_MET_init, VesselSize)]
+    tacsatSweptArea.agg <- data.frame( tacsatSweptArea.agg)
+    colnames(tacsatSweptArea.agg) <- c("grID", "LE_MET_init", "VesselSize", nm[idx.col.euro], nm[idx.col.kg], nm[idx.col.swpt], nm[idx.col.effectiveeffort])
+
     
+     #- Add midpoint of gridcell to dataset
+     aggResult <- cbind(tacsatSweptArea.agg,CELL_LONG=coordinates(grd)[tacsatSweptArea.agg$grID,1],
+                        CELL_LATI=coordinates(grd)[tacsatSweptArea.agg$grID,2])
+
+     #- Remove records that are not in the study area 
+     aggResult       <- subset(aggResult,is.na(grID)==F)
+
+     save(aggResult,file=file.path(outPath,  paste("AggregatedSweptAreaPlusMet6AndVsize_", a_year, ".RData", sep=""))) 
+  # DO the plot ordering cell from large revenue to lower revenue  and plot cumsum
+  
     
    } # end year
     
