@@ -1,5 +1,5 @@
 
- setwd (file.path("D:","FBA","BENTHIS_2020","outputs2020"))   # adapt to your need
+ setwd (file.path("D:","FBA","BENTHIS_2020"))   # adapt to your need
 
 #TODO
 # aggregation per metier
@@ -67,8 +67,13 @@
 
  per_metier_level6 <- TRUE
  per_vessel_size <- TRUE
+ per_region     <- TRUE
  
+ # search in Baltic and North Sea
+ fao_areas  <- readOGR(file.path(getwd(), "FAO_AREAS", "FAO_AREAS.shp"))
+ fao_areas  <- fao_areas[ grepl("27", fao_areas$F_AREA) & fao_areas$F_SUBAREA %in% c("27.3", "27.4", "27.2") & fao_areas$F_LEVEL!="MAJOR",] # caution with the MAJOR overidding the over()
  
+     
  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
@@ -78,7 +83,7 @@
  if(per_metier_level6 && !per_vessel_size){
    res <- NULL
    for (y in years){
-      load(file.path(getwd(),  paste0("AggregatedSweptAreaPlusMet6_",y,".RData") ))  # aggResult
+      load(file.path(getwd(), "outputs2020", paste0("AggregatedSweptAreaPlusMet6_",y,".RData") ))  # aggResult
       aggResult$LE_MET_init <- factor(aggResult$LE_MET_init)
       levels(aggResult$LE_MET_init) <- gsub("MCD", "CRU", levels(aggResult$LE_MET_init)) # immediate correction to avoid useless historical renaming MCD->CRU
 
@@ -88,7 +93,7 @@
       }
    res2 <- aggregate(res$dd, list(res[,1]), sum)
    res3 <- orderBy(~ -x, res2)
-   oth_mets <- as.character(res3[cumsum(res3[,2])/sum(res3[,2])>.95,1])
+   oth_mets <- as.character(res3[cumsum(res3[,2])/sum(res3[,2])>.95,1]) # 95% in effort
  }
  #----
  
@@ -97,20 +102,48 @@
  if(per_metier_level6 && per_vessel_size){
    res <- NULL
    for (y in years){
-      load(file.path(getwd(),  paste0("AggregatedSweptAreaPlusMet6AndVsize_",y,".RData") ))  # aggResult
+      load(file.path(getwd(),  "outputs2020", paste0("AggregatedSweptAreaPlusMet6AndVsize_",y,".RData") ))  # aggResult
       aggResult$LE_MET_init <- factor(aggResult$LE_MET_init)
       levels(aggResult$LE_MET_init) <- gsub("MCD", "CRU", levels(aggResult$LE_MET_init)) # immediate correction to avoid useless historical renaming MCD->CRU
 
-      dd <- tapply(aggResult$effort_mins, paste0(aggResult$LE_MET_init, "_", aggResult$VesselSize), sum)
+       # code F_SUBAREA (time consuming code...)
+      # Convert all points first to SpatialPoints first
+      library(rgdal)
+      library(raster)
+      an <- function(x) as.numeric(as.character(x))
+      coords <- SpatialPoints(cbind(SI_LONG=an(aggResult[, "CELL_LONG"]), SI_LATI=an(aggResult[, "CELL_LATI"])))
+      fao_areas <- spTransform(fao_areas, CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"))    # convert to longlat
+      projection(coords) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")   # a guess!
+      idx <- over(coords, fao_areas)
+      aggResult$F_SUBAREA <- idx[,"F_SUBAREA"]
+      aggResult[is.na(aggResult$F_SUBAREA), "F_SUBAREA"] <- "27.4" # few points on coastline
+      aggResult$F_DIVISION <- idx[,"F_DIVISION"]
+      aggResult[is.na(aggResult$F_DIVISION), "F_DIVISION"] <- paste0(aggResult[is.na(aggResult$F_DIVISION), "F_SUBAREA"],".a") # few points on coastline      
+      
+      # code small vs large mesh
+      aggResult$target <- aggResult$LE_MET # init
+      code <- sapply(strsplit(levels(aggResult$target), split="_"), function(x) x[3])
+      levels(aggResult$target) <- code
+      levels(aggResult$target)[levels(aggResult$target) %in% c(">=105","100-119","90-119",">=120","90-104")] <- "LargeMesh"
+      levels(aggResult$target)[!levels(aggResult$target) %in% "LargeMesh"] <- "SmallMesh"
+    
+      dd <- tapply(aggResult$effort_mins, paste0(aggResult$target, "_", aggResult$F_SUBAREA, "_", aggResult$LE_MET_init, "_", aggResult$VesselSize), sum)
       res <- rbind.data.frame(res, cbind.data.frame(names(dd), dd))
       }
-   res2 <- aggregate(res$dd, list(res[,1]), sum)
-   res3 <- orderBy(~ -x, res2)
-   oth_mets <- as.character(res3[cumsum(res3[,2])/sum(res3[,2])>.95,1])
+      
+   pel <- res[grep("SmallMesh",res[,1]),]
+   pel <- aggregate(pel$dd, list(pel[,1]), sum)
+   pel <- orderBy(~ -x, pel)
+   oth_mets_pel <- as.character(pel[cumsum(pel[,2])/sum(pel[,2])>.90,1]) # 90% in effort in pel
+  
+   dem <- res[grep("LargeMesh",res[,1]),]
+   dem <- aggregate(dem$dd, list(dem[,1]), sum)
+   dem <- orderBy(~ -x, dem)
+   oth_mets_dem <- as.character(dem[cumsum(dem[,2])/sum(dem[,2])>.90,1]) # 90% in effort in dem
+ 
+ 
  # met to keep
- seg_to_keep <- as.character(res3[cumsum(res3[,2])/sum(res3[,2])<.95,1])
- seg_to_keep[order(seg_to_keep)]
- oth_mets <- c(oth_mets, paste0("No_Matrix6","_",levels(aggResult$VesselSize)), paste0("NA","_",levels(aggResult$VesselSize)))
+ oth_mets <- c(oth_mets_dem, oth_mets_pel, "27.3_No_Matrix6_[12,18)","27.4_No_Matrix6_[12,18)", "27.3_No_Matrix6_[18,24)","27.4_No_Matrix6_[18,24)", paste0("NA","_",levels(aggResult$VesselSize)) )
  }
  #----
  
@@ -121,9 +154,9 @@
  # aggregation per metier this year
  for (y in years){
     if(!per_metier_level6 && !per_vessel_size){
-        load(file.path(getwd(),  paste0("AggregatedSweptAreaPlus_",y,".RData") ))  # aggResult
+        load(file.path(getwd(), "outputs2020", paste0("AggregatedSweptAreaPlus_",y,".RData") ))  # aggResult
         aggResult$LE_MET_init <- factor(aggResult$LE_MET_init)
-       levels(aggResult$LE_MET_init) <- gsub("MCD", "CRU", levels(aggResult$LE_MET_init)) # immediate correction to avoid useless historical renaming MCD->CRU
+       levels(aggResult$LE_MET_init) <- gsub("MCD", "CRU", levels(aggResult$LE_MET_init)) # immediate correction to avoid useless historical renaming of MCD->CRU
 
         
         #correct some met:
@@ -134,7 +167,7 @@
         aggResult <- aggResult[!is.na(aggResult$LE_MET),]
     }
     if(per_metier_level6 && !per_vessel_size) {
-       load(file.path(getwd(),  paste0("AggregatedSweptAreaPlusMet6_",y,".RData") ))  # aggResult
+       load(file.path(getwd(), "outputs2020", paste0("AggregatedSweptAreaPlusMet6_",y,".RData") ))  # aggResult
        aggResult$LE_MET_init <- factor(aggResult$LE_MET_init)
        levels(aggResult$LE_MET_init) <- gsub("MCD", "CRU", levels(aggResult$LE_MET_init)) # immediate correction to avoid useless historical renaming MCD->CRU
        
@@ -159,7 +192,7 @@
     }
    
      if(per_metier_level6 && per_vessel_size) {
-       load(file.path(getwd(),  paste0("AggregatedSweptAreaPlusMet6AndVsize_",y,".RData") ))  # aggResult
+       load(file.path(getwd(), "outputs2020", paste0("AggregatedSweptAreaPlusMet6AndVsize_",y,".RData") ))  # aggResult
        aggResult$LE_MET_init <- factor(aggResult$LE_MET_init)
        levels(aggResult$LE_MET_init) <- gsub("MCD", "CRU", levels(aggResult$LE_MET_init)) # immediate correction to avoid useless historical renaming MCD->CRU
 
@@ -169,20 +202,36 @@
        colnames(aggResult)[ colnames(aggResult) =="LE_MET_init"] <- "LE_MET"
        aggResult$LE_MET <- factor(aggResult$LE_MET)
        levels(aggResult$LE_MET)[levels(aggResult$LE_MET) %in% "DRB_MOL_>0_0_0"] <- "DRB_MOL_>=0_0_0"
-       aggResult$LE_MET <- factor(paste0(aggResult$LE_MET, "_", aggResult$VesselSize))
-       levels(aggResult$LE_MET)[levels(aggResult$LE_MET) %in% oth_mets] <- "OTHER_0_0"
        
+   
+      # code F_SUBAREA (time consuming code...)
+      # Convert all points first to SpatialPoints first
+      library(rgdal)
+      library(raster)
+      an <- function(x) as.numeric(as.character(x))
+      coords <- SpatialPoints(cbind(SI_LONG=an(aggResult[, "CELL_LONG"]), SI_LATI=an(aggResult[, "CELL_LATI"])))
+      fao_areas <- spTransform(fao_areas, CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"))    # convert to longlat
+      projection(coords) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")   # a guess!
+      idx <- over(coords, fao_areas)
+      aggResult$F_SUBAREA <- idx[,"F_SUBAREA"]
+      aggResult[is.na(aggResult$F_SUBAREA), "F_SUBAREA"] <- "27.4" # few points on coastline
+      aggResult$F_DIVISION <- idx[,"F_DIVISION"]
+      aggResult[is.na(aggResult$F_DIVISION), "F_DIVISION"] <- paste0(aggResult[is.na(aggResult$F_DIVISION), "F_SUBAREA"],".a") # few points on coastline      
+    
       # code small vs large mesh
       aggResult$target <- aggResult$LE_MET # init
       code <- sapply(strsplit(levels(aggResult$target), split="_"), function(x) x[3])
       levels(aggResult$target) <- code
       levels(aggResult$target)[levels(aggResult$target) %in% c(">=105","100-119","90-119",">=120","90-104")] <- "LargeMesh"
       levels(aggResult$target)[!levels(aggResult$target) %in% "LargeMesh"] <- "SmallMesh"
-      aggResult$LE_MET <- paste0(aggResult$target,"_",aggResult$LE_MET)
+  
+      aggResult$LE_MET <- factor(paste0(aggResult$target, "_", aggResult$F_SUBAREA,"_", aggResult$LE_MET, "_", aggResult$VesselSize))
+      levels(aggResult$LE_MET)[levels(aggResult$LE_MET) %in% oth_mets] <- "LargeMesh_OTHER_0_0_0"
+     
+  
+  }
 
-    }
-
- #head(aggResult)
+    #head(aggResult)
     #range(aggResult$effort_mins)
  
 
@@ -256,7 +305,13 @@
 
 
    assign(paste0("aggResultPerMet_", y), aggResultPerMet)
-  }
+  } # end y
+
+
+ # check
+ unique(aggResultPerMet$LE_MET)
+ 
+
 
  ##!!!!!!!!!!!!!!!!!!!!!!!!!##
  ##!!!!!!!!!!!!!!!!!!!!!!!!!##
@@ -325,11 +380,11 @@
  if(a_variable=="VPUFSWAallsp") {a_ylab <- "VPUFSWA  (euro per swept area)";  ylims=c(0,max(as.data.frame(agg)[,a_variable],100000))}
 
   a_width <- 9000 ; a_height <- 4000
-   a_comment <- "" ; if(per_metier_level6) a_comment <- "_met6";  if(per_vessel_size) a_comment <- paste0(a_comment,"_vsize")
+   a_comment <- "" ; if(per_metier_level6) a_comment <- "_met6";  if(per_vessel_size) a_comment <- paste0(a_comment,"_vsize") ; if(per_region) a_comment <- paste0(a_comment,"_region")
 
  # dem
  namefile <- paste0("barplot_fuel_efficiency", a_variable, "_", years[1], "-", years[length(years)], a_comment, "_DEM.tif")
- tiff(filename=file.path(getwd(), "output_plots",  namefile),   width = a_width, height = a_height,
+ tiff(filename=file.path(getwd(), "outputs2020", "output_plots",  namefile),   width = a_width, height = a_height,
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
   the_agg <- agg[grep("LargeMesh",agg$LE_MET),]
   the_agg$LE_MET <- gsub("LargeMesh_", "", the_agg$LE_MET)
@@ -341,7 +396,7 @@ dev.off()
 
  # pel
  namefile <- paste0("barplot_fuel_efficiency", a_variable, "_", years[1], "-", years[length(years)], a_comment, "_PEL.tif")
- tiff(filename=file.path(getwd(), "output_plots",  namefile),   width = a_width, height = a_height,
+ tiff(filename=file.path(getwd(), "outputs2020", "output_plots",  namefile),   width = a_width, height = a_height,
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
   the_agg <- agg[grep("SmallMesh",agg$LE_MET),]
   the_agg$LE_MET <- gsub("SmallMesh_", "", the_agg$LE_MET)
@@ -366,7 +421,7 @@ dev.off()
 
  # dem
  namefile <- paste0("ts_fuel_efficiency", a_variable, "_", years[1], "-", years[length(years)],  a_comment, "_DEM.tif")
- tiff(filename=file.path(getwd(), "output_plots",  namefile),   width = a_width, height = a_height,
+ tiff(filename=file.path(getwd(), "outputs2020", "output_plots",  namefile),   width = a_width, height = a_height,
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
  the_agg <- agg[grep("LargeMesh",agg$LE_MET),]
   the_agg$LE_MET <- gsub("LargeMesh_", "", the_agg$LE_MET)
@@ -379,7 +434,7 @@ dev.off()
 
 # pel
  namefile <- paste0("ts_fuel_efficiency", a_variable, "_", years[1], "-", years[length(years)],  a_comment, "_PEL.tif")
- tiff(filename=file.path(getwd(), "output_plots",  namefile),   width = a_width, height = a_height,
+ tiff(filename=file.path(getwd(), "outputs2020", "output_plots",  namefile),   width = a_width, height = a_height,
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
  the_agg <- agg[grep("SmallMesh",agg$LE_MET),]
   the_agg$LE_MET <- gsub("SmallMesh_", "", the_agg$LE_MET)  
@@ -404,8 +459,9 @@ dev.off()
 
  # dem
  namefile <- paste0("ts_fuel_efficiency", a_variable, "_", years[1], "-", years[length(years)],  a_comment, "_DEM_areaplot.tif")
- tiff(filename=file.path(getwd(), "output_plots",  namefile),   width = a_width, height = a_height,
+ tiff(filename=file.path(getwd(), "outputs2020", "output_plots",  namefile),   width = a_width, height = a_height,
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
+ 
  the_agg <- agg[grep("LargeMesh",agg$LE_MET),]
  
  # a visual fix adding all combi--
@@ -429,7 +485,7 @@ dev.off()
 
 # pel
  namefile <- paste0("ts_fuel_efficiency", a_variable, "_", years[1], "-", years[length(years)],  a_comment, "_PEL_areaplot.tif")
- tiff(filename=file.path(getwd(), "output_plots",  namefile),   width = a_width, height = a_height,
+ tiff(filename=file.path(getwd(), "outputs2020", "output_plots",  namefile),   width = a_width, height = a_height,
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
  the_agg <- agg[grep("SmallMesh",agg$LE_MET),]
  
