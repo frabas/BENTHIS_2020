@@ -79,6 +79,10 @@
    res <- NULL
    for (y in years){
       load(file.path(getwd(),  paste0("AggregatedSweptAreaPlusMet6_",y,".RData") ))  # aggResult
+      aggResult$LE_MET_init <- factor(aggResult$LE_MET_init)
+      levels(aggResult$LE_MET_init) <- gsub("MCD", "CRU", levels(aggResult$LE_MET_init)) # immediate correction to avoid useless historical renaming MCD->CRU
+
+      
       dd <- tapply(aggResult$effort_mins, aggResult$LE_MET_init, sum)
       res <- rbind.data.frame(res, cbind.data.frame(names(dd), dd))
       }
@@ -94,6 +98,9 @@
    res <- NULL
    for (y in years){
       load(file.path(getwd(),  paste0("AggregatedSweptAreaPlusMet6AndVsize_",y,".RData") ))  # aggResult
+      aggResult$LE_MET_init <- factor(aggResult$LE_MET_init)
+      levels(aggResult$LE_MET_init) <- gsub("MCD", "CRU", levels(aggResult$LE_MET_init)) # immediate correction to avoid useless historical renaming MCD->CRU
+
       dd <- tapply(aggResult$effort_mins, paste0(aggResult$LE_MET_init, "_", aggResult$VesselSize), sum)
       res <- rbind.data.frame(res, cbind.data.frame(names(dd), dd))
       }
@@ -103,6 +110,7 @@
  # met to keep
  seg_to_keep <- as.character(res3[cumsum(res3[,2])/sum(res3[,2])<.95,1])
  seg_to_keep[order(seg_to_keep)]
+ oth_mets <- c(oth_mets, paste0("No_Matrix6","_",levels(aggResult$VesselSize)), paste0("NA","_",levels(aggResult$VesselSize)))
  }
  #----
  
@@ -114,6 +122,10 @@
  for (y in years){
     if(!per_metier_level6 && !per_vessel_size){
         load(file.path(getwd(),  paste0("AggregatedSweptAreaPlus_",y,".RData") ))  # aggResult
+        aggResult$LE_MET_init <- factor(aggResult$LE_MET_init)
+       levels(aggResult$LE_MET_init) <- gsub("MCD", "CRU", levels(aggResult$LE_MET_init)) # immediate correction to avoid useless historical renaming MCD->CRU
+
+        
         #correct some met:
         levels(aggResult$LE_MET)[levels(aggResult$LE_MET)=="OT_CRU"] <- "OT_MIX_NEP"
         levels(aggResult$LE_MET)[levels(aggResult$LE_MET)=="OT_MIX_DMF_PEL"] <- "OT_DMF_PEL"
@@ -123,6 +135,9 @@
     }
     if(per_metier_level6 && !per_vessel_size) {
        load(file.path(getwd(),  paste0("AggregatedSweptAreaPlusMet6_",y,".RData") ))  # aggResult
+       aggResult$LE_MET_init <- factor(aggResult$LE_MET_init)
+       levels(aggResult$LE_MET_init) <- gsub("MCD", "CRU", levels(aggResult$LE_MET_init)) # immediate correction to avoid useless historical renaming MCD->CRU
+       
        # dd <- tapply(aggResult$effort_mins, aggResult$LE_MET_init, sum)
        # dd <- dd[order(-dd)]
        # names(dd[cumsum(dd)/sum(dd)>.99])
@@ -145,21 +160,23 @@
    
      if(per_metier_level6 && per_vessel_size) {
        load(file.path(getwd(),  paste0("AggregatedSweptAreaPlusMet6AndVsize_",y,".RData") ))  # aggResult
+       aggResult$LE_MET_init <- factor(aggResult$LE_MET_init)
+       levels(aggResult$LE_MET_init) <- gsub("MCD", "CRU", levels(aggResult$LE_MET_init)) # immediate correction to avoid useless historical renaming MCD->CRU
+
        # dd <- tapply(aggResult$effort_mins, aggResult$LE_MET_init, sum)
        # dd <- dd[order(-dd)]
        # names(dd[cumsum(dd)/sum(dd)>.99])
        colnames(aggResult)[ colnames(aggResult) =="LE_MET_init"] <- "LE_MET"
+       aggResult$LE_MET <- factor(aggResult$LE_MET)
+       levels(aggResult$LE_MET)[levels(aggResult$LE_MET) %in% "DRB_MOL_>0_0_0"] <- "DRB_MOL_>=0_0_0"
        aggResult$LE_MET <- factor(paste0(aggResult$LE_MET, "_", aggResult$VesselSize))
        levels(aggResult$LE_MET)[levels(aggResult$LE_MET) %in% oth_mets] <- "OTHER_0_0"
-       levels(aggResult$LE_MET)[levels(aggResult$LE_MET) %in% "No_matrix6"] <- "OTHER_0_0"
-       levels(aggResult$LE_MET)[levels(aggResult$LE_MET) %in% "NA"] <- "OTHER_0_0"
-       levels(aggResult$LE_MET)[levels(aggResult$LE_MET) %in% "DRB_MOL_>=0_0_0"] <- "DRB_MOL_>0_0_0"
-
+       
       # code small vs large mesh
       aggResult$target <- aggResult$LE_MET # init
       code <- sapply(strsplit(levels(aggResult$target), split="_"), function(x) x[3])
       levels(aggResult$target) <- code
-      levels(aggResult$target)[levels(aggResult$target) %in% c(">=105","90-119",">=120","90-104")] <- "LargeMesh"
+      levels(aggResult$target)[levels(aggResult$target) %in% c(">=105","100-119","90-119",">=120","90-104")] <- "LargeMesh"
       levels(aggResult$target)[!levels(aggResult$target) %in% "LargeMesh"] <- "SmallMesh"
       aggResult$LE_MET <- paste0(aggResult$target,"_",aggResult$LE_MET)
 
@@ -376,6 +393,72 @@ dev.off()
  ##!!!!!!!!!!!!!!!!!!!!!!!!!##
  ##!!!!!!!!!!!!!!!!!!!!!!!!!##
 
+
+
+ 
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!##
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!##
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!##
+ a_width <- 9000 ; a_height <- 4000
+ library(ggplot2)
+
+ # dem
+ namefile <- paste0("ts_fuel_efficiency", a_variable, "_", years[1], "-", years[length(years)],  a_comment, "_DEM_areaplot.tif")
+ tiff(filename=file.path(getwd(), "output_plots",  namefile),   width = a_width, height = a_height,
+                                   units = "px", pointsize = 12,  res=600, compression = c("lzw"))
+ the_agg <- agg[grep("LargeMesh",agg$LE_MET),]
+ 
+ # a visual fix adding all combi--
+ dd <- expand.grid(LE_MET=levels(factor(the_agg$LE_MET)), Stock=levels(factor(the_agg$Stock)), year=levels(factor(the_agg$year)))
+ dd$value <- 0
+ dd[,a_variable] <- 0
+ dd <- dd[,colnames(the_agg)]
+ rownames(the_agg) <- paste0(the_agg$LE_MET,the_agg$Stock,the_agg$year)
+ rownames(dd) <- paste0(dd$LE_MET,dd$Stock,dd$year)
+ dd <- dd[!rownames(dd)%in%rownames(the_agg),]
+ the_agg <- rbind.data.frame(the_agg, dd)
+ #---
+
+  the_agg$LE_MET <- gsub("LargeMesh_", "", the_agg$LE_MET)
+ p <- ggplot(the_agg, aes(x=as.character(year), y=value, group=Stock)) +    facet_wrap(. ~ LE_MET, scales = "free_y")  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +   labs(y = a_ylab) +
+  geom_area(aes( fill=Stock))  +     labs(y = a_ylab, x = "Year")   +
+   scale_fill_manual(values=some_color_species) +
+  xlab("")     #    + ylim(ylims[1], ylims[2])
+ print(p)
+dev.off()
+
+# pel
+ namefile <- paste0("ts_fuel_efficiency", a_variable, "_", years[1], "-", years[length(years)],  a_comment, "_PEL_areaplot.tif")
+ tiff(filename=file.path(getwd(), "output_plots",  namefile),   width = a_width, height = a_height,
+                                   units = "px", pointsize = 12,  res=600, compression = c("lzw"))
+ the_agg <- agg[grep("SmallMesh",agg$LE_MET),]
+ 
+ # a visual fix adding all combi--
+ dd <- expand.grid(LE_MET=levels(factor(the_agg$LE_MET)), Stock=levels(factor(the_agg$Stock)), year=levels(factor(the_agg$year)))
+ dd$value <- 0
+ dd[,a_variable] <- 0
+ dd <- dd[,colnames(the_agg)]
+ rownames(the_agg) <- paste0(the_agg$LE_MET,the_agg$Stock,the_agg$year)
+ rownames(dd) <- paste0(dd$LE_MET,dd$Stock,dd$year)
+ dd <- dd[!rownames(dd)%in%rownames(the_agg),]
+ the_agg <- rbind.data.frame(the_agg, dd)
+ #---
+ 
+  the_agg$LE_MET <- gsub("SmallMesh_", "", the_agg$LE_MET)  
+ p <- ggplot(the_agg, aes(x=as.character(year), y=value, group=Stock)) + 
+     facet_wrap(. ~ LE_MET, scales = "free_y")  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +   labs(y = a_ylab) +
+  geom_area(aes(fill=Stock))  +     labs(y = a_ylab, x = "Year")   +
+   scale_fill_manual(values=some_color_species) +
+    xlab("")
+ print(p)
+dev.off()
+
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!##
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!##
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!##
+
+
+ 
   
  
 } # end a_variable
