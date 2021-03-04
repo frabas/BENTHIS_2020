@@ -4,5 +4,6 @@
 !/EflaloAndTacsat/tacsat_2019_example.RData
 /EflaloAndTacsat/*.csv
 /outputs2020/*
+/outputs2020_pel/*
 benthisMapping2020.r
 
