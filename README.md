@@ -6,6 +6,10 @@
 ** BenthisWorkflow2020.r is used to obtain a gridded swept area from interpolating bottom contacting gears tracks,
 ** couplingInterpolatedVmsToLandings2020.r is of use to obtain spatial origin of catches (landings) by dispatching landings back to interpolated VMS positions
 
+* Equivalent but separated coding is provided for vessels using Pelagic Gears (e.g. OTM, PTM or PS).
+
+* fuelEfficiencyGraphs2020.r provides a routine for plotting Value Per Unit Fuel and other ratios per aggregation of fleet-segments and FAO areas
+
 * quickmap2020.r provides a routine for mapping the gridded data per fishery and species
 
 * 2 example shell scripts to run on a High Performance Computing (HPC) service are also provided as

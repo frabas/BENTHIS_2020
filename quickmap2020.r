@@ -1,6 +1,6 @@
 
 
- setwd (file.path("D:","FBA","BENTHIS_2020","outputs2020"))   # adapt to your need
+ setwd (file.path("D:","FBA","BENTHIS_2020"))   # adapt to your need
  
  
  
@@ -43,7 +43,7 @@ function (pnts, cols = heat.colors(100), limits = c(0, 1), title = "Legend", leg
 ##!!!CORE FUNCTION!!!##
 ##!!!!!!!!!!!!!!!!!!!##
 quickmap <- function(namefile = paste0("LE_KG_COD_2019", ".tif"), 
-                     a_file   = file.path(getwd(),  paste("AggregatedSweptAreaPlus_2019.RData") ), 
+                     a_file   = file.path(getwd(),"outputs2020", paste("AggregatedSweptAreaPlus_2019.RData") ), 
                      nameobj  = "aggResult",
                      a_met    = NULL,
                      nametype = "LE_KG_COD",
@@ -56,10 +56,11 @@ quickmap <- function(namefile = paste0("LE_KG_COD_2019", ".tif"),
                      ylims    = c(50,65),
                      spatial_polys=NULL,
                      a_width=2000,
-                     a_height=2000
+                     a_height=2000,
+                     output_dir=file.path(getwd(), "outputs2020", "output_plots" )
 ){
  
-  dir.create(file.path(getwd(), "output_plots"))
+  dir.create(output_dir, recursive=TRUE)
   
   an <- function(x) as.numeric(as.character(x))
  
@@ -111,7 +112,7 @@ quickmap <- function(namefile = paste0("LE_KG_COD_2019", ".tif"),
    rstr_eea     <- projectRaster(rstr, crs="+proj=laea +lat_0=52 +lon_0=10 +x_0=4321000 +y_0=3210000 +ellps=GRS80 +units=m +no_defs")
    rstr_eea[is.na(rstr_eea)] <- -999
    rstr_eea[rstr_eea<0.001]  <- -999
-   writeRaster(rstr_eea, file.path(getwd(), "output_plots","AnnualAgg2RasterEEA"), format = "GTiff")
+   writeRaster(rstr_eea, file.path(getwd(), "outputs2020", "output_plots","AnnualAgg2RasterEEA"), format = "GTiff")
    
    ##
    #ArcGIS 10.1 Workflow for producing the BENTHIS WP2 map final polishing:
@@ -152,16 +153,22 @@ quickmap <- function(namefile = paste0("LE_KG_COD_2019", ".tif"),
  #Satellite.Palette.baseline <- colorRampPalette(c("red","orange","aquamarine","cyan"))  # reverse palette
 
   
- if(nametype %in% c('SWEPT_AREA_KM2', 'SWEPT_AREA_KM2_LOWER', 'SWEPT_AREA_KM2_UPPER')){
+if(nametype %in% c('SWEPT_AREA_KM2', 'SWEPT_AREA_KM2_LOWER', 'SWEPT_AREA_KM2_UPPER')){
     if(grid_agg_res== (1/60)) the_breaks_baseline<-  c(0, round(exp(seq(-1.5, 2.5, by=0.3)),1), 10000)  # if 1 minute  i.e. 0.16 degree
     if(grid_agg_res== (3/60)) the_breaks_baseline<-  c(0, 0.1, 0.25, 0.5, 0.75, 1, 1.25, 1.5, 10000)    # if 3 minutes i.e. 0.05 degrees
     if(grid_agg_res== 0.01)   the_breaks_baseline<-  c(0, round(exp(seq(-1.5, 2.5, by=0.3)),1), 10000)  # less than 1 minute  i.e. 0.01 degree
  }
- if(length(grep(nametype, "LE_KG")>0)){
+ if(length(grep("LE_KG", nametype)>0)){
     if(grid_agg_res== (1/60)) the_breaks_baseline<-   c(0, round(exp(seq(3, 8, by=0.6)),1), 10000)  # if 1 minute  i.e. 0.16 degree
     if(grid_agg_res== (3/60)) the_breaks_baseline<-   c(0, round(exp(seq(3, 8, by=0.6)),1), 10000)    # if 3 minutes i.e. 0.05 degrees
     if(grid_agg_res== 0.01)   the_breaks_baseline<-   c(0, round(exp(seq(3, 8, by=0.6)),1), 10000)  # less than 1 minute  i.e. 0.01 degree
  }
+ if(length(grep("LE_VPUF", nametype)>0) || length(grep("LE_CPUF", nametype)>0) || length(grep("LE_VPUE", nametype)>0) || length(grep("LE_CPUE", nametype)>0)){
+    if(grid_agg_res== (1/60)) the_breaks_baseline<-   c(0, round(exp(seq(1, 4, by=0.4)),1), 10000) # if 1 minute  i.e. 0.16 degree
+    if(grid_agg_res== (3/60)) the_breaks_baseline<-   c(0, round(exp(seq(1, 4, by=0.4)),1), 10000)  # if 3 minutes i.e. 0.05 degrees
+    if(grid_agg_res== 0.01)   the_breaks_baseline<-  c(0, round(exp(seq(1, 4, by=0.4)),1), 10000)  # less than 1 minute  i.e. 0.01 degree
+ }
+
     
   #-------------------------
   if(plot_per_c_square){
@@ -271,8 +278,14 @@ quickmap <- function(namefile = paste0("LE_KG_COD_2019", ".tif"),
   library(rgeos)
   sh_coastlines_clipped      <- gIntersection(sh_coastlines, CP, byid=TRUE)  # clip
   
- 
-  tiff(filename=file.path(getwd(), "output_plots",  namefile),   width = a_width, height = a_height,
+  # viable namefile
+  namefile <- gsub("<","u", namefile)
+  namefile <- gsub(">","o", namefile)
+  namefile <- gsub("\\[","", namefile)
+  namefile <- gsub("\\)","", namefile)
+  namefile <- gsub("\\,","-", namefile)
+  
+  tiff(filename=file.path(output_dir,  namefile),   width = a_width, height = a_height,
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
   plot (sh_coastlines_clipped, add=FALSE, axes=FALSE)
  
@@ -315,7 +328,7 @@ quickmap <- function(namefile = paste0("LE_KG_COD_2019", ".tif"),
  
   # plot average SAR
   quickmap (namefile =  paste0("SAR_Average_2017-2019", ".tif") , 
-                     a_file   = file.path(getwd(), "AggregatedSweptArea_2017-2019.RData"), 
+                     a_file   = file.path(getwd(), "outputs2020", "AggregatedSweptArea_2017-2019.RData"), 
                      nameobj  = "aggResult",
                      a_unit   = 3, # divide by 3 because 3y
                      nametype = "SWEPT_AREA_KM2",
@@ -328,7 +341,8 @@ quickmap <- function(namefile = paste0("LE_KG_COD_2019", ".tif"),
                      ylims    = c(50,65),
                      spatial_polys=NULL,
                      a_width=6000,
-                     a_height=6000
+                     a_height=6000,
+                     output_dir=file.path(getwd(), "outputs2020", "output_plots")
    )
 
  
@@ -337,7 +351,7 @@ quickmap <- function(namefile = paste0("LE_KG_COD_2019", ".tif"),
  for (y in years){
     #load(file.path(getwd(), y, "tacsatSweptArea.RData"))  # aggResult
      quickmap (namefile =  paste0("SAR_", y, ".tif"), 
-                     a_file   = file.path(getwd(), y, "tacsatSweptArea.RData"),  
+                     a_file   = file.path(getwd(),"outputs2020", y, "tacsatSweptArea.RData"),  
                      nameobj  = "tacsatSweptArea",
                      a_unit   = 1, # divide by 1 because 1y
                      nametype = "SWEPT_AREA_KM2",
@@ -350,7 +364,8 @@ quickmap <- function(namefile = paste0("LE_KG_COD_2019", ".tif"),
                      ylims    = c(50,65),
                      spatial_polys=NULL,
                      a_width=6000,
-                     a_height=6000
+                     a_height=6000,
+                     output_dir=file.path(getwd(), "outputs2020", "output_plots") 
          )
  
  }
@@ -359,13 +374,13 @@ quickmap <- function(namefile = paste0("LE_KG_COD_2019", ".tif"),
   
   
   # spatial landings
- spp <- c("PLE", "COD", "NEP")
+ spp <- c("PLE", "COD", "NEP", "LITRE_FUEL")
  years <- 2017:2019
  for (sp in spp){
  for (y in years){
  
  quickmap (namefile = paste0("LE_KG_",sp,"_",y, ".tif"), 
-                     a_file   = file.path(getwd(),  paste0("AggregatedSweptAreaPlus_",y,".RData") ), 
+                     a_file   = file.path(getwd(), "outputs2020", paste0("AggregatedSweptAreaPlus_",y,".RData") ), 
                      nameobj  = "aggResult",
                      a_unit   = 1, # divide by 1 because only one y
                      nametype = paste0("LE_KG_",sp),
@@ -378,7 +393,8 @@ quickmap <- function(namefile = paste0("LE_KG_COD_2019", ".tif"),
                      ylims    = c(50,65),
                      spatial_polys=NULL,
                      a_width=6000,
-                     a_height=6000
+                     a_height=6000,
+                     output_dir=file.path(getwd(), "outputs2020", "output_plots")
          )
  }}
 
@@ -390,7 +406,7 @@ quickmap <- function(namefile = paste0("LE_KG_COD_2019", ".tif"),
  #load(file.path(getwd(),  paste0("AggregatedSweptArea_2017-2019.RData")))  # aggResult
  for (a_met in metiers){
    quickmap (namefile = paste0("SAR_Average_2017-2019_",a_met,".tif"), 
-                     a_file   = file.path(getwd(),  paste0("AggregatedSweptArea_2017-2019.RData") ), 
+                     a_file   = file.path(getwd(), "outputs2020",  paste0("AggregatedSweptArea_2017-2019.RData") ), 
                      nameobj  = "aggResult", 
                      a_unit   = 3, # divide because 3y agg
                      nametype = "SWEPT_AREA_KM2",
@@ -403,7 +419,8 @@ quickmap <- function(namefile = paste0("LE_KG_COD_2019", ".tif"),
                      ylims    = c(50,65),
                      spatial_polys=NULL,
                      a_width=6000,
-                     a_height=6000
+                     a_height=6000,
+                     output_dir=file.path(getwd(), "outputs2020", "output_plots")
          )
  }
  
@@ -416,9 +433,9 @@ quickmap <- function(namefile = paste0("LE_KG_COD_2019", ".tif"),
  for (sp in spp){
  for (a_met in metiers){
    quickmap (namefile = paste0("LE_KG_",sp,"_",a_met,"_",y, ".tif"), 
-                     a_file   = file.path(getwd(),  paste0("AggregatedSweptAreaPlus_",y,".RData") ), 
+                     a_file   = file.path(getwd(), "outputs2020", paste0("AggregatedSweptAreaPlus_",y,".RData") ), 
                      nameobj  = "aggResult", 
-                     a_unit   = 3, # divide because 3y agg
+                     a_unit   = 1, # 1 because 1y agg
                      nametype =paste0("LE_KG_",sp),
                      a_met    = a_met,
                      long     = "CELL_LONG", 
@@ -429,10 +446,42 @@ quickmap <- function(namefile = paste0("LE_KG_COD_2019", ".tif"),
                      ylims    = c(50,65),
                      spatial_polys=NULL,
                      a_width=6000,
-                     a_height=6000
+                     a_height=6000,
+                     output_dir=file.path(getwd(), "outputs2020", "output_plots")
          )
  }}}
  
+ 
+# fully fledged maps, here for PELAGIC GEARS
+ load(file.path(getwd(), "outputs2020_pel", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPel_",2019,".RData") ))  # aggResult
+ metiers <-   as.character(unique(aggResult$LE_MET))
+ spp <- c("HAD","HER","MAC","NOP","SAN","SPR","WHB")
+ plot_per_c_square <- FALSE
+ years <- 2012:2019
+ for (y in years){
+ for (sp in spp){
+ for (a_met in metiers){
+   quickmap (namefile = paste0("LE_KG_",sp,"_",a_met,"_",y, ".tif"), 
+                     a_file   = file.path(getwd(),  "outputs2020_pel", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPel_",y,".RData") ), 
+                     nameobj  = "aggResult", 
+                     a_unit   = 1, # 1 because 1 year agg
+                     nametype =paste0("LE_VPUF_",sp), ## !!VPUFs!!
+                     a_met    = a_met,
+                     long     = "CELL_LONG", 
+                     lat      = "CELL_LATI",
+                     plot_per_c_square =FALSE,
+                     grid_agg_res =if(plot_per_c_square){0.05} else {3/60},
+                     xlims    = c(-7,25),
+                     ylims    = c(50,65),
+                     spatial_polys=NULL,
+                     a_width=6000,
+                     a_height=6000,
+                     output_dir=file.path(getwd(), "outputs2020_pel", "output_plots_maps")
+         )
+ }}}
+ 
+     
+
  
 
 ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
@@ -498,7 +547,7 @@ plot(spp) ; axis(1); axis(2)
  years <- 2012:2019
  for (y in years){
  quickmap (namefile =  paste0("SAR_KriegersFlaks", y, ".tif"), 
-                     a_file   = file.path(getwd(), y, "tacsatSweptArea.RData"), 
+                     a_file   = file.path(getwd(),  "outputs2020", y, "tacsatSweptArea.RData"), 
                      nameobj  = "tacsatSweptArea", 
                      a_unit   = 1, # divide by 1 because 1y
                      nametype = "SWEPT_AREA_KM2",
@@ -511,7 +560,8 @@ plot(spp) ; axis(1); axis(2)
                      ylims    = c(54.5,55.5), # around Kriegers Flaks
                      spatial_polys=spp,
                      a_width=6000,
-                     a_height=6000
+                     a_height=6000,
+                     output_dir=file.path(getwd(), "outputs2020", "output_plots")
          )
  }
  

@@ -63,7 +63,7 @@ if(.Platform$OS.type == "windows") {
  ##a_year      <- 2019
  }
 
-#for (a_year in c(2014:2018))    {  # on WINDOWS system...
+for (a_year in c(2012:2019))    {  # on WINDOWS system...
 
 
 overwrite    <- TRUE
@@ -110,9 +110,9 @@ library(vmstools)
   VMS_ping_rate_in_hour <- 1 # e.g. 1 hour ping for Denmark (rev(sort(table(intervalTacsat(sortTacsat(tacsat),level="vessel")$INTV))[1])
   
   # Gear codes to keep ()
-  gears2keep            <- c("PTM","OTM")
+  gears2keep            <- c("PTM","OTM", "PS")
   towedGears            <- c("PTM","OTM")
-  seineGears            <- c("")
+  seineGears            <- c("PS")
 
   if(.Platform$OS.type == "windows")
     data(euharbours)
@@ -284,6 +284,7 @@ if(do_it){
 
   save(tacsat,file=file.path(outPath,a_year,"cleanTacsat.RData"))
   }
+  load(file=file.path(outPath,a_year,"cleanTacsat.RData"))
   
   #-----------------------------------------------------------------------------
   # Cleaning Eflalo
@@ -389,49 +390,64 @@ load(file=file.path(outPath,a_year,"tacsatMerged.RData"))
    tacsatp$LE_MET         <- factor(tacsatp$LE_MET)            
    print(levels(tacsatp$LE_MET))
      if(a_year=="2005"){
-     tacsatp$LE_MET <-   "OT_SPF"
+     levels(tacsatp$LE_MET)[grepl("PS", levels(tacsatp$LE_MET))] <- "SDN_DEM" 
+     levels(tacsatp$LE_MET)[!grepl("SDN_DEM", levels(tacsatp$LE_MET))]  <-   "OT_SPF"
    } else{ 
       if(a_year=="2006"){
-     tacsatp$LE_MET <-   "OT_SPF"
+     levels(tacsatp$LE_MET)[grepl("PS", levels(tacsatp$LE_MET))] <- "SDN_DEM" 
+     levels(tacsatp$LE_MET)[!grepl("SDN_DEM", levels(tacsatp$LE_MET))]  <-   "OT_SPF"
    } else{ 
    if(a_year=="2007"){
-     tacsatp$LE_MET <-   "OT_SPF"
+     levels(tacsatp$LE_MET)[grepl("PS", levels(tacsatp$LE_MET))] <- "SDN_DEM" 
+     levels(tacsatp$LE_MET)[!grepl("SDN_DEM", levels(tacsatp$LE_MET))]  <-   "OT_SPF"
    } else{ 
    if(a_year=="2008"){
-     tacsatp$LE_MET <-   "OT_SPF"
+     levels(tacsatp$LE_MET)[grepl("PS", levels(tacsatp$LE_MET))] <- "SDN_DEM" 
+     levels(tacsatp$LE_MET)[!grepl("SDN_DEM", levels(tacsatp$LE_MET))]  <-   "OT_SPF"
    } else{ 
    if(a_year=="2009"){
-     tacsatp$LE_MET <-   "OT_SPF"
+     levels(tacsatp$LE_MET)[grepl("PS", levels(tacsatp$LE_MET))] <- "SDN_DEM" 
+     levels(tacsatp$LE_MET)[!grepl("SDN_DEM", levels(tacsatp$LE_MET))]  <-   "OT_SPF"
    } else{
    if(a_year=="2010"){
-     tacsatp$LE_MET <-   "OT_SPF"
+     levels(tacsatp$LE_MET)[grepl("PS", levels(tacsatp$LE_MET))] <- "SDN_DEM" 
+     levels(tacsatp$LE_MET)[!grepl("SDN_DEM", levels(tacsatp$LE_MET))]  <-   "OT_SPF"
    } else{
     if(a_year=="2011"){
-     tacsatp$LE_MET <-   "OT_SPF"
+     levels(tacsatp$LE_MET)[grepl("PS", levels(tacsatp$LE_MET))] <- "SDN_DEM" 
+     levels(tacsatp$LE_MET)[!grepl("SDN_DEM", levels(tacsatp$LE_MET))]  <-   "OT_SPF"
     }else{
      if(a_year=="2012") {
-     tacsatp$LE_MET <-   "OT_SPF"
+     levels(tacsatp$LE_MET)[grepl("PS", levels(tacsatp$LE_MET))] <- "SDN_DEM" 
+     levels(tacsatp$LE_MET)[!grepl("SDN_DEM", levels(tacsatp$LE_MET))]  <-   "OT_SPF"
     } else{
       if(a_year=="2013") {
-     tacsatp$LE_MET <-   "OT_SPF"
+     levels(tacsatp$LE_MET)[grepl("PS", levels(tacsatp$LE_MET))] <- "SDN_DEM" 
+     levels(tacsatp$LE_MET)[!grepl("SDN_DEM", levels(tacsatp$LE_MET))]  <-   "OT_SPF"
     } else{ 
       if(a_year=="2014"){
-     tacsatp$LE_MET <-   "OT_SPF"
+     levels(tacsatp$LE_MET)[grepl("PS", levels(tacsatp$LE_MET))] <- "SDN_DEM" 
+     levels(tacsatp$LE_MET)[!grepl("SDN_DEM", levels(tacsatp$LE_MET))]  <-   "OT_SPF"
       } else{
       if(a_year=="2015"){
-     tacsatp$LE_MET <-   "OT_SPF"
+     levels(tacsatp$LE_MET)[grepl("PS", levels(tacsatp$LE_MET))] <- "SDN_DEM" 
+     levels(tacsatp$LE_MET)[!grepl("SDN_DEM", levels(tacsatp$LE_MET))]  <-   "OT_SPF"
    } else{
       if(a_year=="2016"){
-     tacsatp$LE_MET <-   "OT_SPF"
+     levels(tacsatp$LE_MET)[grepl("PS", levels(tacsatp$LE_MET))] <- "SDN_DEM" 
+     levels(tacsatp$LE_MET)[!grepl("SDN_DEM", levels(tacsatp$LE_MET))]  <-   "OT_SPF"
    } else{
       if(a_year=="2017"){
-     tacsatp$LE_MET <-   "OT_SPF"
+     levels(tacsatp$LE_MET)[grepl("PS", levels(tacsatp$LE_MET))] <- "SDN_DEM" 
+     levels(tacsatp$LE_MET)[!grepl("SDN_DEM", levels(tacsatp$LE_MET))]  <-   "OT_SPF"
    } else{
       if(a_year=="2018"){
-     tacsatp$LE_MET <-   "OT_SPF"
+     levels(tacsatp$LE_MET)[grepl("PS", levels(tacsatp$LE_MET))] <- "SDN_DEM" 
+     levels(tacsatp$LE_MET)[!grepl("SDN_DEM", levels(tacsatp$LE_MET))]  <-   "OT_SPF"
    } else{
       if(a_year=="2019"){
-     tacsatp$LE_MET <-   "OT_SPF"
+     levels(tacsatp$LE_MET)[grepl("PS", levels(tacsatp$LE_MET))] <- "SDN_DEM" 
+     levels(tacsatp$LE_MET)[!grepl("SDN_DEM", levels(tacsatp$LE_MET))]  <-   "OT_SPF"
       }else{
     stop('adapt the BENTHIS metiers for this year')
     }
@@ -523,11 +539,13 @@ load(file=file.path(outPath,a_year,"tacsatMerged.RData"))
                     OTT=0.13,
                     PTB=0.13,
                     PTM=0.13,
+                    PS=0.13,
                     HMD=0,
                     DRB=0)
 
 fls <- dir(file.path(outPath, a_year,"interpolated"))
 fls <- fls[grep("tacsatSweptArea_", fls)]
+
 
   # per gear per vessel
   for(iGr in towedGears){
@@ -589,22 +607,23 @@ fls <- fls[grep("tacsatSweptArea_", fls)]
   }
 
 
+
   # per gear per vessel
-  #for(iGr in seineGears){ # no interpolation
-  #  tacsatpGear        <- tacsatp[!is.na(tacsatp$LE_GEAR) & tacsatp$LE_GEAR==iGr,]
-  #
-  #  for(iVE_REF in sort(unique(tacsatpGear$VE_REF))){
-  #    cat(paste(iGr, " ", iVE_REF, "\n"))
-  #    tacsatpGearVEREF <- tacsatpGear[tacsatpGear$VE_REF %in% iVE_REF,]
-  #    tacsatpGearVEREF <- tacsatpGearVEREF[tacsatpGearVEREF$SI_STATE=='f',] # keep fishing pings only
-  #
-  #
-  #    tacsatIntGearVEREF <- tacsatpGearVEREF
-  #
-  #    save(tacsatIntGearVEREF, file=file.path(outPath,a_year,"interpolated",
-  #                                            paste("tacsatSweptArea_",iVE_REF, "_", iGr, ".RData", sep="")))
-  #  }
-  #}
+  for(iGr in seineGears){ # no interpolation
+    tacsatpGear        <- tacsatp[!is.na(tacsatp$LE_GEAR) & tacsatp$LE_GEAR==iGr,]
+  
+    for(iVE_REF in sort(unique(tacsatpGear$VE_REF))){
+      cat(paste(iGr, " ", iVE_REF, "\n"))
+      tacsatpGearVEREF <- tacsatpGear[tacsatpGear$VE_REF %in% iVE_REF,]
+      tacsatpGearVEREF <- tacsatpGearVEREF[tacsatpGearVEREF$SI_STATE=='f',] # keep fishing pings only
+  
+  
+      tacsatIntGearVEREF <- tacsatpGearVEREF
+  
+      save(tacsatIntGearVEREF, file=file.path(outPath,a_year,"interpolated",
+                                              paste("tacsatSweptArea_",iVE_REF, "_", iGr, ".RData", sep="")))
+    }
+  }
 
 #} # end TRUE/FALSE
 
@@ -697,7 +716,7 @@ nrow(tacsatSweptArea[is.na(tacsatSweptArea$SWEPT_AREA_KM2),])
 # save
 save(tacsatSweptArea, file=file.path(outPath,a_year, paste("tacsatSweptArea.RData", sep="")),compress=T)
 
-#} # end FALSE
+} # end FALSE
 
 
 

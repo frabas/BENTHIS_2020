@@ -18,6 +18,8 @@
 # independent workflow for passive gears (just using (Danish) eflalo files)
 
  library(doBy)
+ library(rgdal)
+ 
  
  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
@@ -78,24 +80,6 @@
  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
- #---
- # find metiers lvl6 to merge
- if(per_metier_level6 && !per_vessel_size){
-   res <- NULL
-   for (y in years){
-      load(file.path(getwd(), "outputs2020_pel", paste0("AggregatedSweptAreaPlusMet6_",y,".RData") ))  # aggResult
-      aggResult$LE_MET_init <- factor(aggResult$LE_MET_init)
-      levels(aggResult$LE_MET_init) <- gsub("MCD", "CRU", levels(aggResult$LE_MET_init)) # immediate correction to avoid useless historical renaming MCD->CRU
-
-      
-      dd <- tapply(aggResult$effort_mins, aggResult$LE_MET_init, sum)
-      res <- rbind.data.frame(res, cbind.data.frame(names(dd), dd))
-      }
-   res2 <- aggregate(res$dd, list(res[,1]), sum)
-   res3 <- orderBy(~ -x, res2)
-   oth_mets <- as.character(res3[cumsum(res3[,2])/sum(res3[,2])>.95,1]) # 95% in effort
- }
- #----
  
   #---
  # find metiers lvl6-Vsize to merge
@@ -134,7 +118,7 @@
    pel <- res[grep("SmallMesh",res[,1]),]
    pel <- aggregate(pel$dd, list(pel[,1]), sum)
    pel <- orderBy(~ -x, pel)
-   oth_mets_pel <- as.character(pel[cumsum(pel[,2])/sum(pel[,2])>.90,1]) # 90% in effort in pel
+   oth_mets_pel <- as.character(pel[cumsum(pel[,2])/sum(pel[,2])>.91,1]) # 90% in effort in pel
   
    dem <- res[grep("LargeMesh",res[,1]),]   # all dem are misplaced and should be removed here because we don´t want these metiers in this routine here. Also likely the result of fishermen spelling the wrong gear in logbooks (OTB for OTM), or polyvalent pelagic vessels.
 
@@ -144,7 +128,8 @@
  #----
  
  
-
+ sauv <- oth_mets 
+     
  
       
  # aggregation per metier this year
@@ -155,7 +140,16 @@
     
        aggResult$LE_MET_init <- factor(aggResult$LE_MET_init)
        colnames(aggResult)[ colnames(aggResult) =="LE_MET_init"] <- "LE_MET"
-            
+        
+       ##!#!#!#!caution#!#!#!#!
+       ##!! remove the difference among OTM and PTM
+       aggResult[grepl("PTM",aggResult$LE_MET), "LE_KG_LITRE_FUEL"] <-  aggResult[grepl("PTM",aggResult$LE_MET), "LE_KG_LITRE_FUEL"] *2 # because pair trawling
+       levels(aggResult$LE_MET) <- gsub("OTM", "TM", levels(aggResult$LE_MET))
+       levels(aggResult$LE_MET) <- gsub("PTM", "TM", levels(aggResult$LE_MET))
+       oth_mets  <- gsub("OTM", "TM", oth_mets) 
+       oth_mets  <- gsub("PTM", "TM", oth_mets) 
+       ##!#!#!#!caution#!#!#!#!
+      
      
       # code F_SUBAREA (time consuming code...)
       # Convert all points first to SpatialPoints first
@@ -179,8 +173,8 @@
       levels(aggResult$target)[!levels(aggResult$target) %in% "LargeMesh"] <- "SmallMesh"
   
        # remove
-       aggResult <- aggResult[!aggResult$target %in% "LargeMesh",] # we don´r want to see the LargeMesh in this routine.
-       aggResult <- aggResult[!grepl("OTB", aggResult$LE_MET),] # we don´r want to see the LargeMesh in this routine.
+       aggResult <- aggResult[!aggResult$target %in% "LargeMesh",] # we don´t want to see the LargeMesh in this routine.
+       aggResult <- aggResult[!grepl("OTB", aggResult$LE_MET),] # we don´t want to see the LargeMesh in this routine.
        
  
       aggResult$LE_MET <- factor(paste0(aggResult$target, "_", aggResult$F_SUBAREA,"_", aggResult$LE_MET, "_", aggResult$VesselSize))
@@ -217,7 +211,11 @@
     aggResult <- cbind.data.frame (aggResult, dd)
     aggResult$VPUFSWAallsp <- apply (aggResult[, paste0('LE_VPUFSWA_', spp)], 1, sum, na.rm=TRUE)
 
+    # capture an export for quickmap2020.r
+    save(aggResult, file=file.path(getwd(), "outputs2020_pel", paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPel_", y, ".RData", sep=""))) 
 
+
+    # then, do the aggregation for following ggplots
     agg_by <- "LE_MET"
 
    # aggregate ("sum" if absolute value, "mean" if ratio)

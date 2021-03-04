@@ -51,7 +51,7 @@ if(.Platform$OS.type == "unix") {
   overwrite <- TRUE
  
   
- if(FALSE){  # do not re-run...this takes ages!
+ if(TRUE){  # do not re-run...this takes ages!
 
   ##-----------------------------------
   ## SPLIT CATCH AND FUEL AMONG THE INTERPOLATED PINGS
@@ -90,7 +90,7 @@ if(.Platform$OS.type == "unix") {
 
 
      # Gear codes to keep (PELAGIC GEARS IN THIS INSTANCE)
-     gears2keep            <- c("OTM","PTM")
+     gears2keep            <- c("OTM","PTM", "PS")
      eflalo                <- eflalo[which(eflalo$LE_GEAR %in% gears2keep),]
 
      fls <- dir(file.path(outPath,a_year,"interpolated"))
@@ -249,9 +249,9 @@ if(.Platform$OS.type == "unix") {
 
     
   # Gear codes to keep (PELAGIC)
-  gears2keep            <- c("OTM", "PTM")
+  gears2keep            <- c("OTM", "PTM", "PS")
   towedGears            <- c("OTM", "PTM")
-  seineGears            <- c("")
+  seineGears            <- c("PS")
   VMS_ping_rate_in_hour <- 1 # e.g. 1 hour for Denmark (rev(sort(table(intervalTacsat(sortTacsat(tacsat),level="vessel")$INTV))[1])
   
 
@@ -337,9 +337,9 @@ if(.Platform$OS.type == "unix") {
    # 2. from catches, compute an efficiency indicator: catch per swept area => a way to identify the effective fisheries and priorities areas...
    #                                                                         i.e. what we aim for is high catches with low total swept area.
    # Gear codes to keep (PELAGIC)
-   gears2keep            <- c("OTM", "PTM")
+   gears2keep            <- c("OTM", "PTM", "PS")
    towedGears            <- c("OTM", "PTM")
-   seineGears            <- c("")
+   seineGears            <- c("PS")
 
    for (a_year in years){
     cat(paste(a_year, "\n"))
