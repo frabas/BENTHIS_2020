@@ -54,6 +54,8 @@ quickmap <- function(namefile = paste0("LE_KG_COD_2019", ".tif"),
                      grid_agg_res =if(plot_per_c_square){0.05} else {3/60},
                      xlims    = c(-7,25),
                      ylims    = c(50,65),
+                     use_fao_areas=TRUE,
+                     fao_namefile= file.path(getwd(), "FAO_AREAS", "FAO_AREAS.shp"),
                      spatial_polys=NULL,
                      a_width=2000,
                      a_height=2000,
@@ -70,6 +72,24 @@ quickmap <- function(namefile = paste0("LE_KG_COD_2019", ".tif"),
   my_data[,nametype] <-   an(my_data[,nametype])/a_unit
   my_data <- my_data[!is.na(my_data[,long]),]
   my_data <- my_data[!is.na(my_data[,lat]),]
+ 
+  # caution: test if early stop.
+  cat("look into ", namefile, " and ", nametype,"\n")
+  if(any(my_data[!is.na(my_data[,nametype]),nametype]>0.5))
+  {
+  
+  
+  if(use_fao_areas){
+     library(rgdal)
+     an_area <- unlist(lapply(strsplit(a_met, split="_"), function(x) x[2]))
+     fao_areas  <- readOGR(fao_namefile)
+     if(an_area=="OTHER") an_area <- c("27.3","27.4")
+     fao_areas  <- fao_areas[ fao_areas$F_SUBAREA %in% c(an_area),] 
+     xlims <- c(extent(fao_areas)@xmin,extent(fao_areas)@xmax) # override 
+     ylims <- c(extent(fao_areas)@ymin,extent(fao_areas)@ymax) # override 
+  }
+
+  
   my_data <- my_data[my_data[,long]>=xlims[1] & my_data[,long]<=xlims[2],]
   my_data <- my_data[my_data[,lat]>=ylims[1] & my_data[,lat]<=ylims[2],]
   print(head(my_data,2))
@@ -164,13 +184,16 @@ if(nametype %in% c('SWEPT_AREA_KM2', 'SWEPT_AREA_KM2_LOWER', 'SWEPT_AREA_KM2_UPP
     if(grid_agg_res== 0.01)   the_breaks_baseline<-   c(0, round(exp(seq(3, 8, by=0.6)),1), 10000)  # less than 1 minute  i.e. 0.01 degree
  }
  if(length(grep("LE_VPUF", nametype)>0) || length(grep("LE_CPUF", nametype)>0) || length(grep("LE_VPUE", nametype)>0) || length(grep("LE_CPUE", nametype)>0)){
-    if(grid_agg_res== (1/60)) the_breaks_baseline<-   c(0, round(exp(seq(1, 4, by=0.4)),1), 10000) # if 1 minute  i.e. 0.16 degree
-    if(grid_agg_res== (3/60)) the_breaks_baseline<-   c(0, round(exp(seq(1, 4, by=0.4)),1), 10000)  # if 3 minutes i.e. 0.05 degrees
-    if(grid_agg_res== 0.01)   the_breaks_baseline<-  c(0, round(exp(seq(1, 4, by=0.4)),1), 10000)  # less than 1 minute  i.e. 0.01 degree
+    if(grid_agg_res== (1/60)) the_breaks_baseline<-  c(0, round(exp(seq(-1, 2.5, by=0.3)),1), 10000)    # if 1 minute  i.e. 0.16 degree
+    if(grid_agg_res== (3/60)) the_breaks_baseline<- c(0, round(exp(seq(-1, 2.5, by=0.3)),1), 10000)     # if 3 minutes i.e. 0.05 degrees
+    if(grid_agg_res== 0.01)   the_breaks_baseline<-  c(0, round(exp(seq(-1, 2.5, by=0.3)),1), 10000)     # less than 1 minute  i.e. 0.01 degree
  }
 
-    
+
   #-------------------------
+   a_func           <- "sum"
+  if( grepl("CPUE",nametype) || grepl("CPUF",nametype) || grepl("VPUE",nametype) ||  grepl("VPUF",nametype) ) a_func <- "mean"    # do an average in cells when ratios provided in input
+    
   if(plot_per_c_square){
   #aggregate per c_square
     library(vmstools) # for c_square
@@ -178,7 +201,6 @@ if(nametype %in% c('SWEPT_AREA_KM2', 'SWEPT_AREA_KM2_LOWER', 'SWEPT_AREA_KM2_UPP
          grid_agg_res==0.05) my_data$c_square <- vmstools::CSquare (lon=my_data[,long], lat=my_data[,lat], degrees=grid_agg_res)
 
     # then, aggregate the data per c_square...
-    a_func           <- "sum"
     my_data           <- aggregate(an(my_data[,nametype]), list(my_data$c_square), a_func, na.rm=TRUE)
     colnames(my_data) <- c("c_square", nametype)
     my_data          <- cbind.data.frame(my_data, CSquare2LonLat(my_data$c_square, grid_agg_res)) # get the mid point coordinates
@@ -205,15 +227,16 @@ if(nametype %in% c('SWEPT_AREA_KM2', 'SWEPT_AREA_KM2_LOWER', 'SWEPT_AREA_KM2_UPP
     my_data <- subset(my_data,is.na(gridCellID)==FALSE)
  
     # then, do an agg
-    my_data           <- aggregate(an(my_data[,nametype]), list(my_data$gridCellID), sum, na.rm=TRUE)
+    my_data           <- aggregate(an(my_data[,nametype]), list(my_data$gridCellID), a_func, na.rm=TRUE)
     colnames(my_data)[1:2] <- c("gridCellID", nametype)
     my_data           <- cbind(my_data, mid_lat=an(coordinates(grd)[my_data$gridCellID,2]), mid_lon=an(coordinates(grd)[my_data$gridCellID,1]))
 
-   plot(my_data$mid_lon, my_data$mid_lat, col=c("white",colintens)[cut(as.numeric(my_data[,nametype])/30,breaks=the_breaks_baseline)], pch=".")
+   plot(my_data$mid_lon, my_data$mid_lat, col=Satellite.Palette.baseline(length(the_breaks_baseline[-1]))[as.numeric(cut(as.numeric(my_data[,nametype]),breaks=the_breaks_baseline, right=FALSE))], pch="+")
   }
    
    
-      
+
+       
    #-------------------------
    #  transform to SAR
   if(nametype %in% c('SWEPT_AREA_KM2', 'SWEPT_AREA_KM2_LOWER', 'SWEPT_AREA_KM2_UPPER')){
@@ -225,7 +248,7 @@ if(nametype %in% c('SWEPT_AREA_KM2', 'SWEPT_AREA_KM2_LOWER', 'SWEPT_AREA_KM2_UPP
     my_data[,nametype]  <- round(my_data[,nametype])  / an(my_data$cell_area)  # transform to SAR
   }
    
-   plot(my_data$mid_lon, my_data$mid_lat, col=c("white",colintens)[cut(as.numeric(my_data[,nametype]),breaks=the_breaks_baseline)], pch=".")
+   plot(my_data$mid_lon, my_data$mid_lat, col=Satellite.Palette.baseline(length(the_breaks_baseline[-1]))[cut(as.numeric(my_data[,nametype]),breaks=the_breaks_baseline, right=FALSE)], pch="+")
   
    spdata                <- unique(my_data[,c("gridCellID", "mid_lat", "mid_lon")])  # make sure to remove duplicates...(but should already have vanished from the prior aggregation)
    rownames(spdata) <- spdata$gridCellID
@@ -287,14 +310,15 @@ if(nametype %in% c('SWEPT_AREA_KM2', 'SWEPT_AREA_KM2_LOWER', 'SWEPT_AREA_KM2_UPP
   
   tiff(filename=file.path(output_dir,  namefile),   width = a_width, height = a_height,
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
-  plot (sh_coastlines_clipped, add=FALSE, axes=FALSE)
+  if(use_fao_areas) plot (fao_areas) else plot (sh_coastlines_clipped, add=FALSE, axes=FALSE)
  
   library(rgeos)
   #out2 <- gIntersection(out, bb, byid=TRUE) not returning the data in it(!)...so substitute with:
   out2 <- raster::intersect(out, bb)
   plot(out2, col =  out2$color, border=NA, xlim = xlims, ylim=ylims, add=TRUE)
  
-  plot (sh_coastlines_clipped, add=TRUE)
+  #plot (sh_coastlines_clipped, add=TRUE)
+  plot (sh_coastlines, add=TRUE)
  
   if(!is.null(spatial_polys)) plot(spatial_polys, add=TRUE, density=10)
  
@@ -305,19 +329,32 @@ if(nametype %in% c('SWEPT_AREA_KM2', 'SWEPT_AREA_KM2_LOWER', 'SWEPT_AREA_KM2_UPP
   axis(1, cex.axis=1.5)
   axis(2, las=2, cex.axis=1.5)
   box()
-  
-  x = c(xlims[1]+0.1*(xlims[2]-xlims[1]), xlims[1]+0.11*(xlims[2]-xlims[1]), xlims[1]+0.11*(xlims[2]-xlims[1]), xlims[1]+0.1*(xlims[2]-xlims[1]))
-  y = c(ylims[1]+0.1*(ylims[2]-ylims[1]), ylims[1]+0.5*(ylims[2]-ylims[1]), ylims[1]+0.5*(ylims[2]-ylims[1]), ylims[1]+0.1*(ylims[2]-ylims[1]))
+  a_title <- gsub(".tif", "", namefile)
+  title(a_title) 
+     
+  x = c(xlims[1]-3.5+0.1*(xlims[2]-xlims[1]), xlims[1]-3.5+0.11*(xlims[2]-xlims[1]), xlims[1]-3.5+0.11*(xlims[2]-xlims[1]), xlims[1]-3.5+0.1*(xlims[2]-xlims[1]))
+  y = c(ylims[1]-0.5+0.1*(ylims[2]-ylims[1]), ylims[1]-0.5+0.5*(ylims[2]-ylims[1]), ylims[1]-0.5+0.5*(ylims[2]-ylims[1]), ylims[1]-0.5+0.1*(ylims[2]-ylims[1]))
   the_breaks_leg <-NULL
-  for(i in 1: length(the_breaks_baseline[-1])){ if(the_breaks_baseline[i]>1) {the_breaks_leg[i] <- round(the_breaks_baseline[i])} else{the_breaks_leg[i]<- the_breaks_baseline[i]}}
+  if(grepl("LE_VPUF", nametype)) a_title_leg <- c("euro per litre") 
+  if(grepl("LE_CPUF", nametype)) a_title_leg <- c("kg per litre") 
+  if(grepl("LE_CPUE", nametype)) a_title_leg <- c("kg per effective effort") 
+  if(grepl("LE_VPUE", nametype)) a_title_leg <- c("euro per effective effort") 
+  if(grepl("LE_KG", nametype)) a_title_leg <- c("kg") 
+  for(i in 1: length(the_breaks_baseline[-1])){ if(the_breaks_baseline[i]>1) {the_breaks_leg[i] <- round(the_breaks_baseline[i],1)} else{the_breaks_leg[i]<- the_breaks_baseline[i]}}
   legend.gradient2 (cbind(x = x , y = y ), cols=Satellite.Palette.baseline(length(the_breaks_baseline[-1])),
-         limits="", title=namefile,
+         limits="", title=a_title_leg,
          legend= the_breaks_leg,
          cex=1.3, col="black") 
          
+     
+         
   dev.off()
 
-
+ }else{
+    cat("irrelevant combination of met-sp \n")
+    return()
+    } # early stop to avoid plotting for a irrelevant combination of met-sp
+  
  return()
 }
 
@@ -325,7 +362,10 @@ if(nametype %in% c('SWEPT_AREA_KM2', 'SWEPT_AREA_KM2_LOWER', 'SWEPT_AREA_KM2_UPP
  ## CALLS ##
  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
   plot_per_c_square <- FALSE
+    xrange  <- c(-30,50) # ALL
+    yrange  <- c(30,81) # ALL
  
+
   # plot average SAR
   quickmap (namefile =  paste0("SAR_Average_2017-2019", ".tif") , 
                      a_file   = file.path(getwd(), "outputs2020", "AggregatedSweptArea_2017-2019.RData"), 
@@ -339,6 +379,8 @@ if(nametype %in% c('SWEPT_AREA_KM2', 'SWEPT_AREA_KM2_LOWER', 'SWEPT_AREA_KM2_UPP
                      grid_agg_res =if(plot_per_c_square){0.05} else {3/60},
                      xlims    = c(-7,25),
                      ylims    = c(50,65),
+                     use_fao_areas=FALSE,
+                     fao_namefile= file.path(getwd(), "FAO_AREAS", "FAO_AREAS.shp"),
                      spatial_polys=NULL,
                      a_width=6000,
                      a_height=6000,
@@ -362,6 +404,8 @@ if(nametype %in% c('SWEPT_AREA_KM2', 'SWEPT_AREA_KM2_LOWER', 'SWEPT_AREA_KM2_UPP
                      grid_agg_res =if(plot_per_c_square){0.05} else {3/60},
                      xlims    = c(-7,25),
                      ylims    = c(50,65),
+                     use_fao_areas=FALSE,
+                     fao_namefile= file.path(getwd(), "FAO_AREAS", "FAO_AREAS.shp"),
                      spatial_polys=NULL,
                      a_width=6000,
                      a_height=6000,
@@ -391,6 +435,8 @@ if(nametype %in% c('SWEPT_AREA_KM2', 'SWEPT_AREA_KM2_LOWER', 'SWEPT_AREA_KM2_UPP
                      grid_agg_res =if(plot_per_c_square){0.05} else {3/60},
                      xlims    = c(-7,25),
                      ylims    = c(50,65),
+                     use_fao_areas=FALSE,
+                     fao_namefile= file.path(getwd(), "FAO_AREAS", "FAO_AREAS.shp"),
                      spatial_polys=NULL,
                      a_width=6000,
                      a_height=6000,
@@ -417,6 +463,8 @@ if(nametype %in% c('SWEPT_AREA_KM2', 'SWEPT_AREA_KM2_LOWER', 'SWEPT_AREA_KM2_UPP
                      grid_agg_res =if(plot_per_c_square){0.05} else {3/60},
                      xlims    = c(-7,25),
                      ylims    = c(50,65),
+                     use_fao_areas=FALSE,
+                     fao_namefile= file.path(getwd(), "FAO_AREAS", "FAO_AREAS.shp"),
                      spatial_polys=NULL,
                      a_width=6000,
                      a_height=6000,
@@ -443,7 +491,9 @@ if(nametype %in% c('SWEPT_AREA_KM2', 'SWEPT_AREA_KM2_LOWER', 'SWEPT_AREA_KM2_UPP
                      plot_per_c_square =FALSE,
                      grid_agg_res =if(plot_per_c_square){0.05} else {3/60},
                      xlims    = c(-7,25),
-                     ylims    = c(50,65),
+                     ylims    = c(50,65), 
+                     use_fao_areas=FALSE,
+                     fao_namefile= file.path(getwd(), "FAO_AREAS", "FAO_AREAS.shp"),
                      spatial_polys=NULL,
                      a_width=6000,
                      a_height=6000,
@@ -453,15 +503,19 @@ if(nametype %in% c('SWEPT_AREA_KM2', 'SWEPT_AREA_KM2_LOWER', 'SWEPT_AREA_KM2_UPP
  
  
 # fully fledged maps, here for PELAGIC GEARS
- load(file.path(getwd(), "outputs2020_pel", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPel_",2019,".RData") ))  # aggResult
+ load(file.path(getwd(), "outputs2020_pel", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPel_",2012,".RData") ))  # aggResult
  metiers <-   as.character(unique(aggResult$LE_MET))
- spp <- c("HAD","HER","MAC","NOP","SAN","SPR","WHB")
+ load(file.path(getwd(), "outputs2020_pel", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPel_",2019,".RData") ))  # aggResult
+ metiers <-  unique(c(metiers, as.character(unique(aggResult$LE_MET))))
+ metiers <- metiers[!grepl("NA", metiers)]
+ spp <- c("HER","MAC","NOP","SAN","SPR","WHB")
+ # note that some association met-spp do not make sense but exported anyway...
  plot_per_c_square <- FALSE
  years <- 2012:2019
  for (y in years){
  for (sp in spp){
  for (a_met in metiers){
-   quickmap (namefile = paste0("LE_KG_",sp,"_",a_met,"_",y, ".tif"), 
+   quickmap (namefile = paste0("LE_VPUF_",sp,"_",a_met,"_",y, ".tif"), 
                      a_file   = file.path(getwd(),  "outputs2020_pel", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPel_",y,".RData") ), 
                      nameobj  = "aggResult", 
                      a_unit   = 1, # 1 because 1 year agg
@@ -473,6 +527,8 @@ if(nametype %in% c('SWEPT_AREA_KM2', 'SWEPT_AREA_KM2_LOWER', 'SWEPT_AREA_KM2_UPP
                      grid_agg_res =if(plot_per_c_square){0.05} else {3/60},
                      xlims    = c(-7,25),
                      ylims    = c(50,65),
+                     use_fao_areas=TRUE,
+                     fao_namefile= file.path(getwd(), "FAO_AREAS", "FAO_AREAS.shp"),
                      spatial_polys=NULL,
                      a_width=6000,
                      a_height=6000,
@@ -482,6 +538,40 @@ if(nametype %in% c('SWEPT_AREA_KM2', 'SWEPT_AREA_KM2_LOWER', 'SWEPT_AREA_KM2_UPP
  
      
 
+# fully fledged maps, here for BOTTOM CONTACTING GEARS
+ load(file.path(getwd(), "outputs2020", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForBottContact_",2012,".RData") ))  # aggResult
+ metiers <-   as.character(unique(aggResult$LE_MET))
+ load(file.path(getwd(), "outputs2020", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForBottContact_",2019,".RData") ))  # aggResult
+ metiers <-  unique(c(metiers, as.character(unique(aggResult$LE_MET))))
+ metiers <- metiers[!grepl("NA", metiers)]
+ spp <- c("COD", "CSH","DAB","ELE","FLE","HAD","HER","HKE","HOM","LEM","MAC","MON","MUS","NEP","NOP","PLE","POK","PRA", "SAN","SOL","SPR","TUR","WHB","WIT","WHG","OTH")
+ # note that some association met-spp do not make sense but exported anyway...
+ plot_per_c_square <- FALSE
+ years <- 2012:2019
+ for (y in years){
+ for (sp in spp){
+ for (a_met in metiers){
+   quickmap (namefile = paste0("LE_VPUF_",sp,"_",a_met,"_",y, ".tif"), 
+                     a_file   = file.path(getwd(),  "outputs2020", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForBottContact_",y,".RData") ), 
+                     nameobj  = "aggResult", 
+                     a_unit   = 1, # 1 because 1 year agg
+                     nametype =paste0("LE_VPUF_",sp), ## !!VPUFs!!
+                     a_met    = a_met,
+                     long     = "CELL_LONG", 
+                     lat      = "CELL_LATI",
+                     plot_per_c_square =FALSE,
+                     grid_agg_res =if(plot_per_c_square){0.05} else {3/60},
+                     xlims    = c(-7,25),
+                     ylims    = c(50,65),
+                     use_fao_areas=TRUE,
+                     fao_namefile= file.path(getwd(), "FAO_AREAS", "FAO_AREAS.shp"),
+                     spatial_polys=NULL,
+                     a_width=6000,
+                     a_height=6000,
+                     output_dir=file.path(getwd(), "outputs2020", "output_plots_maps")
+         )
+ }}}
+ 
  
 
 ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
