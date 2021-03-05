@@ -200,6 +200,12 @@
     aggResult <- cbind.data.frame (aggResult, dd)
     aggResult$CPUFallsp <- apply (aggResult[, paste0('LE_CPUF_', spp)], 1, sum, na.rm=TRUE)
 
+    dd <- sweep(aggResult[, paste0('LE_EURO_', spp)], 1,   aggResult$effort_mins, FUN="/")
+    colnames(dd) <- paste0('LE_VPUE_', spp)
+    dd <- do.call(data.frame,lapply(dd, function(x) replace(x, is.infinite(x) | is.nan(x) , NA)))
+    aggResult <- cbind.data.frame (aggResult, dd)
+    aggResult$VPUEallsp <- apply (aggResult[, paste0('LE_VPUE_', spp)], 1, sum, na.rm=TRUE)
+
     dd <- sweep(aggResult[, paste0('LE_EURO_', spp)], 1,   aggResult$LE_KG_LITRE_FUEL, FUN="/")
     colnames(dd) <- paste0('LE_VPUF_', spp)
     dd <- do.call(data.frame,lapply(dd, function(x) replace(x, is.infinite(x) | is.nan(x) , NA)))
@@ -211,6 +217,34 @@
     dd <- do.call(data.frame,lapply(dd, function(x) replace(x, is.infinite(x) | is.nan(x) , NA)))
     aggResult <- cbind.data.frame (aggResult, dd)
     aggResult$VPUFSWAallsp <- apply (aggResult[, paste0('LE_VPUFSWA_', spp)], 1, sum, na.rm=TRUE)
+
+    dd <- apply (aggResult, 1, function (x) {
+               idx_cols <- grepl("LE_VPUF_", names(x))
+               idx <- which.max(as.numeric(x[idx_cols]))
+               gsub("LE_VPUF_", "", names(x[idx_cols])[idx])
+               })
+    aggResult$sp_with_max_vpuf <- dd          
+
+    dd <- apply (aggResult, 1, function (x) {
+               idx_cols <- grepl("LE_CPUE_", names(x))
+               idx <- which.max(as.numeric(x[idx_cols]))
+               gsub("LE_CPUE_", "", names(x[idx_cols])[idx])
+               })
+    aggResult$sp_with_max_cpue <- dd          
+
+    dd <- apply (aggResult, 1, function (x) {
+               idx_cols <- grepl("LE_CPUF_", names(x))
+               idx <- which.max(as.numeric(x[idx_cols]))
+               gsub("LE_CPUF_", "", names(x[idx_cols])[idx])
+               })
+    aggResult$sp_with_max_cpuf <- dd          
+   
+    dd <- apply (aggResult, 1, function (x) {
+               idx_cols <- grepl("LE_VPUFSWA_", names(x))
+               idx <- which.max(as.numeric(x[idx_cols]))
+               gsub("LE_VPUFSWA_", "", names(x[idx_cols])[idx])
+               })
+    aggResult$sp_with_max_vpufswa <- dd          
 
     # capture an export for quickmap2020.r
     save(aggResult, file=file.path(getwd(), "outputs2020_pel", paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPel_", y, ".RData", sep=""))) 

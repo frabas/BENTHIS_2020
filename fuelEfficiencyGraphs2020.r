@@ -260,6 +260,35 @@
     aggResult <- cbind.data.frame (aggResult, dd)
     aggResult$VPUFSWAallsp <- apply (aggResult[, paste0('LE_VPUFSWA_', spp)], 1, sum, na.rm=TRUE)
 
+     
+    dd <- apply (aggResult, 1, function (x) {
+               idx_cols <- grepl("LE_VPUF_", names(x))
+               idx <- which.max(as.numeric(x[idx_cols]))
+               gsub("LE_VPUF_", "", names(x[idx_cols])[idx])
+               })
+    aggResult$sp_with_max_vpuf <- dd          
+
+    dd <- apply (aggResult, 1, function (x) {
+               idx_cols <- grepl("LE_CPUE_", names(x))
+               idx <- which.max(as.numeric(x[idx_cols]))
+               gsub("LE_CPUE_", "", names(x[idx_cols])[idx])
+               })
+    aggResult$sp_with_max_cpue <- dd          
+
+    dd <- apply (aggResult, 1, function (x) {
+               idx_cols <- grepl("LE_CPUF_", names(x))
+               idx <- which.max(as.numeric(x[idx_cols]))
+               gsub("LE_CPUF_", "", names(x[idx_cols])[idx])
+               })
+    aggResult$sp_with_max_cpuf <- dd          
+   
+    dd <- apply (aggResult, 1, function (x) {
+               idx_cols <- grepl("LE_VPUFSWA_", names(x))
+               idx <- which.max(as.numeric(x[idx_cols]))
+               gsub("LE_VPUFSWA_", "", names(x[idx_cols])[idx])
+               })
+    aggResult$sp_with_max_vpufswa <- dd          
+
     # capture an export for quickmap2020.r
     save(aggResult, file=file.path(getwd(), "outputs2020", paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForBottContact_", y, ".RData", sep=""))) 
 
