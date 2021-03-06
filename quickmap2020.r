@@ -39,7 +39,7 @@ function (pnts, cols = heat.colors(100), limits = c(0, 1), title = "Legend", leg
     #browser()
     }
     
-    rect(min(pnts[, 1]), max(pnts[, 2])+-0.1, min(pnts[, 1])+10, max(pnts[, 2])+1, col="white", border=NA)    
+    rect(min(pnts[, 1]), max(pnts[, 2])+0.1, min(pnts[, 1])+8, max(pnts[, 2])+1, col="white", border=NA)    
      text(min(pnts[, 1])-0.1, max(pnts[, 2])-0.1, labels = title, adj = c(0,
         -1), ...)
         
@@ -90,10 +90,21 @@ quickmap <- function(namefile = paste0("LE_KG_COD_2019", ".tif"),
       return()
     } # early stop to avoid plotting for a irrelevant combination of met-sp
 
+   # viable namefile
+  namefile <- gsub("<","u", namefile)
+  namefile <- gsub(">","o", namefile)
+  namefile <- gsub("\\[","", namefile)
+  namefile <- gsub("\\)","", namefile)
+  namefile <- gsub("\\,","-", namefile)
   
-  tiff(filename=file.path(output_dir,  namefile),   width = a_width*length(nametype), height = a_height,
+  multi1 <- 1 ; multi2 <- 1
+  if(length(nametype)==4) {multi1 <- 2 ; multi2 <- 2}
+  if(length(nametype)==3) {multi1 <- 3 ; multi2 <- 1} 
+  
+  tiff(filename=file.path(output_dir,  namefile),   width = a_width*multi1, height = a_height*multi2,
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
   par(mfrow=c(1,length(nametype)))
+  if(length(nametype)==4) par(mfrow=c(2,2))
   for(itype in 1: length(nametype))
     {
 
@@ -108,11 +119,11 @@ quickmap <- function(namefile = paste0("LE_KG_COD_2019", ".tif"),
  
    
 
-   
+
     if(use_fao_areas){
        library(rgdal)
        an_area <- unlist(lapply(strsplit(a_met, split="_"), function(x) x[2]))
-      if(an_area=="OTHER") an_area <- c("27.3","27.4")
+      if(an_area=="OTHER" || is.na(an_area)) an_area <- c("27.3","27.4")
        fao_areas  <- fao_areas[ fao_areas$F_SUBAREA %in% c(an_area),] 
        xlims <- c(extent(fao_areas)@xmin,extent(fao_areas)@xmax) # override 
        ylims <- c(extent(fao_areas)@ymin,extent(fao_areas)@ymax) # override 
@@ -308,9 +319,20 @@ quickmap <- function(namefile = paste0("LE_KG_COD_2019", ".tif"),
   out      <- spatialLookup[as.character(my_data$gridCellID),]
   out$data <- my_data[,a_nametype]
 
+ #browser()
+  
+  
   # save output
   #rgdal::writeOGR(out,  paste0("a_shp", year), 
   #                    driver = "ESRI Shapefile", overwrite_layer = TRUE)
+  # or:
+  # r           <- raster(xmn=xrange[1], xmx=xrange[2], ymn=yrange[1], ymx=yrange[2], res=raster_res, crs=CRS("+proj=longlat +datum=WGS84"))
+  #  some_coords <- SpatialPoints(cbind(SI_LONG=vmspp_this$mid_lon, SI_LATI=vmspp_this$mid_lat))
+  ##  rstr        <- rasterize(x=some_coords, y=r, field=vmspp_this$landings_from_cell*1000, fun="sum")  # converted in kilo 
+  # rstr_eea     <- projectRaster(rstr, crs="+proj=laea +lat_0=52 +lon_0=10 +x_0=4321000 +y_0=3210000 +ellps=GRS80 +units=m +no_defs")  # European EEA projection
+  #  rstr_eea[is.na(rstr_eea)] <- -999  # arbitrary code, to get rid of true 0s in GIS
+  #  rstr_eea[rstr_eea<0.001]  <- -999
+  #  writeRaster(rstr_eea, file.path(outPath, paste("DispatchedStecfLandingsOnVMS4", a_species, sep='')), format = "GTiff", overwrite=TRUE)
 
  
 
@@ -323,7 +345,6 @@ quickmap <- function(namefile = paste0("LE_KG_COD_2019", ".tif"),
   proj4string(bb) <- proj4string(out)
   #plot(bb, add=FALSE, col=NA)
 
-   
   # coastline cropped
   sh_coastlines              <- readShapePoly(file.path(getwd(), "ne_50m_ocean","ne_50m_ocean.shp"))
   proj4string(sh_coastlines) <- CRS("+proj=longlat +datum=WGS84")
@@ -332,42 +353,51 @@ quickmap <- function(namefile = paste0("LE_KG_COD_2019", ".tif"),
   library(rgeos)
   sh_coastlines_clipped      <- gIntersection(sh_coastlines, CP, byid=TRUE)  # clip
   
-  # viable namefile
-  namefile <- gsub("<","u", namefile)
-  namefile <- gsub(">","o", namefile)
-  namefile <- gsub("\\[","", namefile)
-  namefile <- gsub("\\)","", namefile)
-  namefile <- gsub("\\,","-", namefile)
-  
-  
   # plot
-  if(use_fao_areas) plot (fao_areas) else plot (sh_coastlines_clipped, add=FALSE, axes=FALSE)
+  fao_areas_lambert <- spTransform(fao_areas, CRS("+proj=laea +lat_0=52 +lon_0=10 +x_0=4321000 +y_0=3210000 +ellps=GRS80 +units=m +no_defs"))
+  if(use_fao_areas)
+  {
+     #plot (fao_areas_lambert, add=FALSE) 
  
-  
+     ## plot + graticules to the plot
+     library(sf)
+     mrc_proj <- st_as_sf(fao_areas_lambert)
+     mrc <- st_as_sf(fao_areas)
+     plot(mrc_proj["geometry"], axes = TRUE, graticule = st_crs(mrc), key.pos = NULL, reset = FALSE) #  key.pos = NULL, reset = FALSE to avoid pbl with par(mfrow)
+  } else{
+    plot (sh_coastlines_clipped, add=FALSE, axes=FALSE)
+  }
+ 
+ 
   library(rgeos)
   #out2 <- gIntersection(out, bb, byid=TRUE) not returning the data in it(!)...so substitute with:
   out2 <- raster::intersect(out, bb)
+  crs(out2) <- "+proj=longlat +datum=WGS84"
+  out2 <- spTransform(out2, CRS("+proj=laea +lat_0=52 +lon_0=10 +x_0=4321000 +y_0=3210000 +ellps=GRS80 +units=m +no_defs"))
   plot(out2, col =  out2$color, border=NA, xlim = xlims, ylim=ylims, add=TRUE)
  
-  #plot (sh_coastlines_clipped, add=TRUE)
-  plot (sh_coastlines, add=TRUE)
-  if(use_fao_areas) plot (fao_areas, add=TRUE) 
+  plot (fao_areas_lambert, add=TRUE) 
  
+  #plot (sh_coastlines_clipped, add=TRUE)
+  sh_coastlines              <- spTransform(sh_coastlines, CRS("+proj=laea +lat_0=52 +lon_0=10 +x_0=4321000 +y_0=3210000 +ellps=GRS80 +units=m +no_defs"))
+  plot (sh_coastlines, add=TRUE)
+  
   if(!is.null(spatial_polys)) plot(spatial_polys, add=TRUE, density=10)
  
   #mtext(side=3, namesce[count], cex=1.5, line=0.5)
   #mtext(side=3, someletters[count], cex=2, line=1, adj=0)
   mtext("Latitude", 1, line=2, cex=1.5, outer=TRUE)
   mtext(side=2,"Longitude",line=2, cex=1.5, outer=TRUE)
-  axis(1, cex.axis=1.5)
-  axis(2, las=2, cex.axis=1.5)
+  #axis(1, cex.axis=1.0)
+  #axis(2, las=2, cex.axis=1.0)
   box()
   a_title <- gsub(".tif", "", namefile)
   if(length(nametype)==1) title(a_title) 
      
-  x = c(xlims[1]-4+0.1*(xlims[2]-xlims[1]), xlims[1]-4+0.11*(xlims[2]-xlims[1]), xlims[1]-4+0.11*(xlims[2]-xlims[1]), xlims[1]-4+0.1*(xlims[2]-xlims[1]))
+  x = c(xlims[1]-5+0.1*(xlims[2]-xlims[1]), xlims[1]-5+0.11*(xlims[2]-xlims[1]), xlims[1]-5+0.11*(xlims[2]-xlims[1]), xlims[1]-5+0.1*(xlims[2]-xlims[1]))
   y = c(ylims[1]-0.5+0.1*(ylims[2]-ylims[1]), ylims[1]-0.5+0.7*(ylims[2]-ylims[1]), ylims[1]-0.5+0.5*(ylims[2]-ylims[1]), ylims[1]-0.7+0.1*(ylims[2]-ylims[1]))
   the_breaks_leg <-NULL
+  if(grepl("VPUFSWAallsp", a_nametype)) a_title_leg <- c("euro per area swept") 
   if(grepl("LE_VPUF", a_nametype)) a_title_leg <- c("euro per litre") 
   if(grepl("VPUFallsp", a_nametype)) a_title_leg <- c("euro per litre") 
   if(grepl("LE_CPUF", a_nametype)) a_title_leg <- c("kg per litre") 
@@ -378,11 +408,12 @@ quickmap <- function(namefile = paste0("LE_KG_COD_2019", ".tif"),
   if(grepl("VPUEallsp", a_nametype)) a_title_leg <- c("euro per effective effort") 
   if(grepl("LE_KG", a_nametype)) a_title_leg <- c("kg") 
   for(i in 1: length(the_breaks_baseline[-1])){ if(the_breaks_baseline[i]>1) {the_breaks_leg[i] <- round(the_breaks_baseline[i],1)} else{the_breaks_leg[i]<- the_breaks_baseline[i]}}
-  legend.gradient2 (cbind(x = x , y = y ), cols=Satellite.Palette.baseline(length(the_breaks_baseline[-1])),
-         limits="", title=a_title_leg,
-         legend= the_breaks_leg,
-         cex=1.3, col="black") 
-         
+  #legend.gradient2 (cbind(x = x , y = y ), cols=Satellite.Palette.baseline(length(the_breaks_baseline[-1])),
+  #       limits="", title=a_title_leg,
+  #       legend= the_breaks_leg,
+  #       cex=1.3, col="black") 
+  legend("bottomright", legend=the_breaks_leg, fill=Satellite.Palette.baseline(length(the_breaks_baseline[-1])), bty="o", border=NA,  ncol=4, box.col="white", title=a_title_leg)       
+  box()
      
     } # end a_nametype  
   dev.off()
@@ -611,6 +642,41 @@ quickmap <- function(namefile = paste0("LE_KG_COD_2019", ".tif"),
  }}}
  
 
+# fully fledged maps PER METIER, here for BOTTOM GEARS
+ load(file.path(getwd(), "outputs2020", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForBottContact_",2012,".RData") ))  # aggResult
+ metiers <-   as.character(unique(aggResult$LE_MET))
+ load(file.path(getwd(), "outputs2020", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForBottContact_",2019,".RData") ))  # aggResult
+ metiers <-  unique(c(metiers, as.character(unique(aggResult$LE_MET))))
+ metiers <- metiers[!grepl("NA", metiers)]
+ plot_per_c_square <- FALSE
+ library(rgdal);  library(raster); fao_areas <- readOGR(file.path(getwd(), "FAO_AREAS", "FAO_AREAS.shp"))
+ years <- 2012:2019
+ for (y in years){
+    load(file.path(getwd(),  "outputs2020", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForBottContact_",y,".RData") )) # aggResult
+ for (a_met in metiers){
+   quickmap (namefile = paste0("CPUEallspAndCoFor_",a_met,"_",y, ".tif"), 
+                     #a_file   = file.path(getwd(),  "outputs2020_pel", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPel_",y,".RData") ), 
+                     #nameobj  = "aggResult", 
+                     aggResult   =  aggResult, # file.path(getwd(),"outputs2020", paste("AggregatedSweptAreaPlus_2019.RData") ), 
+                     a_unit   = 1, # 1 because 1 year agg
+                     nametype =c("CPUEallsp","CPUFallsp","VPUFallsp"), ## 3 plots
+                     a_met    = a_met,
+                     long     = "CELL_LONG", 
+                     lat      = "CELL_LATI",
+                     plot_per_c_square =FALSE,
+                     grid_agg_res =if(plot_per_c_square){0.05} else {3/60},
+                     xlims    = c(-7,25),
+                     ylims    = c(50,65),
+                     use_fao_areas=TRUE,
+                     fao_areas= fao_areas,
+                     spatial_polys=NULL,
+                     a_width=3000,
+                     a_height=3000,
+                     output_dir=file.path(getwd(), "outputs2020", "output_plots_maps_met")
+         )
+ }}
+ 
+ 
 # fully fledged maps PER METIER, here for PELAGIC GEARS
  load(file.path(getwd(), "outputs2020_pel", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPel_",2012,".RData") ))  # aggResult
  metiers <-   as.character(unique(aggResult$LE_MET))
@@ -645,6 +711,142 @@ quickmap <- function(namefile = paste0("LE_KG_COD_2019", ".tif"),
          )
  }}
  
+
+# AVERAGE OVER THE ENTIRE PERIOD 2012-2019 - BOTTOM CONTACTING GEARS
+ load(file.path(getwd(), "outputs2020", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForBottContact_",2012,".RData") ))  # aggResult
+ metiers <-   as.character(unique(aggResult$LE_MET))
+ load(file.path(getwd(), "outputs2020", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForBottContact_",2019,".RData") ))  # aggResult
+ metiers <-  unique(c(metiers, as.character(unique(aggResult$LE_MET))))
+ metiers <- metiers[!grepl("NA", metiers)]
+ plot_per_c_square <- FALSE
+ library(rgdal);  library(raster); fao_areas <- readOGR(file.path(getwd(), "FAO_AREAS", "FAO_AREAS.shp"))
+ agg <- NULL
+ for (y in years){
+    load(file.path(getwd(),  "outputs2020", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForBottContact_",y,".RData") )) # aggResult
+    agg <- rbind.data.frame(agg, 
+               cbind.data.frame(year=y,aggResult[,c("LE_MET","CELL_LONG", "CELL_LATI",
+                                                      "CPUEallsp","CPUFallsp","VPUFallsp", "VPUFSWAallsp",
+                                                       "sp_with_max_vpuf", "sp_with_max_cpue", "sp_with_max_cpuf", "sp_with_max_vpufswa")])
+               )  
+ }
+ #PER METIER
+ for (a_met in metiers){
+   quickmap (namefile = paste0("CPUEallspAndCoFor_",a_met,"_",years[1],"-",years[length(years)],".tif"), 
+                     #a_file   = file.path(getwd(),  "outputs2020_pel", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPel_",y,".RData") ), 
+                     #nameobj  = "aggResult", 
+                     aggResult   =  agg, # file.path(getwd(),"outputs2020", paste("AggregatedSweptAreaPlus_2019.RData") ), 
+                     a_unit   = 1, # 1 because 1 year agg
+                     nametype =c("CPUEallsp","CPUFallsp","VPUFallsp"), ## 3 plots
+                     a_met    = a_met,
+                     long     = "CELL_LONG", 
+                     lat      = "CELL_LATI",
+                     plot_per_c_square =FALSE,
+                     grid_agg_res =if(plot_per_c_square){0.05} else {3/60},
+                     xlims    = c(-7,25),
+                     ylims    = c(50,65),
+                     use_fao_areas=TRUE,
+                     fao_areas= fao_areas,
+                     spatial_polys=NULL,
+                     a_width=3000,
+                     a_height=3000,
+                     output_dir=file.path(getwd(), "outputs2020", "output_plots_maps_met")
+         )
+ }
+ 
+ #ALL METIERS POOLED
+ aggall <- agg
+ aggall$LE_MET <- "BottomContactingGears"
+ quickmap (namefile = paste0("CPUEallspAndCoFor_","BottomContactingGears","_",years[1],"-",years[length(years)],".tif"), 
+                     #a_file   = file.path(getwd(),  "outputs2020_pel", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPel_",y,".RData") ), 
+                     #nameobj  = "aggResult", 
+                     aggResult   =  aggall, # file.path(getwd(),"outputs2020", paste("AggregatedSweptAreaPlus_2019.RData") ), 
+                     a_unit   = 1, # 1 because 1 year agg
+                     nametype =c("CPUEallsp","CPUFallsp","VPUFallsp"), ## 3 plots
+                     a_met    = "BottomContactingGears",
+                     long     = "CELL_LONG", 
+                     lat      = "CELL_LATI",
+                     plot_per_c_square =FALSE,
+                     grid_agg_res =if(plot_per_c_square){0.05} else {3/60},
+                     xlims    = c(-7,25),
+                     ylims    = c(50,65),
+                     use_fao_areas=TRUE,
+                     fao_areas= fao_areas,
+                     spatial_polys=NULL,
+                     a_width=3000,
+                     a_height=3000,
+                     output_dir=file.path(getwd(), "outputs2020", "output_plots_maps_met")
+         ) 
+ 
+ 
+
+# AVERAGE OVER THE ENTIRE PERIOD 2012-2019 -PELAGIC GEARS
+ load(file.path(getwd(), "outputs2020_pel", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPel_",2012,".RData") ))  # aggResult
+ metiers <-   as.character(unique(aggResult$LE_MET))
+ load(file.path(getwd(), "outputs2020_pel", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPel_",2019,".RData") ))  # aggResult
+ metiers <-  unique(c(metiers, as.character(unique(aggResult$LE_MET))))
+ metiers <- metiers[!grepl("NA", metiers)]
+ plot_per_c_square <- FALSE
+ library(rgdal);  library(raster); fao_areas <- readOGR(file.path(getwd(), "FAO_AREAS", "FAO_AREAS.shp"))
+ years <- 2012:2019
+agg <- NULL
+ for (y in years){
+    load(file.path(getwd(),  "outputs2020_pel", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPel_",y,".RData") )) # aggResult
+    agg <- rbind.data.frame(agg, 
+               cbind.data.frame(year=y,aggResult[,c("LE_MET","CELL_LONG", "CELL_LATI",
+                                                      "CPUEallsp","CPUFallsp","VPUFallsp", "VPUFSWAallsp",
+                                                       "sp_with_max_vpuf", "sp_with_max_cpue", "sp_with_max_cpuf", "sp_with_max_vpufswa")])
+               )  
+ }
+ #PER METIER
+ for (a_met in metiers){
+   quickmap (namefile = paste0("CPUEallspAndCoFor_",a_met,"_",years[1],"-",years[length(years)],".tif"), 
+                     #a_file   = file.path(getwd(),  "outputs2020_pel", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPel_",y,".RData") ), 
+                     #nameobj  = "aggResult", 
+                     aggResult   =  agg, # file.path(getwd(),"outputs2020", paste("AggregatedSweptAreaPlus_2019.RData") ), 
+                     a_unit   = 1, # 1 because 1 year agg
+                     nametype =c("CPUEallsp","CPUFallsp","VPUFallsp"), ## 3 plots
+                     a_met    = a_met,
+                     long     = "CELL_LONG", 
+                     lat      = "CELL_LATI",
+                     plot_per_c_square =FALSE,
+                     grid_agg_res =if(plot_per_c_square){0.05} else {3/60},
+                     xlims    = c(-7,25),
+                     ylims    = c(50,65),
+                     use_fao_areas=TRUE,
+                     fao_areas= fao_areas,
+                     spatial_polys=NULL,
+                     a_width=3000,
+                     a_height=3000,
+                     output_dir=file.path(getwd(), "outputs2020_pel", "output_plots_maps_met")
+         )
+ }
+ 
+ #ALL METIERS POOLED
+ aggall <- agg
+ aggall$LE_MET <- "PelagicGears"
+ quickmap (namefile = paste0("CPUEallspAndCoFor_","PelagicGears","_",years[1],"-",years[length(years)],".tif"), 
+                     #a_file   = file.path(getwd(),  "outputs2020_pel", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPel_",y,".RData") ), 
+                     #nameobj  = "aggResult", 
+                     aggResult   =  aggall, # file.path(getwd(),"outputs2020", paste("AggregatedSweptAreaPlus_2019.RData") ), 
+                     a_unit   = 1, # 1 because 1 year agg
+                     nametype =c("CPUEallsp","CPUFallsp","VPUFallsp"), ## 4 plots
+                     a_met    = "PelagicGears",
+                     long     = "CELL_LONG", 
+                     lat      = "CELL_LATI",
+                     plot_per_c_square =FALSE,
+                     grid_agg_res =if(plot_per_c_square){0.05} else {3/60},
+                     xlims    = c(-7,25),
+                     ylims    = c(50,65),
+                     use_fao_areas=TRUE,
+                     fao_areas= fao_areas,
+                     spatial_polys=NULL,
+                     a_width=3000,
+                     a_height=3000,
+                     output_dir=file.path(getwd(), "outputs2020_pel", "output_plots_maps_met")
+         ) 
+
+ 
+ TODO: PLOT PER CELL THE SEPCIES COLOR CODE WITH THE LOCALLY HIGHEST VPUF 
  
 
 ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
