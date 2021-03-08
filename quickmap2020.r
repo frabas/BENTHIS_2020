@@ -81,7 +81,8 @@ quickmap <- function(namefile = paste0("LE_KG_COD_2019", ".tif"),
   # caution: test if early stop.
   do_it <- FALSE
     cat("look into ", namefile, " and ", nametype[1],"\n")
-    if(any(aggResult[!is.na(aggResult[,nametype[1]]),nametype[1]]>0.5))
+    if( grepl("sp_with_max_vpuf",nametype[1]) || grepl("sp_with_max_cpue",nametype[1]) || grepl("sp_with_max_cpuf",nametype[1]) ||  sp_with_max_vpufswa("VPUF",nametype[1])
+         || any(aggResult[!is.na(aggResult[,nametype[1]]),nametype[1]]>0.5))
     {
       do_it <- TRUE
     }
@@ -112,7 +113,10 @@ quickmap <- function(namefile = paste0("LE_KG_COD_2019", ".tif"),
     my_data   <- aggResult
     
 
-    my_data[,nametype] <-   an(my_data[, a_nametype])/a_unit
+    if(is.numeric(my_data[1, a_nametype]))
+    {
+            my_data[,nametype] <-   an(my_data[, a_nametype])/a_unit
+    }
     my_data <- my_data[!is.na(my_data[,long]),]
     my_data <- my_data[!is.na(my_data[,lat]),]
  
@@ -235,7 +239,12 @@ quickmap <- function(namefile = paste0("LE_KG_COD_2019", ".tif"),
    a_func           <- "sum"
   if( grepl("CPUE",a_nametype) || grepl("CPUF",a_nametype) || grepl("VPUE",a_nametype) ||  grepl("VPUF",a_nametype) ||
       grepl("CPUEallsp",a_nametype) || grepl("CPUFallsp",a_nametype) || grepl("VPUEallsp",a_nametype) || grepl("VPUFallsp",a_nametype)) a_func <- "mean"    # do an average in cells when ratios provided in input
-    
+  if( grepl("sp_with_max_vpuf",a_nametype) || grepl("sp_with_max_cpue",a_nametype) || grepl("sp_with_max_cpuf",a_nametype) ||  sp_with_max_vpufswa("VPUF",a_nametype)) {
+              a_func <- function(x) {names(table(x))[which.max(table(x))]}  # find the most frequent sp
+       }
+
+
+           
   if(plot_per_c_square){
   #aggregate per c_square
     library(vmstools) # for c_square
@@ -267,9 +276,15 @@ quickmap <- function(namefile = paste0("LE_KG_COD_2019", ".tif"),
 
     # Remove records that are not in the study area
     my_data <- subset(my_data,is.na(gridCellID)==FALSE)
- 
+
     # then, do an agg
-    my_data           <- aggregate(an(my_data[,a_nametype]), list(my_data$gridCellID), a_func, na.rm=TRUE)
+    if(grepl("sp_with_max_vpuf",a_nametype) || grepl("sp_with_max_cpue",a_nametype) || grepl("sp_with_max_cpuf",a_nametype) ||  sp_with_max_vpufswa("VPUF",a_nametype)){
+        my_data[my_data[,"CPUEallsp"]==0,a_nametype] <- as.character(0) # debug misclassified (false positive in pelagic)
+        my_data           <- aggregate(as.character(my_data[,a_nametype]), list(my_data$gridCellID), a_func)   
+        } else{
+        my_data           <- aggregate(an(my_data[,a_nametype]), list(my_data$gridCellID), a_func, na.rm=TRUE)    # as.numeric
+       }
+       
     colnames(my_data)[1:2] <- c("gridCellID", a_nametype)
     my_data           <- cbind(my_data, mid_lat=an(coordinates(grd)[my_data$gridCellID,2]), mid_lon=an(coordinates(grd)[my_data$gridCellID,1]))
 
@@ -319,9 +334,7 @@ quickmap <- function(namefile = paste0("LE_KG_COD_2019", ".tif"),
   out      <- spatialLookup[as.character(my_data$gridCellID),]
   out$data <- my_data[,a_nametype]
 
- #browser()
-  
-  
+   
   # save output
   #rgdal::writeOGR(out,  paste0("a_shp", year), 
   #                    driver = "ESRI Shapefile", overwrite_layer = TRUE)
@@ -334,10 +347,18 @@ quickmap <- function(namefile = paste0("LE_KG_COD_2019", ".tif"),
   #  rstr_eea[rstr_eea<0.001]  <- -999
   #  writeRaster(rstr_eea, file.path(outPath, paste("DispatchedStecfLandingsOnVMS4", a_species, sep='')), format = "GTiff", overwrite=TRUE)
 
- 
 
-  out$color <- Satellite.Palette.baseline(length(the_breaks_baseline[-1])) [cut(out$data, the_breaks_baseline)]
-
+   if(grepl("sp_with_max_vpuf",a_nametype) || grepl("sp_with_max_cpue",a_nametype) || grepl("sp_with_max_cpuf",a_nametype) ||  sp_with_max_vpufswa("VPUF",a_nametype)){
+      some_color_species<- c("COD"="#E69F00", "CSH"="hotpink", "DAB"="#56B4E9", "ELE"="#F0E442", "FLE"="green",
+                       "HAD"="#0072B2", "HER"="mediumorchid4", "HKE"="#CC79A7","HOM"="indianred2", "LEM"="#EEC591",
+                        "MAC"="#458B00", "MON"="#F0F8FF", "MUS"="black", "NEP"="#e3dcbf", "NOP"="#CD5B45", "PLE"="lightseagreen",
+                        "POK"="#6495ED", "PRA"="#CDC8B1", "SAN"="#00FFFF", "SOL"="#8B0000", "SPR"="#008B8B", "TUR"="#A9A9A9", "WHB"="#76a5c4",
+                         "WIT"="red", "WHG"="yellow", "OTH"="blue")
+    out$color <- some_color_species[as.character(out$data)] 
+     } else{
+      out$color <- Satellite.Palette.baseline(length(the_breaks_baseline[-1])) [cut(out$data, the_breaks_baseline)]
+     }
+     
 
   # create a rectangle from xlim and ylim to fix bad limits
   library(raster)
@@ -407,12 +428,22 @@ quickmap <- function(namefile = paste0("LE_KG_COD_2019", ".tif"),
   if(grepl("LE_VPUE", a_nametype)) a_title_leg <- c("euro per effective effort") 
   if(grepl("VPUEallsp", a_nametype)) a_title_leg <- c("euro per effective effort") 
   if(grepl("LE_KG", a_nametype)) a_title_leg <- c("kg") 
-  for(i in 1: length(the_breaks_baseline[-1])){ if(the_breaks_baseline[i]>1) {the_breaks_leg[i] <- round(the_breaks_baseline[i],1)} else{the_breaks_leg[i]<- the_breaks_baseline[i]}}
+  if(grepl("sp_with_max_vpuf", a_nametype)) a_title_leg <- c("Species with max. VPUF") 
+  if(grepl("sp_with_max_cpue", a_nametype)) a_title_leg <- c("Species with max. CPUE") 
+  if(grepl("sp_with_max_cpuf", a_nametype)) a_title_leg <- c("Species with max. CPUF") 
+  if(grepl("sp_with_max_vpufswa", a_nametype)) a_title_leg <- c("Species with max. VPUFSWA") 
   #legend.gradient2 (cbind(x = x , y = y ), cols=Satellite.Palette.baseline(length(the_breaks_baseline[-1])),
   #       limits="", title=a_title_leg,
   #       legend= the_breaks_leg,
   #       cex=1.3, col="black") 
-  legend("bottomright", legend=the_breaks_leg, fill=Satellite.Palette.baseline(length(the_breaks_baseline[-1])), bty="o", border=NA,  ncol=4, box.col="white", title=a_title_leg)       
+   if(grepl("sp_with_max_vpuf",a_nametype) || grepl("sp_with_max_cpue",a_nametype) || grepl("sp_with_max_cpuf",a_nametype) ||  sp_with_max_vpufswa("VPUF",a_nametype)){
+   
+      legend("topright", legend=names(some_color_species), fill=some_color_species, bty="o", border=NA,  ncol=4, box.col="white", title=a_title_leg)       
+   
+   } else{
+      for(i in 1: length(the_breaks_baseline[-1])){ if(the_breaks_baseline[i]>1) {the_breaks_leg[i] <- round(the_breaks_baseline[i],1)} else{the_breaks_leg[i]<- the_breaks_baseline[i]}}
+      legend("bottomright", legend=the_breaks_leg, fill=Satellite.Palette.baseline(length(the_breaks_baseline[-1])), bty="o", border=NA,  ncol=4, box.col="white", title=a_title_leg)       
+   }
   box()
      
     } # end a_nametype  
@@ -846,8 +877,93 @@ agg <- NULL
          ) 
 
  
- TODO: PLOT PER CELL THE SEPCIES COLOR CODE WITH THE LOCALLY HIGHEST VPUF 
  
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
+ ## PLOT PER CELL THE SEPCIES COLOR CODE WITH THE LOCALLY HIGHEST VPUF etc.
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
+ 
+ #AVERAGE OVER THE ENTIRE PERIOD 2012-2019 - BOTTOM CONTACTING GEARS
+ load(file.path(getwd(), "outputs2020", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForBottContact_",2012,".RData") ))  # aggResult
+ metiers <-   as.character(unique(aggResult$LE_MET))
+ load(file.path(getwd(), "outputs2020", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForBottContact_",2019,".RData") ))  # aggResult
+ metiers <-  unique(c(metiers, as.character(unique(aggResult$LE_MET))))
+ metiers <- metiers[!grepl("NA", metiers)]
+ plot_per_c_square <- FALSE
+ library(rgdal);  library(raster); fao_areas <- readOGR(file.path(getwd(), "FAO_AREAS", "FAO_AREAS.shp"))
+ agg <- NULL
+ for (y in years){
+    load(file.path(getwd(),  "outputs2020", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForBottContact_",y,".RData") )) # aggResult
+    agg <- rbind.data.frame(agg, 
+               cbind.data.frame(year=y,aggResult[,c("LE_MET","CELL_LONG", "CELL_LATI",
+                                                      "CPUEallsp","CPUFallsp","VPUFallsp", "VPUFSWAallsp",
+                                                       "sp_with_max_vpuf", "sp_with_max_cpue", "sp_with_max_cpuf", "sp_with_max_vpufswa")])
+               )  
+ }
+ aggall <- agg
+ aggall$LE_MET <- "BottomContactingGears"
+ quickmap (namefile = paste0("ColorSpCodeMapFor_","BottomContactingGears","_",years[1],"-",years[length(years)],".tif"),
+                     #a_file   = file.path(getwd(),  "outputs2020_pel", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPel_",y,".RData") ),
+                     #nameobj  = "aggResult",
+                     aggResult   =  aggall, # file.path(getwd(),"outputs2020", paste("AggregatedSweptAreaPlus_2019.RData") ),
+                     a_unit   = 1, # 1 because 1 year agg
+                     nametype =c("sp_with_max_cpue","sp_with_max_cpuf","sp_with_max_vpuf"), ## 3 plots
+                     a_met    = "BottomContactingGears",
+                     long     = "CELL_LONG",
+                     lat      = "CELL_LATI",
+                     plot_per_c_square =FALSE,
+                     grid_agg_res =if(plot_per_c_square){0.05} else {3/60},
+                     xlims    = c(-7,25),
+                     ylims    = c(50,65),
+                     use_fao_areas=TRUE,
+                     fao_areas= fao_areas,
+                     spatial_polys=NULL,
+                     a_width=3000,
+                     a_height=3000,
+                     output_dir=file.path(getwd(), "outputs2020", "output_plots_maps_met")
+         )
+
+
+# AVERAGE OVER THE ENTIRE PERIOD 2012-2019 -PELAGIC GEARS
+ load(file.path(getwd(), "outputs2020_pel", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPel_",2012,".RData") ))  # aggResult
+ metiers <-   as.character(unique(aggResult$LE_MET))
+ load(file.path(getwd(), "outputs2020_pel", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPel_",2019,".RData") ))  # aggResult
+ metiers <-  unique(c(metiers, as.character(unique(aggResult$LE_MET))))
+ metiers <- metiers[!grepl("NA", metiers)]
+ plot_per_c_square <- FALSE
+ library(rgdal);  library(raster); fao_areas <- readOGR(file.path(getwd(), "FAO_AREAS", "FAO_AREAS.shp"))
+ years <- 2012:2019
+agg <- NULL
+ for (y in years){
+    load(file.path(getwd(),  "outputs2020_pel", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPel_",y,".RData") )) # aggResult
+    agg <- rbind.data.frame(agg, 
+               cbind.data.frame(year=y,aggResult[,c("LE_MET","CELL_LONG", "CELL_LATI",
+                                                      "CPUEallsp","CPUFallsp","VPUFallsp", "VPUFSWAallsp",
+                                                       "sp_with_max_vpuf", "sp_with_max_cpue", "sp_with_max_cpuf", "sp_with_max_vpufswa")])
+               )  
+ }
+aggall <- agg
+ aggall$LE_MET <- "PelagicGears"
+ quickmap (namefile = paste0("ColorSpCodeMapFor_","PelagicGears","_",years[1],"-",years[length(years)],".tif"),
+                     #a_file   = file.path(getwd(),  "outputs2020_pel", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPel_",y,".RData") ),
+                     #nameobj  = "aggResult",
+                     aggResult   =  aggall, # file.path(getwd(),"outputs2020", paste("AggregatedSweptAreaPlus_2019.RData") ),
+                     a_unit   = 1, # 1 because 1 year agg
+                     nametype =c("sp_with_max_cpue","sp_with_max_cpuf","sp_with_max_vpuf"), ## 3 plots
+                     a_met    = "PelagicGears",
+                     long     = "CELL_LONG",
+                     lat      = "CELL_LATI",
+                     plot_per_c_square =FALSE,
+                     grid_agg_res =if(plot_per_c_square){0.05} else {3/60},
+                     xlims    = c(-7,25),
+                     ylims    = c(50,65),
+                     use_fao_areas=TRUE,
+                     fao_areas= fao_areas,
+                     spatial_polys=NULL,
+                     a_width=3000,
+                     a_height=3000,
+                     output_dir=file.path(getwd(), "outputs2020_pel", "output_plots_maps_met")
+         )
+
 
 ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
 ##!!!!!!!CASE STUDY!!!!!!!!!!!!!##
