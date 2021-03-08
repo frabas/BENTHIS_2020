@@ -5,5 +5,6 @@
 /EflaloAndTacsat/*.csv
 /outputs2020/*
 /outputs2020_pel/*
+/outputs2020_lgbkonly/*
 benthisMapping2020.r
 
