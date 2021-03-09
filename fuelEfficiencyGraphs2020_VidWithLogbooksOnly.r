@@ -234,7 +234,7 @@ library(vmstools)
   ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
   ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
   ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
-   # compute some ratios
+   # compute some ratios (to plot across spp)
   dd <- sweep(eflalo[, paste0('LE_KG_', spp)], 1,  eflalo$LE_EFF, FUN="/")
   colnames(dd) <- paste0('LE_CPUE_', spp)
   dd <- do.call(data.frame,lapply(dd, function(x) replace(x, is.infinite(x) | is.nan(x) , NA)))
@@ -280,7 +280,14 @@ library(vmstools)
   # capture an export for quickmap2020.r
   save(eflalo, file=file.path(getwd(), "outputs2020_lgbkonly", paste("AggregatedEflaloWithSmallVids.RData", sep="")))
 
+   # just for info and a rough approximation
+    total_kg1 <- tapply(eflalo$LE_KG_SPECS, list(eflalo$LE_MET), sum, na.rm=TRUE)
+    total_kg2 <- tapply(eflalo$LE_KG_SPECS, list(eflalo$LE_MET, as.character(eflalo$sp_with_max_cpue)), sum, na.rm=TRUE)
+    an_order <- total_kg1 [order(total_kg1, decreasing=TRUE)]
+    xx<- round(total_kg2[names(an_order),])   # cumul over period
 
+
+   # agg
     agg_by <- c("Year","LE_MET")
 
    # aggregate ("sum" if absolute value, "mean" if ratio)
@@ -321,9 +328,6 @@ library(vmstools)
     # collate
     aggResultPerMet <- cbind(aggResultPerMet, aggResultPerMet2[,-c(1:length(agg_by))])
 
-
-    sauv <-   aggResultPerMet
-  
 
 
 
@@ -502,6 +506,175 @@ dev.off()
   geom_area(aes(fill=Stock))  +     labs(y = a_ylab, x = "Year")   +
    scale_fill_manual(values=some_color_species) +
     xlab("")
+ print(p)
+dev.off()
+
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!##
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!##
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!##
+
+
+
+
+
+} # end a_variable
+
+
+
+
+
+
+
+
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
+ # plot THIS TIME SECTORED PER METIER
+
+ long <- NULL
+ agg <- NULL
+
+ variables <- c("LE_KG_LITRE_FUEL", "CPUEallseg", "CPUFallseg", "VPUFallseg")
+ prefixes  <- c("LE_KG_",           "LE_CPUE_",  "LE_CPUF_",  "LE_VPUF_")
+
+
+ count <- 0
+ for(a_variable in variables){
+    count <- count+1
+
+    dd <- get(paste0("aggResultPerMet"))
+    # get percent per stock for sectorisation
+
+    # reshape first
+    library(data.table)
+    long <- melt(setDT(dd[,c("LE_MET", "Year", paste0(prefixes[count], spp))]), id.vars = c("LE_MET", "Year"), variable.name = "Var")
+    long$Stock <- sapply(strsplit(as.character(long$Var), split="_"), function(x) x[3])
+
+    an_agg <- aggregate(long$value, list(long$Stock, long$Year), sum, na.rm=TRUE)
+    colnames(an_agg) <- c("Stock", "Year", a_variable)
+    long <- merge(long, an_agg)
+    
+    #as.data.frame(long)
+    long <- long[complete.cases(long),]
+
+
+
+
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!##
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!##
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!##
+ library(ggplot2)
+ if(a_variable=="LE_KG_LITRE_FUEL") {a_ylab <- "Fuel use (litre)"; ylims=c(0,max(as.data.frame(long)[,a_variable],100000))}
+ if(a_variable=="CPUEallsp") {a_ylab <- "CPUE (kg per effort)";  ylims=c(0,max(as.data.frame(long)[,a_variable],15))}
+ if(a_variable=="CPUFallsp") {a_ylab <- "CPUF (kg per litre)";  ylims=c(0,max(as.data.frame(long)[,a_variable],15))}
+ if(a_variable=="VPUFallsp") {a_ylab <- "VPUF  (euro per litre)";  ylims=c(0,max(as.data.frame(long)[,a_variable],15))}
+ if(a_variable=="VPUFSWAallsp") {a_ylab <- "VPUFSWA  (euro per swept area)";  ylims=c(0,max(as.data.frame(long)[,a_variable],100000))}
+ if(a_variable=="CPUEallseg") {a_ylab <- "CPUE (kg per effort)";  ylims=c(0,max(as.data.frame(long)[,a_variable],100000))}
+ if(a_variable=="CPUFallseg") {a_ylab <- "CPUF (kg per litre)";  ylims=c(0,max(as.data.frame(long)[,a_variable],100000))}
+ if(a_variable=="VPUFallseg") {a_ylab <- "VPUF  (euro per litre)";  ylims=c(0,max(as.data.frame(long)[,a_variable],100000))}
+
+  a_width <- 9000 ; a_height <- 4000
+   a_comment <- "" ; if(per_metier_level6) a_comment <- "_met6";  if(per_vessel_size) a_comment <- paste0(a_comment,"_vsize") ; if(per_region) a_comment <- paste0(a_comment,"_region")
+
+   some_color_seg <-  c( "#7FC97F" "#BEAED4" "#FDC086" "#FFFF99" "#386CB0" "#F0027F" "#BF5B17" "#666666" "#1B9E77" "#D95F02" "#7570B3" "#E7298A" "#66A61E" "#E6AB02" "#A6761D" "#666666" "#A6CEE3" "#1F78B4" "#B2DF8A" "#33A02C" "#FB9A99" "#E31A1C" "#FDBF6F"
+[24] "#FF7F00" "#CAB2D6" "#6A3D9A" "#FFFF99" "#B15928" "#FBB4AE" "#B3CDE3" "#CCEBC5" "#DECBE4" "#FED9A6" "#FFFFCC" "#E5D8BD" "#FDDAEC" "#F2F2F2" "#B3E2CD" "#FDCDAC" "#CBD5E8" "#F4CAE4" "#E6F5C9" "#FFF2AE" "#F1E2CC" "#CCCCCC" "#E41A1C"
+[47] "#377EB8" "#4DAF4A" "#984EA3" "#FF7F00" "#FFFF33" "#A65628" "#F781BF" "#999999" "#66C2A5" "#FC8D62" "#8DA0CB" "#E78AC3" "#A6D854" "#FFD92F" "#E5C494" "#B3B3B3" "#8DD3C7" "#FFFFB3" "#BEBADA" "#FB8072" "#80B1D3" "#FDB462" "#B3DE69"
+[70] "#FCCDE5" "#D9D9D9" "#BC80BD" "#CCEBC5" "#FFED6F"
+)
+
+
+ # dem
+ namefile <- paste0("ts_fuel_efficiency_per_stk_", a_variable, "_", years[1], "-", years[length(years)],  a_comment, "_DEM.tif")
+ tiff(filename=file.path(getwd(), "outputs2020_lgbkonly", "output_plots",  namefile),   width = a_width, height = a_height,
+                                   units = "px", pointsize = 12,  res=600, compression = c("lzw"))
+ the_agg <- long[grep("LargeMesh",long$LE_MET),]
+  the_agg$LE_MET <- gsub("LargeMesh_", "", the_agg$LE_MET)
+ p <- ggplot(the_agg, aes(x=as.character(Year), y=value, group=LE_MET)) +    facet_wrap(. ~ Stock, scales = "free_y")  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +   labs(y = a_ylab) +
+  geom_line(aes(color=LE_MET), size=1.5) +     labs(y = a_ylab, x = "Year")     + geom_point(aes(color=LE_MET), size=3)   +
+  scale_color_manual(values=some_color_seg) +
+  xlab("")     #    + ylim(ylims[1], ylims[2])
+ print(p)
+dev.off()
+
+# pel
+ namefile <- paste0("ts_fuel_efficiency_per_stk", a_variable, "_", years[1], "-", years[length(years)],  a_comment, "_PEL.tif")
+ tiff(filename=file.path(getwd(), "outputs2020_lgbkonly", "output_plots",  namefile),   width = a_width, height = a_height,
+                                   units = "px", pointsize = 12,  res=600, compression = c("lzw"))
+ the_agg <- long[grep("SmallMesh",long$LE_MET),]
+  the_agg$LE_MET <- gsub("SmallMesh_", "", the_agg$LE_MET)
+ p <- ggplot(the_agg, aes(x=as.character(Year), y=value, group=LE_MET)) +    facet_wrap(. ~ Stock, scales = "free_y")  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +   labs(y = a_ylab) +
+  geom_line(aes(color=LE_MET), size=1.5) +     labs(y = a_ylab, x = "Year")     + geom_point(aes(color=LE_MET), size=3)   +
+  scale_color_manual(values=some_color_seg) +
+  xlab("")     #    + ylim(ylims[1], ylims[2])
+ print(p)
+dev.off()
+
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!##
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!##
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!##
+
+
+
+
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!##
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!##
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!##
+ a_width <- 9000 ; a_height <- 4000
+ library(ggplot2)
+
+ # dem
+ namefile <- paste0("ts_fuel_efficiency_per_stk_", a_variable, "_", years[1], "-", years[length(years)],  a_comment, "_DEM_areaplot.tif")
+ tiff(filename=file.path(getwd(), "outputs2020_lgbkonly", "output_plots",  namefile),   width = a_width, height = a_height,
+                                   units = "px", pointsize = 12,  res=600, compression = c("lzw"))
+
+ the_agg <- long[grep("LargeMesh",long$LE_MET),]
+
+ # a visual fix adding all combi--
+ dd <- expand.grid(LE_MET=levels(factor(the_agg$LE_MET)), Stock=levels(factor(the_agg$Stock)), Year=levels(factor(the_agg$Year)))
+ dd$value <- 0
+ dd[,a_variable] <- 0
+ dd[,"Var"] <- 0
+ dd <- dd[,colnames(the_agg)]
+ rownames(the_agg) <- paste0(the_agg$LE_MET,the_agg$Stock,the_agg$Year)
+ rownames(dd) <- paste0(dd$LE_MET,dd$Stock,dd$Year)
+ dd <- dd[!rownames(dd)%in%rownames(the_agg),]
+ the_agg <- rbind.data.frame(the_agg, dd)
+ #---
+
+  the_agg$LE_MET <- gsub("LargeMesh_", "", the_agg$LE_MET)
+ p <- ggplot(the_agg, aes(x=as.character(Year), y=value, group=LE_MET)) +    facet_wrap(. ~ Stock, scales = "free_y")  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +   labs(y = a_ylab) +
+  geom_area(aes( fill=LE_MET))  +     labs(y = a_ylab, x = "Year")   +
+   scale_fill_manual(values=some_color_seg) +
+  xlab("")     #    + ylim(ylims[1], ylims[2])
+ print(p)
+dev.off()
+
+# pel
+ namefile <- paste0("ts_fuel_efficiency_per_stk_", a_variable, "_", years[1], "-", years[length(years)],  a_comment, "_PEL_areaplot.tif")
+ tiff(filename=file.path(getwd(), "outputs2020_lgbkonly", "output_plots",  namefile),   width = a_width, height = a_height,
+                                   units = "px", pointsize = 12,  res=600, compression = c("lzw"))
+ the_agg <- long[grep("SmallMesh",long$LE_MET),]
+
+ # a visual fix adding all combi--
+ dd <- expand.grid(LE_MET=levels(factor(the_agg$LE_MET)), Stock=levels(factor(the_agg$Stock)), Year=levels(factor(the_agg$Year)))
+ dd$value <- 0
+ dd[,a_variable] <- 0
+ dd[,"Var"] <- 0
+ dd <- dd[,colnames(the_agg)]
+ rownames(the_agg) <- paste0(the_agg$LE_MET,the_agg$Stock,the_agg$Year)
+ rownames(dd) <- paste0(dd$LE_MET,dd$Stock,dd$Year)
+ dd <- dd[!rownames(dd)%in%rownames(the_agg),]
+ the_agg <- rbind.data.frame(the_agg, dd)
+ #---
+
+  the_agg$LE_MET <- gsub("SmallMesh_", "", the_agg$LE_MET)
+ p <- ggplot(the_agg, aes(x=as.character(Year), y=value, group=LE_MET)) +    facet_wrap(. ~ Stock, scales = "free_y")  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +   labs(y = a_ylab) +
+  geom_area(aes( fill=LE_MET))  +     labs(y = a_ylab, x = "Year")   +
+   scale_fill_manual(values=some_color_seg) +
+  xlab("")     #    + ylim(ylims[1], ylims[2])
  print(p)
 dev.off()
 
