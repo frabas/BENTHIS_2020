@@ -464,3 +464,151 @@ dev.off()
 
 
 
+
+
+
+ 
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
+ # plot THIS TIME SECTORED PER METIER
+
+
+ variables <- c("LE_KG_LITRE_FUEL", "CPUEallseg", "CPUFallseg", "VPUFallseg")
+ prefixes  <- c("LE_KG_",           "LE_CPUE_",  "LE_CPUF_",  "LE_VPUF_")
+
+
+ count <- 0
+ for(a_variable in variables){
+    count <- count+1
+
+  a_long <- NULL
+  long <- NULL
+  for (y in years){
+     dd <- get(paste0("aggResultPerMet_", y))
+    # get percent per stock for sectorisation
+
+    dd <- cbind.data.frame(Year=y, dd)
+   
+    # reshape first
+    library(data.table)
+    a_long <- melt(setDT(dd[,c("LE_MET", "Year", paste0(prefixes[count], spp))]), id.vars = c("LE_MET", "Year"), variable.name = "Var")
+    a_long$Stock <- sapply(strsplit(as.character(a_long$Var), split="_"), function(x) x[3])
+
+    an_agg <- aggregate(a_long$value, list(a_long$Stock, a_long$Year), sum, na.rm=TRUE)   # CAUTION ABOUT THE INTERPRETATION HERE AS WE ARE SUMMING VPUEs...
+    colnames(an_agg) <- c("Stock", "Year", a_variable)
+    a_long <- merge(a_long, an_agg)
+    
+    #as.data.frame(long)
+    a_long <- a_long[complete.cases(a_long),]
+
+    long <- rbind.data.frame(long, a_long)
+    
+   } # end y
+
+
+   # assign area to species as a proxy of stock
+   long$Stock <- paste(long$Stock, sapply(strsplit(as.character(long$LE_MET), split="_"), function(x) x[2]))
+
+
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!##
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!##
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!##
+ library(ggplot2)
+ if(a_variable=="LE_KG_LITRE_FUEL") {a_unit <- 1e6; a_ylab <- "Fuel use (millions litres)"; ylims=c(0,max(as.data.frame(long)[,a_variable],100000))}
+ if(a_variable=="CPUEallsp") {a_unit <- 1; a_ylab <- "CPUE (kg per effort)";  ylims=c(0,max(as.data.frame(long)[,a_variable],15))}
+ if(a_variable=="CPUFallsp") {a_unit <- 1; a_ylab <- "CPUF (kg per litre)";  ylims=c(0,max(as.data.frame(long)[,a_variable],15))}
+ if(a_variable=="VPUFallsp") {a_unit <- 1; a_ylab <- "VPUF  (euro per litre)";  ylims=c(0,max(as.data.frame(long)[,a_variable],15))}
+ if(a_variable=="VPUFSWAallsp") {a_unit <- 1; a_ylab <- "VPUFSWA  (euro per swept area)";  ylims=c(0,max(as.data.frame(long)[,a_variable],100000))}
+ if(a_variable=="CPUEallseg") {a_unit <- 1; a_ylab <- "CPUE (kg per effort)";  ylims=c(0,max(as.data.frame(long)[,a_variable],100000))}
+ if(a_variable=="CPUFallseg") {a_unit <- 1; a_ylab <- "CPUF (kg per litre)";  ylims=c(0,max(as.data.frame(long)[,a_variable],100000))}
+ if(a_variable=="VPUFallseg") {a_unit <- 1; a_ylab <- "VPUF  (euro per litre)";  ylims=c(0,max(as.data.frame(long)[,a_variable],100000))}
+
+  a_width <- 9000 ; a_height <- 4000
+   a_comment <- "" ; if(per_metier_level6) a_comment <- "_met6";  if(per_vessel_size) a_comment <- paste0(a_comment,"_vsize") ; if(per_region) a_comment <- paste0(a_comment,"_region")
+
+   some_color_seg <-  c("#7FC97F", "#BEAED4", "#FDC086", "#FFFF99", "#386CB0", "#F0027F", "#BF5B17", "#666666", "#1B9E77", "#D95F02", "#7570B3", "#E7298A", "#66A61E", "#E6AB02", "#A6761D", "#666666", "#A6CEE3", "#1F78B4", "#B2DF8A", "#33A02C", "#FB9A99", "#E31A1C", "#FDBF6F",
+   "#FF7F00", "#CAB2D6", "#6A3D9A", "#FFFF99", "#B15928", "#FBB4AE", "#B3CDE3", "#CCEBC5", "#DECBE4", "#FED9A6", "#FFFFCC", "#E5D8BD", "#FDDAEC", "#F2F2F2", "#B3E2CD", "#FDCDAC", "#CBD5E8", "#F4CAE4", "#E6F5C9", "#FFF2AE", "#F1E2CC", "#CCCCCC", "#E41A1C",
+   "#377EB8", "#4DAF4A", "#984EA3", "#FF7F00", "#FFFF33", "#A65628", "#F781BF", "#999999", "#66C2A5", "#FC8D62", "#8DA0CB", "#E78AC3", "#A6D854", "#FFD92F", "#E5C494", "#B3B3B3", "#8DD3C7", "#FFFFB3", "#BEBADA", "#FB8072", "#80B1D3", "#FDB462", "#B3DE69",
+   "#FCCDE5", "#D9D9D9", "#BC80BD", "#CCEBC5", "#FFED6F")
+
+
+# pel
+ namefile <- paste0("ts_fuel_efficiency_per_stk", a_variable, "_", years[1], "-", years[length(years)],  a_comment, "_PEL.tif")
+ tiff(filename=file.path(getwd(), "outputs2020_pel", "output_plots",  namefile),   width = a_width, height = a_height,
+                                   units = "px", pointsize = 12,  res=600, compression = c("lzw"))
+ the_agg <- long[grep("SmallMesh",long$LE_MET),]
+  the_agg$LE_MET <- gsub("SmallMesh_", "", the_agg$LE_MET)
+
+     # caution filter out non-relevant species for these fleets
+  the_agg<-  the_agg[ !(grepl("OTHER", the_agg$Stock)  | grepl("OTH", the_agg$Stock)   | grepl("CSH", the_agg$Stock) | grepl("MUS", the_agg$Stock) | grepl("SAN 27.2", the_agg$Stock) | grepl("SPR 27.2", the_agg$Stock)  | grepl("WHG 27.2", the_agg$Stock) |   grepl("MAC 27.3", the_agg$Stock) | grepl("NOP 27.2", the_agg$Stock) | grepl("COD", the_agg$Stock)  | grepl("HAD", the_agg$Stock) |  grepl("PRA", the_agg$Stock) |  grepl("HOM", the_agg$Stock) | grepl("HKE", the_agg$Stock) | grepl("DAB", the_agg$Stock)  | grepl("FLE", the_agg$Stock)  | grepl("HOM 27.3", the_agg$Stock)  | grepl("LEM", the_agg$Stock)  | grepl("NEP", the_agg$Stock)  | grepl("NOP 27.3", the_agg$Stock) | grepl("PLE", the_agg$Stock) | grepl("SOL", the_agg$Stock) | grepl("TUR", the_agg$Stock) | grepl("WIT", the_agg$Stock) | grepl("POK", the_agg$Stock) | grepl("WHB", the_agg$Stock) | grepl("CSH 27.3", the_agg$Stock) | grepl("MON", the_agg$Stock) | grepl("ELE", the_agg$Stock) ),]
+
+
+ p <- ggplot(the_agg, aes(x=as.character(Year), y=value/a_unit, group=LE_MET)) +    facet_wrap(. ~ Stock, scales = "free_y")  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +   labs(y = a_ylab) +
+  geom_line(aes(color=LE_MET), size=1.5) +     labs(y = a_ylab, x = "Year")     + geom_point(aes(color=LE_MET), size=3)   +
+  scale_color_manual(values=some_color_seg) +
+  xlab("")     #    + ylim(ylims[1], ylims[2])
+ print(p)
+dev.off()
+
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!##
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!##
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!##
+
+
+
+
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!##
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!##
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!##
+ a_width <- 9000 ; a_height <- 4000
+ library(ggplot2)
+
+ 
+# pel
+ namefile <- paste0("ts_fuel_efficiency_per_stk_", a_variable, "_", years[1], "-", years[length(years)],  a_comment, "_PEL_areaplot.tif")
+ tiff(filename=file.path(getwd(), "outputs2020_pel", "output_plots",  namefile),   width = a_width, height = a_height,
+                                   units = "px", pointsize = 12,  res=600, compression = c("lzw"))
+ the_agg <- long[grep("SmallMesh",long$LE_MET),]
+
+ 
+ # a visual fix adding all combi--
+ dd <- expand.grid(LE_MET=levels(factor(the_agg$LE_MET)), Stock=levels(factor(the_agg$Stock)), Year=levels(factor(the_agg$Year)))
+ dd$value <- 0
+ dd[,a_variable] <- 0
+ dd[,"Var"] <- 0
+ dd <- dd[,colnames(the_agg)]
+ rownames(the_agg) <- paste0(the_agg$LE_MET,the_agg$Stock,the_agg$Year)
+ rownames(dd) <- paste0(dd$LE_MET,dd$Stock,dd$Year)
+ dd <- dd[!rownames(dd)%in%rownames(the_agg),]
+ the_agg <- rbind.data.frame(the_agg, dd)
+ #---
+
+  the_agg$LE_MET <- gsub("SmallMesh_", "", the_agg$LE_MET)
+  
+    # caution filter out non-relevant species for these fleets
+  the_agg<-  the_agg[ !(grepl("OTHER", the_agg$Stock)  | grepl("OTH", the_agg$Stock)   | grepl("CSH", the_agg$Stock) | grepl("MUS", the_agg$Stock) | grepl("SAN 27.2", the_agg$Stock) | grepl("SPR 27.2", the_agg$Stock)  | grepl("WHG 27.2", the_agg$Stock) |   grepl("MAC 27.3", the_agg$Stock) | grepl("NOP 27.2", the_agg$Stock) | grepl("COD", the_agg$Stock)  | grepl("HAD", the_agg$Stock) |  grepl("PRA", the_agg$Stock) |  grepl("HOM", the_agg$Stock) | grepl("HKE", the_agg$Stock) | grepl("DAB", the_agg$Stock)  | grepl("FLE", the_agg$Stock)  | grepl("HOM 27.3", the_agg$Stock)  | grepl("LEM", the_agg$Stock)  | grepl("NEP", the_agg$Stock)  | grepl("NOP 27.3", the_agg$Stock) | grepl("PLE", the_agg$Stock) | grepl("SOL", the_agg$Stock) | grepl("TUR", the_agg$Stock) | grepl("WIT", the_agg$Stock) | grepl("POK", the_agg$Stock) | grepl("WHB", the_agg$Stock) | grepl("CSH 27.3", the_agg$Stock) | grepl("MON", the_agg$Stock) | grepl("ELE", the_agg$Stock) ),]
+
+ p <- ggplot(the_agg, aes(x=as.character(Year), y=value/a_unit, group=LE_MET)) +    facet_wrap(. ~ Stock, scales = "free_y")  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +   labs(y = a_ylab) +
+  geom_area(aes( fill=LE_MET))  +     labs(y = a_ylab, x = "Year")   +
+   scale_fill_manual(values=some_color_seg) +
+  xlab("")     #    + ylim(ylims[1], ylims[2])
+ print(p)
+dev.off()
+
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!##
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!##
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!##
+
+
+
+
+
+} # end a_variable
+
+
+
+
