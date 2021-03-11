@@ -229,7 +229,12 @@
       aggResult$LE_MET <- factor(paste0(aggResult$target, "_", aggResult$F_SUBAREA,"_", aggResult$LE_MET, "_", aggResult$VesselSize))
       levels(aggResult$LE_MET)[levels(aggResult$LE_MET) %in% oth_mets] <- "LargeMesh_OTHER_0_0_0"
      
-  
+      # caution - a small fix for an annoying renaming of segment
+      aggResult$LE_MET <- factor(aggResult$LE_MET)
+      levels(aggResult$LE_MET)[levels(aggResult$LE_MET) %in% "LargeMesh_27.4_OTB_DEF_>=120_0_0_[24,40)"] <- "LargeMesh_27.4_OTB_CRU_>=120_0_0_[24,40)"
+      aggResult$LE_MET <- factor(aggResult$LE_MET)
+
+
   }
 
     #head(aggResult)
@@ -344,6 +349,8 @@
  # check
  unique(aggResultPerMet$LE_MET)
  
+
+
 
 
  ##!!!!!!!!!!!!!!!!!!!!!!!!!##
@@ -558,6 +565,8 @@ dev.off()
  
  
  
+ 
+ 
 
  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
@@ -569,7 +578,7 @@ dev.off()
 
 
  variables <- c("LE_KG_LITRE_FUEL", "CPUEallseg", "CPUFallseg", "VPUFallseg")
- prefixes  <- c("LE_KG_",           "LE_CPUE_",  "LE_CPUF_",  "LE_VPUF_")
+ prefixes  <- c("LE_LITRE_",           "LE_CPUE_",  "LE_CPUF_",  "LE_VPUF_")
 
 
  count <- 0
@@ -582,11 +591,18 @@ dev.off()
      dd <- get(paste0("aggResultPerMet_", y))
     # get percent per stock for sectorisation
 
+    if(length(grep("LE_LITRE_", colnames(dd)))==0){
+       dd$sumallkgs  <- apply(dd[,paste0("LE_KG_", spp)],1,sum, na.rm=TRUE) # marginal sum
+       litre <- dd[ , paste0("LE_KG_", spp) ]/ dd$sumallkgs * dd$LE_KG_LITRE_FUEL 
+       colnames(litre) <- paste0("LE_LITRE_", spp)
+       dd <- cbind.data.frame(dd, litre  )
+     }
+     
     dd <- cbind.data.frame(Year=y, dd)
    
     # reshape first
     library(data.table)
-    a_long <- melt(setDT(dd[,c("LE_MET", "Year", paste0(prefixes[count], spp))]), id.vars = c("LE_MET", "Year"), variable.name = "Var")
+    a_long <- melt(setDT(dd[,c("LE_MET", "Year",  paste0(prefixes[count], spp))]), id.vars = c("LE_MET", "Year"), variable.name = "Var")
     a_long$Stock <- sapply(strsplit(as.character(a_long$Var), split="_"), function(x) x[3])
 
     an_agg <- aggregate(a_long$value, list(a_long$Stock, a_long$Year), sum, na.rm=TRUE)   # CAUTION ABOUT THE INTERPRETATION HERE AS WE ARE SUMMING VPUEs...
@@ -630,11 +646,12 @@ dev.off()
  namefile <- paste0("ts_fuel_efficiency_per_stk_", a_variable, "_", years[1], "-", years[length(years)],  a_comment, "_DEM.tif")
  tiff(filename=file.path(getwd(), "outputs2020", "output_plots",  namefile),   width = a_width, height = a_height,
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
- the_agg <- long[grep("LargeMesh",long$LE_MET),]
+  the_agg <- long[grep("LargeMesh",long$LE_MET),]
   the_agg$LE_MET <- gsub("LargeMesh_", "", the_agg$LE_MET)
   
   # caution filter out non-relevant species for these fleets
   the_agg<-  the_agg[! (grepl("OTHER", the_agg$Stock)  | grepl("NOP", the_agg$Stock) | grepl("HER", the_agg$Stock)  | grepl("WHB", the_agg$Stock) | grepl("SPR", the_agg$Stock) | grepl("HOM", the_agg$Stock) | grepl("CSH", the_agg$Stock) | grepl("PRA", the_agg$Stock) | grepl("MAC", the_agg$Stock) | grepl("SAN", the_agg$Stock) | grepl("ELE", the_agg$Stock)| grepl("MUS", the_agg$Stock) | grepl("WHG", the_agg$Stock)   ),]
+  
   
  p <- ggplot(the_agg, aes(x=as.character(Year), y=value/a_unit, group=LE_MET)) +    facet_wrap(. ~ Stock, scales = "free_y")  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +   labs(y = a_ylab) +
   geom_line(aes(color=LE_MET), size=1.5) +     labs(y = a_ylab, x = "Year")     + geom_point(aes(color=LE_MET), size=3)   +
@@ -650,7 +667,7 @@ dev.off()
  the_agg <- long[grep("SmallMesh",long$LE_MET),]
   the_agg$LE_MET <- gsub("SmallMesh_", "", the_agg$LE_MET)
 
-   # caution filter out non-relevant species for these fleets
+   # caution - filter out non-relevant species for these fleets
   the_agg<-  the_agg[ !(grepl("OTHER", the_agg$Stock)  | grepl("COD", the_agg$Stock) | grepl("DAB", the_agg$Stock)  | grepl("FLE", the_agg$Stock)  | grepl("HOM 27.3", the_agg$Stock)  | grepl("LEM", the_agg$Stock)  | grepl("NEP", the_agg$Stock)  | grepl("NOP 27.3", the_agg$Stock) | grepl("PLE", the_agg$Stock) | grepl("SOL", the_agg$Stock) | grepl("TUR", the_agg$Stock) | grepl("WIT", the_agg$Stock) | grepl("POK", the_agg$Stock) | grepl("WHB", the_agg$Stock) | grepl("CSH 27.3", the_agg$Stock) | grepl("MON", the_agg$Stock) | grepl("ELE", the_agg$Stock) ),]
 
 
@@ -681,9 +698,10 @@ dev.off()
 
  the_agg <- long[grep("LargeMesh",long$LE_MET),]
 
-  # caution filter out non-relevant species for these fleets
+  # caution - filter out non-relevant species for these fleets
   the_agg<-  the_agg[! (grepl("OTHER", the_agg$Stock)  | grepl("NOP", the_agg$Stock) | grepl("HER", the_agg$Stock) | grepl("SPR", the_agg$Stock)  | grepl("WHB", the_agg$Stock) | grepl("HOM", the_agg$Stock) | grepl("CSH", the_agg$Stock) | grepl("PRA", the_agg$Stock) | grepl("MAC", the_agg$Stock) | grepl("SAN", the_agg$Stock) | grepl("ELE", the_agg$Stock)| grepl("MUS", the_agg$Stock) | grepl("WHG", the_agg$Stock)   ),]
 
+  
  # a visual fix adding all combi--
  dd <- expand.grid(LE_MET=levels(factor(the_agg$LE_MET)), Stock=levels(factor(the_agg$Stock)), Year=levels(factor(the_agg$Year)))
  dd$value <- 0
@@ -697,6 +715,8 @@ dev.off()
  #---
 
   the_agg$LE_MET <- gsub("LargeMesh_", "", the_agg$LE_MET)
+
+
  p <- ggplot(the_agg, aes(x=as.character(Year), y=value/a_unit, group=LE_MET)) +    facet_wrap(. ~ Stock, scales = "free_y")  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +   labs(y = a_ylab) +
   geom_area(aes( fill=LE_MET))  +     labs(y = a_ylab, x = "Year")   +
    scale_fill_manual(values=some_color_seg) +

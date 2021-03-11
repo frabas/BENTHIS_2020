@@ -539,7 +539,7 @@ dev.off()
  agg <- NULL
 
  variables <- c("LE_KG_LITRE_FUEL", "CPUEallseg", "CPUFallseg", "VPUFallseg")
- prefixes  <- c("LE_KG_",           "LE_CPUE_",  "LE_CPUF_",  "LE_VPUF_")
+ prefixes  <- c("LE_LITRE_",           "LE_CPUE_",  "LE_CPUF_",  "LE_VPUF_")
 
 
  count <- 0
@@ -548,6 +548,15 @@ dev.off()
 
     dd <- get(paste0("aggResultPerMet"))
     # get percent per stock for sectorisation
+
+
+    if(length(grep("LE_LITRE_", colnames(dd)))==0){
+       dd$sumallkgs  <- apply(dd[,paste0("LE_KG_", spp)],1,sum, na.rm=TRUE) # marginal sum
+       litre <- dd[ , paste0("LE_KG_", spp) ]/ dd$sumallkgs * dd$LE_KG_LITRE_FUEL
+       colnames(litre) <- paste0("LE_LITRE_", spp)
+       dd <- cbind.data.frame(dd, litre  )
+     }
+
 
     # reshape first
     library(data.table)

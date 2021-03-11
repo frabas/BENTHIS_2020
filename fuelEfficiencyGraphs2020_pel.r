@@ -128,7 +128,9 @@
  }
  #----
  
- 
+   sum(res[res[,1] %in% oth_mets,2])
+   sum(res[!res[,1] %in% oth_mets,2])
+   
  sauv <- oth_mets 
      
  
@@ -478,7 +480,7 @@ dev.off()
 
 
  variables <- c("LE_KG_LITRE_FUEL", "CPUEallseg", "CPUFallseg", "VPUFallseg")
- prefixes  <- c("LE_KG_",           "LE_CPUE_",  "LE_CPUF_",  "LE_VPUF_")
+ prefixes  <- c("LE_LITRE_",           "LE_CPUE_",  "LE_CPUF_",  "LE_VPUF_")
 
 
  count <- 0
@@ -491,11 +493,18 @@ dev.off()
      dd <- get(paste0("aggResultPerMet_", y))
     # get percent per stock for sectorisation
 
+    if(length(grep("LE_LITRE_", colnames(dd)))==0){
+       dd$sumallkgs  <- apply(dd[,paste0("LE_KG_", spp)],1,sum, na.rm=TRUE) # marginal sum
+       litre <- dd[ , paste0("LE_KG_", spp) ]/ dd$sumallkgs * dd$LE_KG_LITRE_FUEL 
+       colnames(litre) <- paste0("LE_LITRE_", spp)
+       dd <- cbind.data.frame(dd, litre  )
+     }
+     
     dd <- cbind.data.frame(Year=y, dd)
    
     # reshape first
     library(data.table)
-    a_long <- melt(setDT(dd[,c("LE_MET", "Year", paste0(prefixes[count], spp))]), id.vars = c("LE_MET", "Year"), variable.name = "Var")
+    a_long <- melt(setDT(dd[,c("LE_MET", "Year",  paste0(prefixes[count], spp))]), id.vars = c("LE_MET", "Year"), variable.name = "Var")
     a_long$Stock <- sapply(strsplit(as.character(a_long$Var), split="_"), function(x) x[3])
 
     an_agg <- aggregate(a_long$value, list(a_long$Stock, a_long$Year), sum, na.rm=TRUE)   # CAUTION ABOUT THE INTERPRETATION HERE AS WE ARE SUMMING VPUEs...
@@ -590,8 +599,8 @@ dev.off()
   the_agg$LE_MET <- gsub("SmallMesh_", "", the_agg$LE_MET)
   
     # caution filter out non-relevant species for these fleets
-  the_agg<-  the_agg[ !(grepl("OTHER", the_agg$Stock)  | grepl("OTH", the_agg$Stock)   | grepl("CSH", the_agg$Stock) | grepl("MUS", the_agg$Stock) | grepl("SAN 27.2", the_agg$Stock) | grepl("SPR 27.2", the_agg$Stock)  | grepl("WHG 27.2", the_agg$Stock) |   grepl("MAC 27.3", the_agg$Stock) | grepl("NOP 27.2", the_agg$Stock) | grepl("COD", the_agg$Stock)  | grepl("HAD", the_agg$Stock) |  grepl("PRA", the_agg$Stock) |  grepl("HOM", the_agg$Stock) | grepl("HKE", the_agg$Stock) | grepl("DAB", the_agg$Stock)  | grepl("FLE", the_agg$Stock)  | grepl("HOM 27.3", the_agg$Stock)  | grepl("LEM", the_agg$Stock)  | grepl("NEP", the_agg$Stock)  | grepl("NOP 27.3", the_agg$Stock) | grepl("PLE", the_agg$Stock) | grepl("SOL", the_agg$Stock) | grepl("TUR", the_agg$Stock) | grepl("WIT", the_agg$Stock) | grepl("POK", the_agg$Stock) | grepl("WHB", the_agg$Stock) | grepl("CSH 27.3", the_agg$Stock) | grepl("MON", the_agg$Stock) | grepl("ELE", the_agg$Stock) ),]
-
+  the_agg<-  the_agg[ !(  grepl("CSH", the_agg$Stock) | grepl("MUS", the_agg$Stock) | grepl("SAN 27.2", the_agg$Stock) | grepl("SPR 27.2", the_agg$Stock)  | grepl("WHG 27.2", the_agg$Stock) |   grepl("MAC 27.3", the_agg$Stock) | grepl("NOP 27.2", the_agg$Stock) | grepl("COD", the_agg$Stock)  | grepl("HAD", the_agg$Stock) |  grepl("PRA", the_agg$Stock) |  grepl("HOM", the_agg$Stock) | grepl("HKE", the_agg$Stock) | grepl("DAB", the_agg$Stock)  | grepl("FLE", the_agg$Stock)  | grepl("HOM 27.3", the_agg$Stock)  | grepl("LEM", the_agg$Stock)  | grepl("NEP", the_agg$Stock)  | grepl("NOP 27.3", the_agg$Stock) | grepl("PLE", the_agg$Stock) | grepl("SOL", the_agg$Stock) | grepl("TUR", the_agg$Stock) | grepl("WIT", the_agg$Stock) | grepl("POK", the_agg$Stock) | grepl("WHB", the_agg$Stock) | grepl("CSH 27.3", the_agg$Stock) | grepl("MON", the_agg$Stock) | grepl("ELE", the_agg$Stock) ),]
+  
  p <- ggplot(the_agg, aes(x=as.character(Year), y=value/a_unit, group=LE_MET)) +    facet_wrap(. ~ Stock, scales = "free_y")  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +   labs(y = a_ylab) +
   geom_area(aes( fill=LE_MET))  +     labs(y = a_ylab, x = "Year")   +
    scale_fill_manual(values=some_color_seg) +
