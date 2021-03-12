@@ -76,6 +76,7 @@
  fao_areas  <- readOGR(file.path(getwd(), "FAO_AREAS", "FAO_AREAS.shp"))
  fao_areas  <- fao_areas[ grepl("27", fao_areas$F_AREA) & fao_areas$F_SUBAREA %in% c("27.3", "27.4", "27.2") & fao_areas$F_LEVEL!="MAJOR",] # caution with the MAJOR overidding the over()
  
+ # caution: in case of the pelagic fleet, a lot of effort is deployed in the Nort-East Atlantic Waters, i.e. beyond limits of the North Sea....
      
  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
@@ -114,6 +115,12 @@
     
       dd <- tapply(aggResult$effort_mins, paste0(aggResult$target, "_", aggResult$F_SUBAREA, "_", aggResult$LE_MET_init, "_", aggResult$VesselSize), sum)
       res <- rbind.data.frame(res, cbind.data.frame(names(dd), dd))
+    
+      # for info:
+      #aggResult <- cbind.data.frame(aggResult, code=paste0(aggResult$target, "_", aggResult$F_SUBAREA, "_", aggResult$LE_MET_init, "_", aggResult$VesselSize))
+      #print(y)
+      #print(head(aggResult[aggResult$code=="NA_27.4_No_Matrix6_[40,100)",]))
+
       }
       
    pel <- res[grep("SmallMesh",res[,1]),]
@@ -124,7 +131,10 @@
    dem <- res[grep("LargeMesh",res[,1]),]   # all dem are misplaced and should be removed here because we don´t want these metiers in this routine here. Also likely the result of fishermen spelling the wrong gear in logbooks (OTB for OTM), or polyvalent pelagic vessels.
 
  # met to keep
- oth_mets <- c(oth_mets_pel, as.character(dem[,1]), "27.3_No_Matrix6_[12,18)","27.4_No_Matrix6_[12,18)", "27.3_No_Matrix6_[18,24)","27.4_No_Matrix6_[18,24)", paste0("NA","_",levels(aggResult$VesselSize)) )
+ oth_mets <- c(oth_mets_pel, as.character(dem[,1]), 
+                                "NA_27.3_No_Matrix6_[12,18)","27.4_No_Matrix6_[12,18)", "NA_27.3_No_Matrix6_[18,24)","NA_27.4_No_Matrix6_[18,24)", 
+                                "NA_27.4_No_Matrix6_[40,100)", "NA_27.2_No_Matrix6_[40,100)",
+                                                      paste0("NA","_",levels(aggResult$VesselSize)) )
  }
  #----
  
