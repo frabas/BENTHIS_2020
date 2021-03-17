@@ -71,7 +71,7 @@ plot (westcod$Year, westcod$FishingPressure, type="l")
   dev.off()
 
   ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
- ## CROSS CORELATION ??
+ ## CROSS CORRELATION
  f_and_vpuf <- f_and_vpuf[!is.na(f_and_vpuf$value),]
  f_and_vpuf$value_detrended <- NA
  dd <- lapply(split(f_and_vpuf, f=f_and_vpuf$Stock), function(x){
@@ -86,6 +86,7 @@ plot (westcod$Year, westcod$FishingPressure, type="l")
     x <- do.call("rbind", dd)
 
 
+ # detrending on F/FMSY ts given we know the MP is targetting a value of 1 deliberately
  spp <- c("COD.nsea", "PLE.nsea", "SOL.nsea", "HAD.nsea", "POK.nsea", "HKE.nsea", "NEP.kask", "COD.2224", "PLE.2123", "SOL.2024")
  a_width <- 6000; a_height=2500
   tiff(filename=file.path(getwd(), "outputs2020", "output_plots",  "crosscorrelation.tif"),   width = a_width, height = a_height,
@@ -93,7 +94,7 @@ plot (westcod$Year, westcod$FishingPressure, type="l")
  par(mfrow=c(2, length(spp)/2))
  for (a_spp in spp)
   ccf(x[x$Var=="F/FMSY" & x$Year %in% as.character(2012:2019) & x$Stock %in% a_spp,"value_detrended"],
-       x[x$Var==a_var & x$Year %in% as.character(2012:2019) & x$Stock %in% a_spp,"value_detrended"],
+       x[x$Var==a_var & x$Year %in% as.character(2012:2019) & x$Stock %in% a_spp,"value"],
          lag.max = 5, type = c("correlation"),
      plot = TRUE, na.action = na.pass, xlab="", main = a_spp, ci.type = "white")
   dev.off()
@@ -159,6 +160,7 @@ plot (westcod$Year, westcod$FishingPressure, type="l")
 
 
 
+# detrending on F/FMSY ts given we know the MP is targetting a value of 1 deliberately
  spp <- c("SPR.2232", "HER.nsea", "MAC.nsea")
  a_width <- 3000; a_height=1000
   tiff(filename=file.path(getwd(), "outputs2020_pel", "output_plots",  "crosscorrelation.tif"),   width = a_width, height = a_height,
@@ -166,7 +168,7 @@ plot (westcod$Year, westcod$FishingPressure, type="l")
  par(mfrow=c(1, length(spp)))
  for (a_spp in spp)
   ccf(x[x$Var=="F/FMSY" & x$Year %in% as.character(2012:2019) & x$Stock %in% a_spp,"value_detrended"],
-       x[x$Var==a_var & x$Year %in% as.character(2012:2019) & x$Stock %in% a_spp,"value_detrended"],
+       x[x$Var==a_var & x$Year %in% as.character(2012:2019) & x$Stock %in% a_spp,"value"],
          lag.max = 5, type = c("correlation"),
      plot = TRUE, na.action = na.pass, xlab="", main = a_spp, ci.type = "white")
 dev.off()
@@ -236,7 +238,7 @@ dev.off()
     x <- do.call("rbind", dd)
 
 
-
+ # detrending on F/FMSY ts given we know the MP is targetting a value of 1 deliberately
  spp <- c("COD.nsea", "PLE.nsea", "SOL.nsea", "COD.2224", "PLE.2123")
  a_width <- 4000; a_height=1000
   tiff(filename=file.path(getwd(), "outputs2020_lgbkonly", "output_plots",  "crosscorrelation.tif"),   width = a_width, height = a_height,
@@ -244,9 +246,11 @@ dev.off()
  par(mfrow=c(1, length(spp)))
  for (a_spp in spp)
   ccf(x[x$Var=="F/FMSY" & x$Year %in% as.character(2012:2019) & x$Stock %in% a_spp,"value_detrended"],
-       x[x$Var==a_var & x$Year %in% as.character(2012:2019) & x$Stock %in% a_spp,"value_detrended"],
+       x[x$Var==a_var & x$Year %in% as.character(2012:2019) & x$Stock %in% a_spp,"value"],
          lag.max = 5, type = c("correlation"),
      plot = TRUE, na.action = na.pass, xlab="", main = a_spp, ci.type = "white")
  dev.off()
 
 
+
+        

@@ -70,7 +70,7 @@ for (y in years){
   all_indic <- orderBy(~ - AllMLitres, all_indic)
   
   top5 <- rownames(all_indic[1:5,])
-
+  write.table(round(all_indic[1:5,],2), "clipboard", sep="\t", row.names=TRUE, col.names=TRUE)
 
   dd$LE_MET <- rownames(dd)
   library(data.table)
@@ -133,6 +133,7 @@ for (y in years){
   all_indic <- orderBy(~ - AllMLitres, all_indic)
 
   top5 <- rownames(all_indic[1:5,])
+  write.table(round(all_indic[1:5,],2), "clipboard", sep="\t", row.names=TRUE, col.names=TRUE)
 
 
   dd$LE_MET <- rownames(dd)
@@ -199,6 +200,7 @@ for (y in years){
   all_indic <- orderBy(~ - AllMLitres, all_indic)
 
   top5 <- rownames(all_indic[1:5,])
+  write.table(round(all_indic[1:5,],2), "clipboard", sep="\t", row.names=TRUE, col.names=TRUE)
 
 
   dd$LE_MET <- rownames(dd)

@@ -313,12 +313,112 @@
  # check
  unique(aggResultPerMet$LE_MET)
  
+ 
+ 
+ 
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!###
+ ## QUICK & EASY TABLES
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!###
+  # capture an export for later doing some quick table
+  aggResultPerMetAlly <- NULL
+  for (y in years){
+     dd <- get(paste0("aggResultPerMet_", y))
+     dd <- cbind.data.frame(Year=y, dd)
+     aggResultPerMetAlly <- rbind.data.frame(aggResultPerMetAlly, dd)
+  }   
+  save(aggResultPerMetAlly, file=file.path(getwd(), "outputs2020_pel", paste("aggResultPerMetAllyMet6AndVsizeAndRatiosForPel.RData", sep=""))) 
 
 
+  load(file=file.path(getwd(), "outputs2020_pel", paste("aggResultPerMetAllyMet6AndVsizeAndRatiosForPel.RData", sep="")))  # aggResultPerMetAlly
+  
+  PercentThisStk <- aggResultPerMetAlly[paste0("LE_KG_",spp)] / apply(aggResultPerMetAlly[paste0("LE_KG_",spp)], 1, sum, na.rm=TRUE)*100
+  colnames(PercentThisStk)  <- paste0("Percent_",spp)
+  aggResultPerMetAlly <- cbind.data.frame (aggResultPerMetAlly, PercentThisStk)
+  VarThisStk <- sweep(PercentThisStk[,colnames(PercentThisStk)]/100, 1, aggResultPerMetAlly[,"LE_KG_LITRE_FUEL"], FUN="*")
+  colnames(VarThisStk)  <- paste0("LE_LITRE_",spp)
+  aggResultPerMetAlly <- cbind.data.frame (aggResultPerMetAlly, VarThisStk)
+     
+  # a quick informative table (for kg)
+  nm <- colnames(aggResultPerMetAlly)
+  tot <- aggregate(aggResultPerMetAlly[, grepl("LE_KG_", nm)], list(aggResultPerMetAlly$LE_MET), mean)  # annual average
+  tot <- orderBy(~ - LE_KG_LITRE_FUEL, tot)
+  tot[,-1] <- round(tot[,-1]/1e6,2) # millions litres or thousand tons or euros
+  head(tot, 5)
+
+  # same but for euros
+  aggResultPerMetAlly$LE_EURO_LITRE_FUEL <- aggResultPerMetAlly$LE_KG_LITRE_FUEL  # a tip for ordering
+  nm <- colnames(aggResultPerMetAlly)
+  tot <- aggregate(aggResultPerMetAlly[, grepl("LE_EURO_", nm)], list(aggResultPerMetAlly$LE_MET), mean)  # annual average
+  tot <- orderBy(~ - LE_EURO_LITRE_FUEL, tot)
+  tot[,-1] <- round(tot[,-1]/1e6,2) # millions litres or thousand tons or euros
+  head(tot, 5)
+  
+  # same but for litre fuel
+  aggResultPerMetAlly$LE_LITRE_FUEL <- aggResultPerMetAlly$LE_KG_LITRE_FUEL  # a tip for ordering
+  nm <- colnames(aggResultPerMetAlly)
+  tot <- aggregate(aggResultPerMetAlly[, grepl("LE_LITRE_", nm)], list(aggResultPerMetAlly$LE_MET), mean)  # annual average
+  tot <- orderBy(~ - LE_LITRE_FUEL, tot)
+  tot[,-1] <- round(tot[,-1]/1e6,2) # millions litres or thousand tons or euros
+  head(tot, 5)
+ 
+  nm <- colnames(aggResultPerMetAlly)
+  sum_y_kg <- aggregate(aggResultPerMetAlly[, grepl("LE_KG_", nm)], list(Year=aggResultPerMetAlly$Year), sum)  # annual average
+  nm <- colnames(sum_y_kg)
+  average_y_kg <- apply(sum_y_kg[, grepl("LE_KG_", nm)], 2, mean)  # annual average
+  info1 <- round(average_y_kg[order(average_y_kg, decreasing=TRUE)]/1e6,2)
+
+  nm <- colnames(aggResultPerMetAlly)
+  sum_y_euros <- aggregate(aggResultPerMetAlly[, grepl("LE_EURO_", nm)], list(Year=aggResultPerMetAlly$Year), sum)  # annual average
+  nm <- colnames(sum_y_euros)
+  average_y_euros <- apply(sum_y_euros[, grepl("LE_EURO_", nm)], 2, mean)  # annual average
+  round(average_y_euros[order(average_y_euros, decreasing=TRUE)]/1e6,2)
+  info2 <-  round(average_y_euros[order(average_y_euros, decreasing=TRUE)]/1e6,2)
+
+  nm <- colnames(aggResultPerMetAlly)
+  sum_y_litres <- aggregate(aggResultPerMetAlly[, grepl("LE_LITRE_", nm)], list(Year=aggResultPerMetAlly$Year), sum, na.rm=TRUE)  # annual average
+  nm <- colnames(sum_y_litres)
+  average_y_litres <- apply(sum_y_litres[, grepl("LE_LITRE_", nm)], 2, mean)  # annual average
+  round(average_y_litres[order(average_y_litres, decreasing=TRUE)]/1e6,2)
+  info3 <-  round(average_y_litres[order(average_y_litres, decreasing=TRUE)]/1e6,2)
+
+  spp <- sapply(strsplit(as.character(names(info3)), split="_"), function(x) x[3])  # give the order on the plot
+  spp <- spp[spp!="FUEL"]
+  a_summary <- rbind.data.frame(info1[paste0("LE_KG_", spp)], info2[paste0("LE_EURO_", spp)], info3[paste0("LE_LITRE_", spp)] )
+  colnames(a_summary) <- spp
+  rownames(a_summary) <- c("Thousands tons", "Millions euros", "Millions litres")
+
+  # dem
+  a_width <- 4000;  a_height <- 2000
+  namefile <- paste0("barplot_fuel_efficiency_pelagics_per_species.tif")
+  tiff(filename=file.path(getwd(), "outputs2020_pel", "output_plots",  namefile),   width = a_width, height = a_height,
+                                   units = "px", pointsize = 12,  res=600, compression = c("lzw"))
+   library(data.table)
+    long1 <- melt(setDT(sum_y_kg[,c("Year", paste0("LE_KG_", spp))]), id.vars = c("Year"), variable.name = "Var")
+    long2 <- melt(setDT(sum_y_euros[,c("Year", paste0("LE_EURO_", spp))]), id.vars = c("Year"), variable.name = "Var")
+    long3 <- melt(setDT(sum_y_litres[,c("Year", paste0("LE_LITRE_", spp))]), id.vars = c("Year"), variable.name = "Var")
+    long <- rbind.data.frame(long1, long2, long3)
+    long$Species <- sapply(strsplit(as.character(long$Var), split="_"), function(x) x[3])
+    long$VarType <- factor(sapply(strsplit(as.character(long$Var), split="_"), function(x) x[2]))
+    long$value   <- long$value  /1e6 # millions
+    levels(long$VarType) <- c("Millions Euros", "Thousánd Tons", "Millions Litres")
+    long$Species <- with(long, reorder(Species, value, median)) # reorder
+    long$Species <- factor(long$Species, levels=rev(levels(long$Species))) # reverse
+    
+   p <- ggplot(data=long[long$Species %in% c("HER", "MAC", "SPR", "WHB", "HOM", "OTH", "SAN", "NOP", "NOP", "WHB"),], aes(x=Species, y=value))  +
+           geom_boxplot(outlier.size = -1, fill='#A4A4A4', color="black") +  scale_color_grey() + facet_wrap(~VarType, scales="free")   + labs(y = "", x = "Species") + 
+           theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5, size=8))
+  print(p)
+  
+  dev.off()
+  #write.table(a_summary, "clipboard", sep="\t", row.names=TRUE, col.names=TRUE)
+
+
+     
+
  ##!!!!!!!!!!!!!!!!!!!!!!!!!##
  ##!!!!!!!!!!!!!!!!!!!!!!!!!##
  ##!!!!!!!!!!!!!!!!!!!!!!!!!##
- ## a barplot---------------
+
  long <- NULL
  agg <- NULL
  
