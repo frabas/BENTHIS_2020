@@ -335,10 +335,13 @@ library(vmstools)
  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!###
   # capture an export for later doing some quick table
   aggResultPerMetAlly <- aggResultPerMet
-  save(aggResultPerMetAlly, file=file.path(getwd(), "outputs2020_lgbkonly", paste("aggResultPerMetAllyMet6AndVsizeAndRatiosSmallVids.RData", sep=""))) 
+  #save(aggResultPerMetAlly, file=file.path(getwd(), "outputs2020_lgbkonly", paste("aggResultPerMetAllyMet6AndVsizeAndRatiosSmallVids.RData", sep=""))) 
 
 
   load(file=file.path(getwd(), "outputs2020_lgbkonly", paste("aggResultPerMetAllyMet6AndVsizeAndRatiosSmallVids.RData", sep="")))  # aggResultPerMetAlly
+  library(doBy)
+  
+  spp <- colnames(aggResultPerMetAlly) [grep("LE_EURO_", colnames(aggResultPerMetAlly))]   ; spp <- gsub("LE_EURO_", "", spp) ; spp <- spp [!spp=="SPECS"]
   
   PercentThisStk <- aggResultPerMetAlly[paste0("LE_KG_",spp)] / apply(aggResultPerMetAlly[paste0("LE_KG_",spp)], 1, sum, na.rm=TRUE)*100
   colnames(PercentThisStk)  <- paste0("Percent_",spp)
@@ -349,7 +352,7 @@ library(vmstools)
      
   # a quick informative table (for kg)
   nm <- colnames(aggResultPerMetAlly)
-  tot <- aggregate(aggResultPerMetAlly[, grepl("LE_KG_", nm)], list(aggResultPerMetAlly$LE_MET), mean)  # annual average
+  tot <- aggregate(aggResultPerMetAlly[, c(paste0("LE_KG_", spp), "LE_KG_LITRE_FUEL") ], list(aggResultPerMetAlly$LE_MET), mean)  # annual average
   tot <- orderBy(~ - LE_KG_LITRE_FUEL, tot)
   tot[,-1] <- round(tot[,-1]/1e6,2) # millions litres or thousand tons or euros
   head(tot, 5)
@@ -357,7 +360,7 @@ library(vmstools)
   # same but for euros
   aggResultPerMetAlly$LE_EURO_LITRE_FUEL <- aggResultPerMetAlly$LE_KG_LITRE_FUEL  # a tip for ordering
   nm <- colnames(aggResultPerMetAlly)
-  tot <- aggregate(aggResultPerMetAlly[, grepl("LE_EURO_", nm)], list(aggResultPerMetAlly$LE_MET), mean)  # annual average
+  tot <- aggregate(aggResultPerMetAlly[,  c(paste0("LE_EURO_", spp),"LE_EURO_LITRE_FUEL")], list(aggResultPerMetAlly$LE_MET), mean)  # annual average
   tot <- orderBy(~ - LE_EURO_LITRE_FUEL, tot)
   tot[,-1] <- round(tot[,-1]/1e6,2) # millions litres or thousand tons or euros
   head(tot, 5)
@@ -365,7 +368,7 @@ library(vmstools)
   # same but for litre fuel
   aggResultPerMetAlly$LE_LITRE_FUEL <- aggResultPerMetAlly$LE_KG_LITRE_FUEL  # a tip for ordering
   nm <- colnames(aggResultPerMetAlly)
-  tot <- aggregate(aggResultPerMetAlly[, grepl("LE_LITRE_", nm)], list(aggResultPerMetAlly$LE_MET), mean)  # annual average
+  tot <- aggregate(aggResultPerMetAlly[,  c(paste0("LE_LITRE_", spp), "LE_LITRE_FUEL")], list(aggResultPerMetAlly$LE_MET), mean)  # annual average
   tot <- orderBy(~ - LE_LITRE_FUEL, tot)
   tot[,-1] <- round(tot[,-1]/1e6,2) # millions litres or thousand tons or euros
   head(tot, 5)

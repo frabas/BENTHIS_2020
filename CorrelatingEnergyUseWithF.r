@@ -32,8 +32,10 @@ plot (westcod$Year, westcod$FishingPressure, type="l")
  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
  # BOTTOM-CONTACTING GEARS
  # cross with energy use and economic efficiency from the Danish fleet
- a_var <- "CPUF"
-  load(file=file.path(getwd(), "outputs2020", paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatios",a_var,"ForBotAllyAndStocks.RData", sep="")))
+  a_var <- "VPUF"
+#a_var <- "CPUF"
+  if(a_var=="VPUF"){ load(file=file.path(getwd(), "outputs2020", paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForBotAllyAndStocks.RData", sep="")))
+  }else{  load(file=file.path(getwd(), "outputs2020", paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatios",a_var,"ForBotAllyAndStocks.RData", sep="")))}
   # x
   xx <- tapply(x$value, list(x$Stock, x$Year), mean, na.rm=TRUE)
 
@@ -44,7 +46,7 @@ plot (westcod$Year, westcod$FishingPressure, type="l")
 
   f_and_vpuf <- rbind.data.frame(
     cbind.data.frame(saeu[,c("Stock","Year", "value")], Var="F/FMSY"),
-    cbind.data.frame(long[,c("Stock","Year", "value")], Var=a_comment)
+    cbind.data.frame(long[,c("Stock","Year", "value")], Var=a_var)
     )
 
  f_and_vpuf$Region <- sapply(strsplit(as.character(f_and_vpuf$Stock), split="\\."), function(x) x[2])
@@ -93,7 +95,7 @@ plot (westcod$Year, westcod$FishingPressure, type="l")
                                    units = "px", pointsize = 12,  res=400, compression = c("lzw"))
  par(mfrow=c(2, length(spp)/2))
  for (a_spp in spp)
-  ccf(x[x$Var=="F/FMSY" & x$Year %in% as.character(2012:2019) & x$Stock %in% a_spp,"value_detrended"],
+  ccf(x[x$Var=="F/FMSY" & x$Year %in% as.character(2012:2019) & x$Stock %in% a_spp,"value"],  # ideally we would detrended F/FMSY ts but the ts is too short that it creates misleading outcomes if we do so (given we are close to 1 in recent years...)
        x[x$Var==a_var & x$Year %in% as.character(2012:2019) & x$Stock %in% a_spp,"value"],
          lag.max = 5, type = c("correlation"),
      plot = TRUE, na.action = na.pass, xlab="", main = a_spp, ci.type = "white")
@@ -104,8 +106,10 @@ plot (westcod$Year, westcod$FishingPressure, type="l")
  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
  # PELAGIC GEARS
  # cross with energy use and economic efficiency from the Danish fleet
-  a_var <- "CPUF"
-  load(file=file.path(getwd(), "outputs2020_pel", paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatios",a_var,"ForPelAllyAndStocks.RData", sep="")))
+ a_var <- "VPUF"
+#a_var <- "CPUF"
+  if(a_var=="VPUF"){ load(file=file.path(getwd(), "outputs2020_pel", paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPelAllyAndStocks.RData", sep="")))
+  }else{ load(file=file.path(getwd(), "outputs2020_pel", paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatios",a_var,"ForPelAllyAndStocks.RData", sep=""))) }
   # x
   xx <- tapply(x$value, list(x$Stock, x$Year), mean, na.rm=TRUE)
 
@@ -167,7 +171,7 @@ plot (westcod$Year, westcod$FishingPressure, type="l")
                                    units = "px", pointsize = 12,  res=400, compression = c("lzw"))
  par(mfrow=c(1, length(spp)))
  for (a_spp in spp)
-  ccf(x[x$Var=="F/FMSY" & x$Year %in% as.character(2012:2019) & x$Stock %in% a_spp,"value_detrended"],
+  ccf(x[x$Var=="F/FMSY" & x$Year %in% as.character(2012:2019) & x$Stock %in% a_spp,"value"],  # ideally we would detrended F/FMSY ts but the ts is too short that it creates misleading outcomes if we do so (given we are close to 1 in recent years...)
        x[x$Var==a_var & x$Year %in% as.character(2012:2019) & x$Stock %in% a_spp,"value"],
          lag.max = 5, type = c("correlation"),
      plot = TRUE, na.action = na.pass, xlab="", main = a_spp, ci.type = "white")
@@ -181,8 +185,11 @@ dev.off()
  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
  # SMALL VESSELS (0-12m)
  # cross with energy use and economic efficiency from the Danish fleet
- a_var <- "CPUF"
-  load(file=file.path(getwd(), "outputs2020_lgbkonly", paste("AggregatedEflaloWith",a_var,"SmallVidsAndStocks.RData", sep="")))
+a_var <- "VPUF"
+#a_var <- "CPUF"
+  if(a_var=="VPUF"){ load(file=file.path(getwd(), "outputs2020_lgbkonly", paste("AggregatedEflaloWithSmallVidsAndStocks.RData", sep="")))
+  }else{load(file=file.path(getwd(), "outputs2020_lgbkonly", paste("AggregatedEflaloWith",a_var,"SmallVidsAndStocks.RData", sep="")))}
+
   # x
   xx <- tapply(x$value, list(x$Stock, x$Year), mean, na.rm=TRUE)
 
@@ -202,7 +209,7 @@ dev.off()
 
   namefile <- paste0("ts_f_and_",a_var,"_for_lgbkonly_gridcells.tif")
   a_width <- 9000; a_height=3500
-  tiff(filename=file.path(getwd(), "outputs2020_lgbkonly", "output_plots",  namefile),   width = a_width, height = a_height,
+ tiff(filename=file.path(getwd(), "outputs2020_lgbkonly", "output_plots",  namefile),   width = a_width, height = a_height,
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
   library(ggplot2)
 
@@ -223,13 +230,13 @@ dev.off()
 
 
  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
- ## CROSS CORELATION ??
+ ## CROSS CORRELATION ??
  f_and_vpuf <- f_and_vpuf[!is.na(f_and_vpuf$value),]
  f_and_vpuf$value_detrended <- NA
  dd <- lapply(split(f_and_vpuf, f=f_and_vpuf$Stock), function(x){
          x<-lapply(split(x, f=x$Var), function(x){
           print(x)
-           if(nrow(x)>0) x$value_detrended <- x$value -  (predict(lm(x$value~as.numeric(x$Year))))
+           if(nrow(x)>0) x$value_detrended <- x$value  -  (predict(lm(x$value~as.numeric(x$Year))))
           return(x)
         })
       x <- do.call("rbind", x)
@@ -245,7 +252,7 @@ dev.off()
                                    units = "px", pointsize = 12,  res=400, compression = c("lzw"))
  par(mfrow=c(1, length(spp)))
  for (a_spp in spp)
-  ccf(x[x$Var=="F/FMSY" & x$Year %in% as.character(2012:2019) & x$Stock %in% a_spp,"value_detrended"],
+  ccf(x[x$Var=="F/FMSY" & x$Year %in% as.character(2012:2019) & x$Stock %in% a_spp,"value"],  # ideally we would detrended F/FMSY ts but the ts is too short that it creates misleading outcomes if we do so (given we are close to 1 in recent years...)
        x[x$Var==a_var & x$Year %in% as.character(2012:2019) & x$Stock %in% a_spp,"value"],
          lag.max = 5, type = c("correlation"),
      plot = TRUE, na.action = na.pass, xlab="", main = a_spp, ci.type = "white")
