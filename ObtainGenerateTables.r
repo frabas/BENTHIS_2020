@@ -5,7 +5,8 @@
  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
 
-years <- 2012:2019
+#years <- 2012:2019
+years <- 2005:2019
 
 if(FALSE){
 AllAggResultsBot <- NULL
@@ -20,7 +21,7 @@ for (y in years){
                             )
 
  } # end y
-  save(AllAggResultsBot, file=file.path(getwd(), "outputs2020",  paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForBotAlly.RData", sep="")))
+  save(AllAggResultsBot, file=file.path(getwd(), "outputs2020",  paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForBotAlly_",years[1],"-",years[length(years)],".RData", sep="")))
   ##---
 
 AllAggResultsPel <- NULL
@@ -35,19 +36,20 @@ for (y in years){
                             )
 
 } # end y
-  save(AllAggResultsPel, file=file.path(getwd(), "outputs2020_pel",  paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPelAlly.RData", sep="")))
+  save(AllAggResultsPel, file=file.path(getwd(), "outputs2020_pel",  paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPelAlly",years[1],"-",years[length(years)],".RData", sep="")))
 
 
 
 } # end FALSE
 
+library(doBy)
 
  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
   # general tables  and plot
-   load(file=file.path(getwd(), "outputs2020",  paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForBotAlly.RData", sep="")))
+   load(file=file.path(getwd(), "outputs2020",  paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForBotAlly_",years[1],"-",years[length(years)],".RData", sep="")))
   
   # BOTTOM CONTACTING GEARS
   # Fuel use per metier over the period
@@ -99,7 +101,7 @@ for (y in years){
  namefile <- paste0("boxplot_top5_metiers_bottom_contacting_gears",years[1], years[length(years)],".tif")
  tiff(filename=file.path(getwd(), "outputs2020", "output_plots",  namefile),   width = a_width, height = a_height,
                                     units = "px", pointsize = 12,  res=600, compression = c("lzw"))
-
+ library(ggplot2)
   p <- ggplot(a_data_to_plot, aes(x=LE_MET, y=value, fill=Var)) +    coord_flip() +   labs(title="",x="Top 5 Fleet-segments", y = "Value") +
     geom_boxplot(outlier.colour="black", outlier.shape="", outlier.size=2, notch=FALSE) + ylim(c(0,75)) + scale_fill_brewer(palette="RdBu") + theme_minimal()
   print(p)
@@ -111,7 +113,7 @@ for (y in years){
  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
   # PELAGIC GEARS
-   load(file=file.path(getwd(), "outputs2020_pel",  paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPelAlly.RData", sep="")))
+   load(file=file.path(getwd(), "outputs2020_pel",  paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPelAlly",years[1],"-",years[length(years)],".RData", sep="")))
 
   # Fuel use per metier over the period
   dd <- round(tapply(AllAggResultsPel$LE_KG_LITRE_FUEL, list(AllAggResultsPel$LE_MET, AllAggResultsPel$Year ), sum))/1e6 # millions litre fuel
@@ -176,7 +178,7 @@ for (y in years){
  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
  ## SMALL VESSELS (0-12m)
-  load(file=file.path(getwd(), "outputs2020_lgbkonly", paste("AggregatedEflaloWithSmallVids.RData", sep="")))
+  load(file=file.path(getwd(), "outputs2020_lgbkonly", paste("AggregatedEflaloWithSmallVids",years[1],"-",years[length(years)],".RData", sep="")))
    #eflalo
 
 
@@ -248,7 +250,7 @@ for (y in years){
   # assign area coding to retrieve stock from species
   # general tables  and plot
   # BOTTOM CONTACTING GEARS
-   load(file=file.path(getwd(), "outputs2020",  paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForBotAlly.RData", sep="")))
+   load(file=file.path(getwd(), "outputs2020",  paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForBotAlly_",years[1],"-",years[length(years)],".RData", sep="")))
     x <- AllAggResultsBot
   lon <- "CELL_LONG" ; lat <- "CELL_LATI"
   
@@ -293,7 +295,7 @@ for (y in years){
   }}}
   x <- x[!is.na(x$F_CODE),] # remove very few records
 
-
+ save(x, file=file.path("C:", "temp", "x.RData"))
 
   #  convert to long
   x$ID <- paste0(x$VE_REF, x$Year, x$LE_ID)
@@ -303,7 +305,10 @@ for (y in years){
   
   long <- long[!(is.na(long$value) | long$value==0),] # remove cells where the value is at 0 to avoid an average bias
   
-  long$Species <- sapply(strsplit(as.character(long$Var), split="_"), function (x) x[3])
+  long <- long[,c('LE_MET','F_CODE', 'Year','Var','value')] 
+  
+  #long$Species <- sapply(strsplit(as.character(long$Var), split="_"), function (x) x[3]) # out of memory. replace by:
+  long$Species <-  gsub("LE_CPUF_","", as.character(long$Var))
 
 
   x<- long
@@ -341,7 +346,7 @@ for (y in years){
   
    # export
    x <- cbind.data.frame(datatype="dem", x)
-   save(x, file=file.path(getwd(), "outputs2020", paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatios",a_comment,"ForBotAllyAndStocks.RData", sep="")))
+   save(x, file=file.path(getwd(), "outputs2020", paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatios",a_comment,"ForBotAllyAndStocks",years[1],"-",years[length(years)],".RData", sep="")))
   
    # e.g. a table...
    xx <- tapply(x$value, list(x$Stock, x$Year), mean, na.rm=TRUE)
@@ -360,7 +365,7 @@ for (y in years){
    a_long <- a_long[!a_long$Stock %in% c("HKE.2532","HKE.kask", "CSH.kask", "NOP.kask", "NOP.kask"),] # caution: filtered out to ease the reading!
    a_long <- a_long[!a_long$Region %in% c("oth"),] # caution: filtered out to ease the reading!
    
-  namefile <- paste0("ts_",a_comment,"_per_stock_for_dem_gridcells.tif")
+  namefile <- paste0("ts_",a_comment,"_per_stock_for_dem_gridcells",years[1],"-",years[length(years)],".tif")
   a_width <- 7000; a_height=3500
   tiff(filename=file.path(getwd(), "outputs2020", "output_plots",  namefile),   width = a_width, height = a_height,
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
@@ -368,7 +373,7 @@ for (y in years){
     # do al list of plot to avoid using facet_wrap(~Region, scales="free_y")
     ggList <- lapply(split(a_long, a_long$Region), function(i) {
        ggplot(i, aes(x=Year, y=value,  group=Stock, color=Stock)) +   labs(title="",x="Year", y = a_comment) +
-       geom_line(size=2)  + scale_color_brewer(palette="RdBu") + theme_minimal()   # + ylim(c(0,10))
+       geom_line(size=2)  + scale_color_brewer(palette="RdBu") + theme_minimal()  + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  # + ylim(c(0,10))
     } )
   # plot as grid in 1 columns
   cowplot::plot_grid(plotlist = ggList, ncol = 3,
@@ -388,7 +393,7 @@ for (y in years){
  
   # assign area coding to retrieve stock from species
      # PELAGIC GEARS
-   load(file=file.path(getwd(), "outputs2020_pel",  paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPelAlly.RData", sep="")))
+   load(file=file.path(getwd(), "outputs2020_pel",  paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPelAlly",years[1],"-",years[length(years)],".RData", sep="")))
   x <- AllAggResultsPel
   lon <- "CELL_LONG" ; lat <- "CELL_LATI"
   
@@ -481,7 +486,7 @@ for (y in years){
   
    # export
    x <- cbind.data.frame(datatype="pel", x)
-   save(x, file=file.path(getwd(), "outputs2020_pel", paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatios",a_comment,"ForPelAllyAndStocks.RData", sep="")))
+   save(x, file=file.path(getwd(), "outputs2020_pel", paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatios",a_comment,"ForPelAllyAndStocks",years[1],"-",years[length(years)],".RData", sep="")))
   
    # e.g. a table...
    xx <- tapply(x$value, list(x$Stock, x$Year), mean, na.rm=TRUE)
@@ -498,7 +503,7 @@ for (y in years){
 
    a_long <- long[!long$Species %in% c("COD","POK", "HKE", "HOM", "MON","PRA", "FLE", "PLE", "ELE", "NEP", "LEM", "WIT", "HAD", "TUR", "DAB", "SOL"),] # caution: filtered out to ease the reading!
    
-  namefile <- paste0("ts_",a_comment,"_per_stock_for_pel_gridcells.tif")
+  namefile <- paste0("ts_",a_comment,"_per_stock_for_pel_gridcells",years[1],"-",years[length(years)],".tif")
   a_width <- 9000; a_height=6500
   tiff(filename=file.path(getwd(), "outputs2020_pel", "output_plots",  namefile),   width = a_width, height = a_height,
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
@@ -506,7 +511,7 @@ for (y in years){
     # do al list of plot to avoid using facet_wrap(~Region, scales="free_y")
     ggList <- lapply(split(a_long, a_long$Region), function(i) {
        ggplot(i, aes(x=Year, y=value,  group=Stock, color=Stock)) +   labs(title="",x="Year", y = a_comment) +
-       geom_line(size=2)  + scale_color_brewer(palette="RdBu") + theme_minimal()   # + ylim(c(0,10))
+       geom_line(size=2)  + scale_color_brewer(palette="RdBu") + theme_minimal()  + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))   # + ylim(c(0,10))
     } )
   # plot as grid in 1 columns
   cowplot::plot_grid(plotlist = ggList, ncol = 3,
@@ -525,7 +530,7 @@ for (y in years){
   
   # assign area coding to retrieve stock from species
   
-  load(file=file.path(getwd(), "outputs2020_lgbkonly", paste("AggregatedEflaloWithSmallVids.RData", sep="")))
+  load(file=file.path(getwd(), "outputs2020_lgbkonly", paste("AggregatedEflaloWithSmallVids",years[1],"-",years[length(years)],".RData", sep="")))
   eflalo <- cbind.data.frame(eflalo,
                   vmstools::ICESrectangle2LonLat(statsq=eflalo$LE_RECT, midpoint=TRUE)
                   )
@@ -617,7 +622,7 @@ for (y in years){
   
    # export
    x <- cbind.data.frame(datatype="lgbkonly", x)
-   save(x, file=file.path(getwd(), "outputs2020_lgbkonly", paste("AggregatedEflaloWith",a_comment,"SmallVidsAndStocks.RData", sep="")))
+   save(x, file=file.path(getwd(), "outputs2020_lgbkonly", paste("AggregatedEflaloWith",a_comment,"SmallVidsAndStocks",years[1],"-",years[length(years)],".RData", sep="")))
   
    # e.g. a table...
    xx <- tapply(x$value, list(x$Stock, x$Year), mean, na.rm=TRUE)
@@ -634,7 +639,7 @@ for (y in years){
 
    a_long <- long[long$Species!="ELE",] # caution: filtered out to ease the reading!
    
-  namefile <- paste0("ts_",a_comment,"_per_stock_for_lgbkonly_vids.tif")
+  namefile <- paste0("ts_",a_comment,"_per_stock_for_lgbkonly_vids",years[1],"-",years[length(years)],".tif")
   a_width <- 9000; a_height=6500
   tiff(filename=file.path(getwd(), "outputs2020_lgbkonly", "output_plots",  namefile),   width = a_width, height = a_height,
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
@@ -642,7 +647,7 @@ for (y in years){
     # do al list of plot to avoid using facet_wrap(~Region, scales="free_y")
     ggList <- lapply(split(a_long, a_long$Region), function(i) {
        ggplot(i, aes(x=Year, y=value,  group=Stock, color=Stock)) +   labs(title="",x="Year", y = a_comment) +
-       geom_line(size=2)  + scale_color_brewer(palette="RdBu") + theme_minimal()   # + ylim(c(0,10))
+       geom_line(size=2)  + scale_color_brewer(palette="RdBu") + theme_minimal()  + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))   # + ylim(c(0,10))
     } )
   # plot as grid in 1 columns
   cowplot::plot_grid(plotlist = ggList, ncol = 3,
