@@ -63,7 +63,8 @@ if(.Platform$OS.type == "windows") {
  ##a_year      <- 2019
  }
 
-for (a_year in c(2012:2019))    {  # on WINDOWS system...
+#for (a_year in c(2012:2019))    {  # on WINDOWS system...
+for (a_year in c(2005:2011))    {  # on WINDOWS system...
 
 
 overwrite    <- TRUE

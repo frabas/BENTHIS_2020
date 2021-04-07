@@ -37,7 +37,7 @@ plot (westcod$Year, westcod$FishingPressure, type="l")
   if(a_var=="VPUF"){ load(file=file.path(getwd(), "outputs2020", paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForBotAllyAndStocks.RData", sep="")))
   }else{  load(file=file.path(getwd(), "outputs2020", paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatios",a_var,"ForBotAllyAndStocks.RData", sep="")))}
   # x
-  xx <- tapply(x$value, list(x$Stock, x$Year), mean, na.rm=TRUE)
+  xx <- tapply(x$value, list(x$Stock, x$Year), max, na.rm=TRUE)
 
   xx <- cbind.data.frame(xx, Stock=rownames(xx))
   long <- melt(setDT(xx[, c("Stock", as.character(years))]), id.vars = c("Stock"), variable.name = "Year")

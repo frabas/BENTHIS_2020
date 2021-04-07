@@ -44,7 +44,8 @@ if(.Platform$OS.type == "unix") {
     dataPath  <- "D:/FBA/BENTHIS_2020/EflaloAndTacsat/"
     outPath   <- file.path("D:","FBA","BENTHIS_2020", "outputs2020_pel")
     polPath   <- "D:/FBA/BENTHIS/BalanceMaps"
-    years <- 2012:2019
+   # years <- 2012:2019
+    years <- 2005:2011
  }
  
  

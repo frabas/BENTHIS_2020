@@ -27,11 +27,17 @@ if(.Platform$OS.type == "windows") {
  }
 
 
+ #years <- 2012:2019
+years <- 2005:2019
+
+
 if(FALSE){
 
 
 eflalo_small_vids <- NULL
-for (a_year in c(2012:2019))    {  # on WINDOWS system...
+
+
+for (a_year in years)    {  # on WINDOWS system...
 
 dir.create(file.path(outPath))
 dir.create(file.path(outPath, a_year))
@@ -105,7 +111,7 @@ library(vmstools)
   }
  } # end y
  
- save(eflalo_small_vids, file=file.path(dataPath ,paste("eflalo_small_vids_ally.RData", sep='')))
+ save(eflalo_small_vids, file=file.path(dataPath ,paste("eflalo_small_vids_ally_",years[1],"-",years[length(years)],".RData", sep='')))
 
 } # end FALSE
 
@@ -113,10 +119,9 @@ library(vmstools)
   ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
   ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
 
-  load(file=file.path(dataPath ,paste("eflalo_small_vids_ally.RData", sep='')))
+  load(file=file.path(dataPath ,paste("eflalo_small_vids_ally_",years[1],"-",years[length(years)],".RData", sep='')))
   eflalo <- eflalo_small_vids
 
-  years <- 2012:2019
   spp <- c("COD", "CSH","DAB","ELE","FLE","HAD","HER","HKE","HOM","LEM","MAC","MON","MUS","NEP","NOP","PLE","POK","PRA", "SAN","SOL","SPR","TUR","WHB","WIT","WHG","OTH")
   color_species <- c("#E69F00","hotpink","#56B4E9","#F0E442", "green", "#0072B2", "mediumorchid4", "#CC79A7",
                    "indianred2", "#EEC591", "#458B00", "#F0F8FF", "black", "#e3dcbf", "#CD5B45", "lightseagreen",
@@ -236,6 +241,10 @@ library(vmstools)
   ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
   ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
    # compute some ratios (to plot across spp)
+  
+  eflalo$KKGallsp <- apply (eflalo[, paste0('LE_KG_', spp)], 1, sum, na.rm=TRUE) /1e3 # in tons
+  eflalo$KEUROallsp <- apply (eflalo[, paste0('LE_EURO_', spp)], 1, sum, na.rm=TRUE) / 1e3 # in thousands euros
+  
   dd <- sweep(eflalo[, paste0('LE_KG_', spp)], 1,  eflalo$LE_EFF, FUN="/")
   colnames(dd) <- paste0('LE_CPUE_', spp)
   dd <- do.call(data.frame,lapply(dd, function(x) replace(x, is.infinite(x) | is.nan(x) , NA)))
@@ -279,7 +288,7 @@ library(vmstools)
 
 
   # capture an export for quickmap2020.r
-  save(eflalo, file=file.path(getwd(), "outputs2020_lgbkonly", paste("AggregatedEflaloWithSmallVids.RData", sep="")))
+  save(eflalo, file=file.path(getwd(), "outputs2020_lgbkonly", paste("AggregatedEflaloWithSmallVids",years[1],"-",years[length(years)],".RData", sep="")))
 
    # just for info and a rough approximation
     total_kg1 <- tapply(eflalo$LE_KG_SPECS, list(eflalo$LE_MET), sum, na.rm=TRUE)
@@ -299,7 +308,9 @@ library(vmstools)
     idx.col.kg     <- grep('LE_KG_', nm)
     idx.col.swpt     <- grep('SWEPT_AREA_KM2', nm)
     idx.col.effectiveeffort     <- grep('LE_EFF', nm)
-    idx.col <- c(idx.col.euro, idx.col.kg, idx.col.swpt, idx.col.effectiveeffort)
+    idx.col.kkg       <- grep('KKGallsp', nm, fixed=TRUE)
+    idx.col.keuro     <- grep('KEUROallsp', nm, fixed=TRUE)
+    idx.col <- c(idx.col.euro, idx.col.kg, idx.col.swpt, idx.col.effectiveeffort, idx.col.kkg, idx.col.keuro)
     DT  <- data.table(eflalo)
     eq1  <- c.listquote( paste ("sum(",nm[idx.col],",na.rm=TRUE)",sep="") )
     a_by <- c.listquote(  agg_by )
@@ -335,10 +346,10 @@ library(vmstools)
  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!###
   # capture an export for later doing some quick table
   aggResultPerMetAlly <- aggResultPerMet
-  #save(aggResultPerMetAlly, file=file.path(getwd(), "outputs2020_lgbkonly", paste("aggResultPerMetAllyMet6AndVsizeAndRatiosSmallVids.RData", sep=""))) 
+  save(aggResultPerMetAlly, file=file.path(getwd(), "outputs2020_lgbkonly", paste("aggResultPerMetAllyMet6AndVsizeAndRatiosSmallVids",years[1],"-",years[length(years)],".RData", sep=""))) 
 
 
-  load(file=file.path(getwd(), "outputs2020_lgbkonly", paste("aggResultPerMetAllyMet6AndVsizeAndRatiosSmallVids.RData", sep="")))  # aggResultPerMetAlly
+  load(file=file.path(getwd(), "outputs2020_lgbkonly", paste("aggResultPerMetAllyMet6AndVsizeAndRatiosSmallVids",years[1],"-",years[length(years)],".RData", sep="")))  # aggResultPerMetAlly
   library(doBy)
   
   spp <- colnames(aggResultPerMetAlly) [grep("LE_EURO_", colnames(aggResultPerMetAlly))]   ; spp <- gsub("LE_EURO_", "", spp) ; spp <- spp [!spp=="SPECS"]
@@ -401,7 +412,7 @@ library(vmstools)
 
   # dem
   a_width <- 5000;  a_height <- 2000
-  namefile <- paste0("barplot_fuel_efficiency_smallvids_per_species.tif")
+  namefile <- paste0("barplot_fuel_efficiency_smallvids_per_species",years[1],"-",years[length(years)],".tif")
   tiff(filename=file.path(getwd(), "outputs2020_lgbkonly", "output_plots",  namefile),   width = a_width, height = a_height,
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
     library(data.table)
@@ -412,11 +423,12 @@ library(vmstools)
     long$Species <- sapply(strsplit(as.character(long$Var), split="_"), function(x) x[3])
     long$VarType <- factor(sapply(strsplit(as.character(long$Var), split="_"), function(x) x[2]))
     long$value   <- long$value  /1e6 # millions
-    levels(long$VarType) <- c("Millions Euros", "Thousánd Tons", "Millions Litres")
+    levels(long$VarType) <- c("Millions Euros", "Thousand Tons", "Millions Litres")
     long$Species <- with(long, reorder(Species, value, median)) # reorder
     long$Species <- factor(long$Species, levels=rev(levels(long$Species))) # reverse
     
-   p <- ggplot(data=long[!long$Species %in% c("TODO"),], aes(x=Species, y=value))  +
+    library(ggplot2)
+    p <- ggplot(data=long[!long$Species %in% c("TODO"),], aes(x=Species, y=value))  +
            geom_boxplot(outlier.size = -1, fill='#A4A4A4', color="black") +  scale_color_grey() + facet_wrap(~VarType, scales="free")   + labs(y = "", x = "Species") + 
            theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5, size=8))
   print(p)
@@ -437,9 +449,9 @@ library(vmstools)
  long <- NULL
  agg <- NULL
 
- variables <- c("LE_KG_LITRE_FUEL", "CPUEallsp", "CPUFallsp", "VPUFallsp")
- prefixes  <- c("LE_KG_",           "LE_CPUE_",  "LE_CPUF_",  "LE_VPUF_")
-
+ variables <- c("LE_KG_LITRE_FUEL", "CPUEallsp", "CPUFallsp", "VPUFallsp",  "KKGallsp", "KEUROallsp")
+ prefixes  <- c("LE_KG_",           "LE_CPUE_",  "LE_CPUF_",  "LE_VPUF_",   "LE_KG_", "LE_EURO_")
+ 
  count <- 0
  for(a_variable in variables){
     count <- count+1
@@ -473,6 +485,8 @@ library(vmstools)
  if(a_variable=="CPUFallsp") {a_ylab <- "CPUF (kg per litre)";  ylims=c(0,max(as.data.frame(long)[,a_variable],15))}
  if(a_variable=="VPUFallsp") {a_ylab <- "VPUF  (euro per litre)";  ylims=c(0,max(as.data.frame(long)[,a_variable],15))}
  if(a_variable=="VPUFSWAallsp") {a_ylab <- "VPUFSWA  (euro per swept area)";  ylims=c(0,max(as.data.frame(long)[,a_variable],100000))}
+ if(a_variable=="KKGallsp") {a_ylab <- "Landings (tons)";  ylims=c(0,max(as.data.frame(long)[,a_variable],100000))}
+ if(a_variable=="KEUROallsp") {a_ylab <- "Landings  (keuros)";  ylims=c(0,max(as.data.frame(long)[,a_variable],100000))}
 
   a_width <- 9000 ; a_height <- 4000
    a_comment <- "" ; if(per_metier_level6) a_comment <- "_met6";  if(per_vessel_size) a_comment <- paste0(a_comment,"_vsize") ; if(per_region) a_comment <- paste0(a_comment,"_region")
@@ -632,8 +646,8 @@ dev.off()
  long <- NULL
  agg <- NULL
 
- variables <- c("LE_KG_LITRE_FUEL", "CPUEallseg", "CPUFallseg", "VPUFallseg")
- prefixes  <- c("LE_LITRE_",           "LE_CPUE_",  "LE_CPUF_",  "LE_VPUF_")
+ variables <- c("LE_KG_LITRE_FUEL", "CPUEallseg", "CPUFallseg", "VPUFallseg", "KKGallseg", "KEUROallseg")
+ prefixes  <- c("LE_LITRE_",           "LE_CPUE_",  "LE_CPUF_",  "LE_VPUF_", "LE_KG_", "LE_EURO_")
 
 
  count <- 0

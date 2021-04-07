@@ -54,7 +54,8 @@
  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
 
 
- years <- 2012:2019
+ #years <- 2012:2019
+ years <- 2005:2019
  spp <- c("COD", "CSH","DAB","ELE","FLE","HAD","HER","HKE","HOM","LEM","MAC","MON","MUS","NEP","NOP","PLE","POK","PRA", "SAN","SOL","SPR","TUR","WHB","WIT","WHG","OTH")
  color_species <- c("#E69F00","hotpink","#56B4E9","#F0E442", "green", "#0072B2", "mediumorchid4", "#CC79A7",
                    "indianred2", "#EEC591", "#458B00", "#F0F8FF", "black", "#e3dcbf", "#CD5B45", "lightseagreen",
@@ -107,6 +108,10 @@
       aggResult$LE_MET_init <- factor(aggResult$LE_MET_init)
       levels(aggResult$LE_MET_init) <- gsub("MCD", "CRU", levels(aggResult$LE_MET_init)) # immediate correction to avoid useless historical renaming MCD->CRU
 
+      # debug
+      aggResult <- aggResult[aggResult$LE_KG_LITRE >0,]
+      
+      
        # code F_SUBAREA (time consuming code...)
       # Convert all points first to SpatialPoints first
       library(rgdal)
@@ -135,12 +140,12 @@
    pel <- res[grep("SmallMesh",res[,1]),]
    pel <- aggregate(pel$dd, list(pel[,1]), sum)
    pel <- orderBy(~ -x, pel)
-   oth_mets_pel <- as.character(pel[cumsum(pel[,2])/sum(pel[,2])>.90,1]) # 90% in effort in pel
+   oth_mets_pel <- as.character(pel[cumsum(pel[,2])/sum(pel[,2])>.80,1]) # 80% in effort in pel
   
    dem <- res[grep("LargeMesh",res[,1]),]
    dem <- aggregate(dem$dd, list(dem[,1]), sum)
    dem <- orderBy(~ -x, dem)
-   oth_mets_dem <- as.character(dem[cumsum(dem[,2])/sum(dem[,2])>.90,1]) # 90% in effort in dem
+   oth_mets_dem <- as.character(dem[cumsum(dem[,2])/sum(dem[,2])>.80,1]) # 80% in effort in dem
  
  
  # met to keep
@@ -159,7 +164,7 @@
         aggResult$LE_MET_init <- factor(aggResult$LE_MET_init)
        levels(aggResult$LE_MET_init) <- gsub("MCD", "CRU", levels(aggResult$LE_MET_init)) # immediate correction to avoid useless historical renaming of MCD->CRU
 
-        
+              
         #correct some met:
         levels(aggResult$LE_MET)[levels(aggResult$LE_MET)=="OT_CRU"] <- "OT_MIX_NEP"
         levels(aggResult$LE_MET)[levels(aggResult$LE_MET)=="OT_MIX_DMF_PEL"] <- "OT_DMF_PEL"
@@ -231,7 +236,7 @@
      
       # caution - a small fix for an annoying renaming of segment
       aggResult$LE_MET <- factor(aggResult$LE_MET)
-      levels(aggResult$LE_MET)[levels(aggResult$LE_MET) %in% "LargeMesh_27.4_OTB_DEF_>=120_0_0_[24,40)"] <- "LargeMesh_27.4_OTB_CRU_>=120_0_0_[24,40)"
+      levels(aggResult$LE_MET)[levels(aggResult$LE_MET) %in% "LargeMesh_27.4_OTB_CRU_>=120_0_0_[24,40)"] <- "LargeMesh_27.4_OTB_DEF_>=120_0_0_[24,40)"
       aggResult$LE_MET <- factor(aggResult$LE_MET)
 
 
@@ -239,7 +244,13 @@
 
     #head(aggResult)
     #range(aggResult$effort_mins)
- 
+          
+          
+    # debug
+    aggResult <- aggResult[aggResult$LE_KG_LITRE >0,]
+
+    aggResult$KKGallsp <- apply (aggResult[, paste0('LE_KG_', spp)], 1, sum, na.rm=TRUE) /1e3 # in tons
+    aggResult$KEUROallsp <- apply (aggResult[, paste0('LE_EURO_', spp)], 1, sum, na.rm=TRUE) / 1e3 # in thousands euros
 
     # compute some ratios
     dd <- sweep(aggResult[, paste0('LE_KG_', spp)], 1,  aggResult$effort_mins, FUN="/")
@@ -309,7 +320,9 @@
     idx.col.kg     <- grep('LE_KG_', nm)
     idx.col.swpt     <- grep('SWEPT_AREA_KM2', nm)
     idx.col.effectiveeffort     <- grep('effort_mins', nm)
-    idx.col <- c(idx.col.euro, idx.col.kg, idx.col.swpt, idx.col.effectiveeffort)
+    idx.col.kkg       <- grep('KKGallsp', nm, fixed=TRUE)
+    idx.col.keuro     <- grep('KEUROallsp', nm, fixed=TRUE)
+    idx.col <- c(idx.col.euro, idx.col.kg, idx.col.swpt, idx.col.effectiveeffort, idx.col.kkg, idx.col.keuro)
     DT  <- data.table(aggResult)
     eq1  <- c.listquote( paste ("sum(",nm[idx.col],",na.rm=TRUE)",sep="") )
     a_by <- c.listquote(  agg_by )
@@ -343,6 +356,7 @@
 
 
    assign(paste0("aggResultPerMet_", y), aggResultPerMet)
+  cat(paste0("saved for ", y, "\n"))
   } # end y
 
 
@@ -358,6 +372,7 @@
   # capture an export for later doing some quick table
   aggResultPerMetAlly <- NULL
   for (y in years){
+   print(y)
      dd <- get(paste0("aggResultPerMet_", y))
      dd <- cbind.data.frame(Year=y, dd)
      aggResultPerMetAlly <- rbind.data.frame(aggResultPerMetAlly, dd)
@@ -365,7 +380,7 @@
   save(aggResultPerMetAlly, file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndVsizeAndRatiosBottContact.RData", sep=""))) 
 
 
-  load(file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndVsizeAndRatiosForBottContact.RData", sep="")))  # aggResultPerMetAlly
+  load(file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndVsizeAndRatiosBottContact.RData", sep="")))  # aggResultPerMetAlly
   
   PercentThisStk <- aggResultPerMetAlly[paste0("LE_KG_",spp)] / apply(aggResultPerMetAlly[paste0("LE_KG_",spp)], 1, sum, na.rm=TRUE)*100
   colnames(PercentThisStk)  <- paste0("Percent_",spp)
@@ -424,8 +439,9 @@
   rownames(a_summary) <- c("Thousands tons", "Millions euros", "Millions litres")
 
   # dem
+  library(ggplot2)
   a_width <- 5000;  a_height <- 2000
-  namefile <- paste0("barplot_fuel_efficiency_bottcontact_per_species.tif")
+  namefile <- paste0("barplot_fuel_efficiency_bottcontact_per_species-2005-2019.tif")
   tiff(filename=file.path(getwd(), "outputs2020", "output_plots",  namefile),   width = a_width, height = a_height,
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
     library(data.table)
@@ -471,8 +487,8 @@
  #a_variable <- "VPUFSWAallsp"
  #prefix    <- "LE_VPUFSWA_"
  
- variables <- c("LE_KG_LITRE_FUEL", "CPUEallsp", "CPUFallsp", "VPUFallsp", "VPUFSWAallsp")
- prefixes  <- c("LE_KG_",           "LE_CPUE_",  "LE_CPUF_",  "LE_VPUF_",  "LE_VPUFSWA_")
+ variables <- c("LE_KG_LITRE_FUEL", "CPUEallsp", "CPUFallsp", "VPUFallsp", "VPUFSWAallsp", "KKGallsp", "KEUROallsp")
+ prefixes  <- c("LE_KG_",           "LE_CPUE_",  "LE_CPUF_",  "LE_VPUF_",  "LE_VPUFSWA_", "LE_KG_", "LE_EURO_")
  
  count <- 0
  for(a_variable in variables){
@@ -481,8 +497,10 @@
      dd <- get(paste0("aggResultPerMet_", y))
      # get percent per stock for sectorisation
 
+     # debug SAN
+     dd[grepl("LargeMesh",dd$LE_MET) & !grepl("OTHER",dd$LE_MET), paste0(prefixes[count], "SAN")] <- 0 # because SAN creates misleading distorsion on plots...
 
-     PercentThisStk <- dd[paste0(prefixes[count],spp)] / apply(dd[paste0(prefixes[count],spp)], 1, sum, na.rm=TRUE)*100
+     PercentThisStk <- sweep(dd[paste0(prefixes[count],spp)],1, apply(dd[paste0(prefixes[count],spp)], 1, sum, na.rm=TRUE), FUN="/")*100
      colnames(PercentThisStk)  <- paste0("Percent_",spp)
      dd <- cbind.data.frame (dd, PercentThisStk)
      VarThisStk <- sweep(dd[,colnames(PercentThisStk)]/100, 1, dd[,a_variable], FUN="*")
@@ -514,8 +532,10 @@
  if(a_variable=="CPUFallsp") {a_ylab <- "CPUF (kg per litre)";  ylims=c(0,max(as.data.frame(agg)[,a_variable],15))}
  if(a_variable=="VPUFallsp") {a_ylab <- "VPUF  (euro per litre)";  ylims=c(0,max(as.data.frame(agg)[,a_variable],15))}
  if(a_variable=="VPUFSWAallsp") {a_ylab <- "VPUFSWA  (euro per swept area)";  ylims=c(0,max(as.data.frame(agg)[,a_variable],100000))}
+ if(a_variable=="KKGallsp") {a_ylab <- "Landings (tons)";  ylims=c(0,max(as.data.frame(agg)[,a_variable],100000))}
+ if(a_variable=="KEUROallsp") {a_ylab <- "Landings  (keuros)";  ylims=c(0,max(as.data.frame(agg)[,a_variable],100000))}
 
-  a_width <- 9000 ; a_height <- 4000
+  a_width <- 9500 ; a_height <- 4000
    a_comment <- "" ; if(per_metier_level6) a_comment <- "_met6";  if(per_vessel_size) a_comment <- paste0(a_comment,"_vsize") ; if(per_region) a_comment <- paste0(a_comment,"_region")
 
  # dem
@@ -552,7 +572,7 @@ dev.off()
  ##!!!!!!!!!!!!!!!!!!!!!!!!!##
  ##!!!!!!!!!!!!!!!!!!!!!!!!!##
  ##!!!!!!!!!!!!!!!!!!!!!!!!!##
- a_width <- 9000 ; a_height <- 4000
+ a_width <- 9500 ; a_height <- 4000
  library(ggplot2)
 
  # dem
@@ -590,7 +610,7 @@ dev.off()
  ##!!!!!!!!!!!!!!!!!!!!!!!!!##
  ##!!!!!!!!!!!!!!!!!!!!!!!!!##
  ##!!!!!!!!!!!!!!!!!!!!!!!!!##
- a_width <- 9000 ; a_height <- 4000
+ a_width <- 9500 ; a_height <- 4000
  library(ggplot2)
 
  # dem
@@ -673,8 +693,8 @@ dev.off()
  # plot THIS TIME SECTORED PER METIER
 
 
- variables <- c("LE_KG_LITRE_FUEL", "CPUEallseg", "CPUFallseg", "VPUFallseg")
- prefixes  <- c("LE_LITRE_",           "LE_CPUE_",  "LE_CPUF_",  "LE_VPUF_")
+ variables <- c("LE_KG_LITRE_FUEL", "CPUEallseg", "CPUFallseg", "VPUFallseg", "KKGallseg", "KEUROallseg")
+ prefixes  <- c("LE_LITRE_",           "LE_CPUE_",  "LE_CPUF_",  "LE_VPUF_", "LE_KG_", "LE_EURO_")
 
 
  count <- 0
@@ -729,8 +749,10 @@ dev.off()
  if(a_variable=="CPUEallseg") {a_unit <- 1; a_ylab <- "CPUE (kg per effort)";  ylims=c(0,max(as.data.frame(long)[,a_variable],100000))}
  if(a_variable=="CPUFallseg") {a_unit <- 1; a_ylab <- "CPUF (kg per litre)";  ylims=c(0,max(as.data.frame(long)[,a_variable],100000))}
  if(a_variable=="VPUFallseg") {a_unit <- 1; a_ylab <- "VPUF  (euro per litre)";  ylims=c(0,max(as.data.frame(long)[,a_variable],100000))}
+ if(a_variable=="KKGallseg") {a_unit <- 1e3; a_ylab <- "Landings (tons)";  ylims=c(0,max(as.data.frame(long)[,a_variable],100000))}
+ if(a_variable=="KEUROallseg") {a_unit <- 1e3; a_ylab <- "Landings  (keuros)";  ylims=c(0,max(as.data.frame(long)[,a_variable],100000))}
 
-  a_width <- 9000 ; a_height <- 4000
+  a_width <- 9500 ; a_height <- 4000
    a_comment <- "" ; if(per_metier_level6) a_comment <- "_met6";  if(per_vessel_size) a_comment <- paste0(a_comment,"_vsize") ; if(per_region) a_comment <- paste0(a_comment,"_region")
 
    some_color_seg <-  c("#7FC97F", "#BEAED4", "#FDC086", "#FFFF99", "#386CB0", "#F0027F", "#BF5B17", "#666666", "#1B9E77", "#D95F02", "#7570B3", "#E7298A", "#66A61E", "#E6AB02", "#A6761D", "#666666", "#A6CEE3", "#1F78B4", "#B2DF8A", "#33A02C", "#FB9A99", "#E31A1C", "#FDBF6F",
@@ -784,7 +806,7 @@ dev.off()
  ##!!!!!!!!!!!!!!!!!!!!!!!!!##
  ##!!!!!!!!!!!!!!!!!!!!!!!!!##
  ##!!!!!!!!!!!!!!!!!!!!!!!!!##
- a_width <- 9000 ; a_height <- 4000
+ a_width <- 9500 ; a_height <- 4000
  library(ggplot2)
 
  # dem
