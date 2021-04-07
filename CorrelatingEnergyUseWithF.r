@@ -2,6 +2,9 @@
 
 setwd (file.path("D:","FBA","BENTHIS_2020"))   # adapt to your need
 
+years <- 2005:2019
+
+
 # retrieve all Fs and co and bio reference points from ICES data and collected and processed by STECF 20-01
 saeu <- read.csv(file=file.path(getwd(), "STECF 20-01 adhoc - all supporting data and code", "analysis", "saeu.csv"), header=TRUE)
 
@@ -33,13 +36,14 @@ plot (westcod$Year, westcod$FishingPressure, type="l")
  # BOTTOM-CONTACTING GEARS
  # cross with energy use and economic efficiency from the Danish fleet
   a_var <- "VPUF"
-#a_var <- "CPUF"
-  if(a_var=="VPUF"){ load(file=file.path(getwd(), "outputs2020", paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForBotAllyAndStocks.RData", sep="")))
-  }else{  load(file=file.path(getwd(), "outputs2020", paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatios",a_var,"ForBotAllyAndStocks.RData", sep="")))}
+a_var <- "CPUF"
+  if(a_var=="VPUF"){ load(file=file.path(getwd(), "outputs2020", paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForBotAllyAndStocks",years[1],"-",years[length(years)],".RData", sep="")))
+  }else{  load(file=file.path(getwd(), "outputs2020", paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatios",a_var,"ForBotAllyAndStocks",years[1],"-",years[length(years)],".RData", sep="")))}
   # x
-  xx <- tapply(x$value, list(x$Stock, x$Year), max, na.rm=TRUE)
+  xx <- tapply(x$value, list(x$Stock, x$Year), mean, na.rm=TRUE) # avrage across grid cells and met...
 
   xx <- cbind.data.frame(xx, Stock=rownames(xx))
+  library(data.table)
   long <- melt(setDT(xx[, c("Stock", as.character(years))]), id.vars = c("Stock"), variable.name = "Year")
   long <- as.data.frame(long[complete.cases(long),])
 
@@ -52,7 +56,7 @@ plot (westcod$Year, westcod$FishingPressure, type="l")
  f_and_vpuf$Region <- sapply(strsplit(as.character(f_and_vpuf$Stock), split="\\."), function(x) x[2])
  f_and_vpuf$StockAndVar <- paste(f_and_vpuf$Stock,f_and_vpuf$Var, sep=".")
 
-  namefile <- paste0("ts_f_and_",a_var,"_for_dem_gridcells.tif")
+  namefile <- paste0("ts_f_and_",a_var,"_for_dem_gridcells",years[1],"-",years[length(years)],".tif")
   a_width <- 9000; a_height=3500
   tiff(filename=file.path(getwd(), "outputs2020", "output_plots",  namefile),   width = a_width, height = a_height,
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
@@ -63,8 +67,8 @@ plot (westcod$Year, westcod$FishingPressure, type="l")
   
     # do al list of plot to avoid using facet_wrap(~Region, scales="free_y")
     ggList <- lapply(split(dat, dat$Region), function(i) {
-       ggplot(i, aes(x=Year, y=value,  group=StockAndVar, color=StockAndVar)) +   labs(title="",x="Year", y = "VPUF or F/FMSY") +
-       geom_line(size=2)  + scale_color_brewer(palette="Paired") + theme_minimal()   # + ylim(c(0,10))
+       ggplot(i, aes(x=Year, y=value,  group=StockAndVar, color=StockAndVar)) +   labs(title="",x="Year", y = "CPUF or F/FMSY") +
+       geom_line(size=2)  + scale_color_brewer(palette="Paired") + theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  # + ylim(c(0,10))
     } )
   # plot as grid in 1 columns
   cowplot::plot_grid(plotlist = ggList, ncol = 2,
@@ -88,7 +92,7 @@ plot (westcod$Year, westcod$FishingPressure, type="l")
     x <- do.call("rbind", dd)
 
 
- # detrending on F/FMSY ts given we know the MP is targetting a value of 1 deliberately
+ # maybe worth to detrending on F/FMSY ts given we know the MP is targetting a value of 1 deliberately
  spp <- c("COD.nsea", "PLE.nsea", "SOL.nsea", "HAD.nsea", "POK.nsea", "HKE.nsea", "NEP.kask", "COD.2224", "PLE.2123", "SOL.2024")
  a_width <- 6000; a_height=2500
   tiff(filename=file.path(getwd(), "outputs2020", "output_plots",  "crosscorrelation.tif"),   width = a_width, height = a_height,
@@ -107,9 +111,9 @@ plot (westcod$Year, westcod$FishingPressure, type="l")
  # PELAGIC GEARS
  # cross with energy use and economic efficiency from the Danish fleet
  a_var <- "VPUF"
-#a_var <- "CPUF"
-  if(a_var=="VPUF"){ load(file=file.path(getwd(), "outputs2020_pel", paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPelAllyAndStocks.RData", sep="")))
-  }else{ load(file=file.path(getwd(), "outputs2020_pel", paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatios",a_var,"ForPelAllyAndStocks.RData", sep=""))) }
+a_var <- "CPUF"
+  if(a_var=="VPUF"){ load(file=file.path(getwd(), "outputs2020_pel", paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPelAllyAndStocks",years[1],"-",years[length(years)],".RData", sep="")))
+  }else{ load(file=file.path(getwd(), "outputs2020_pel", paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatios",a_var,"ForPelAllyAndStocks",years[1],"-",years[length(years)],".RData", sep=""))) }
   # x
   xx <- tapply(x$value, list(x$Stock, x$Year), mean, na.rm=TRUE)
 
@@ -127,19 +131,19 @@ plot (westcod$Year, westcod$FishingPressure, type="l")
  f_and_vpuf$Region <- sapply(strsplit(as.character(f_and_vpuf$Stock), split="\\."), function(x) x[2])
  f_and_vpuf$StockAndVar <- paste(f_and_vpuf$Stock,f_and_vpuf$Var, sep=".")
 
-  namefile <- paste0("ts_f_and_",a_var,"_for_pel_gridcells.tif")
+  namefile <- paste0("ts_f_and_",a_var,"_for_pel_gridcells",years[1],"-",years[length(years)],".tif")
   a_width <- 9000; a_height=3500
   tiff(filename=file.path(getwd(), "outputs2020_pel", "output_plots",  namefile),   width = a_width, height = a_height,
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
   library(ggplot2)
 
-  dat <- f_and_vpuf[f_and_vpuf$Stock%in%c("SAN.nsea", "SPR.nsea", "NOP.nsea", "HER.nsea", "MAC.nsea", "SPR.2232"),]
+  dat <- f_and_vpuf[f_and_vpuf$Stock%in%c( "HER.nsea", "MAC.nsea", "SPR.2232"),]
   dat$Region <- factor(dat$Region)
 
     # do al list of plot to avoid using facet_wrap(~Region, scales="free_y")
     ggList <- lapply(split(dat, dat$Region), function(i) {
        ggplot(i, aes(x=Year, y=value,  group=StockAndVar, color=StockAndVar)) +   labs(title="",x="Year", y = paste0(a_var, " or F/FMSY")) +
-       geom_line(size=2)  + scale_color_brewer(palette="Paired") + theme_minimal()   # + ylim(c(0,10))
+       geom_line(size=2)  + scale_color_brewer(palette="Paired") + theme_minimal()  + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5)) # + ylim(c(0,10))
     } )
   # plot as grid in 1 columns
   cowplot::plot_grid(plotlist = ggList, ncol = 2,
@@ -148,7 +152,7 @@ plot (westcod$Year, westcod$FishingPressure, type="l")
   dev.off()
 
  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
- ## CROSS CORELATION ??
+ ## CROSS CORRELATION ??
  f_and_vpuf <- f_and_vpuf[!is.na(f_and_vpuf$value),]
  f_and_vpuf$value_detrended <- NA
  dd <- lapply(split(f_and_vpuf, f=f_and_vpuf$Stock), function(x){
@@ -185,10 +189,10 @@ dev.off()
  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
  # SMALL VESSELS (0-12m)
  # cross with energy use and economic efficiency from the Danish fleet
-a_var <- "VPUF"
-#a_var <- "CPUF"
-  if(a_var=="VPUF"){ load(file=file.path(getwd(), "outputs2020_lgbkonly", paste("AggregatedEflaloWithSmallVidsAndStocks.RData", sep="")))
-  }else{load(file=file.path(getwd(), "outputs2020_lgbkonly", paste("AggregatedEflaloWith",a_var,"SmallVidsAndStocks.RData", sep="")))}
+#a_var <- "VPUF"
+a_var <- "CPUF"
+  if(a_var=="VPUF"){ load(file=file.path(getwd(), "outputs2020_lgbkonly", paste("AggregatedEflaloWithSmallVidsAndStocks",years[1],"-",years[length(years)],".RData", sep="")))
+  }else{load(file=file.path(getwd(), "outputs2020_lgbkonly", paste("AggregatedEflaloWith",a_var,"SmallVidsAndStocks",years[1],"-",years[length(years)],".RData", sep="")))}
 
   # x
   xx <- tapply(x$value, list(x$Stock, x$Year), mean, na.rm=TRUE)
@@ -207,7 +211,7 @@ a_var <- "VPUF"
  f_and_vpuf$Region <- sapply(strsplit(as.character(f_and_vpuf$Stock), split="\\."), function(x) x[2])
  f_and_vpuf$StockAndVar <- paste(f_and_vpuf$Stock,f_and_vpuf$Var, sep=".")
 
-  namefile <- paste0("ts_f_and_",a_var,"_for_lgbkonly_gridcells.tif")
+  namefile <- paste0("ts_f_and_",a_var,"_for_lgbkonly_gridcells",years[1],"-",years[length(years)],".tif")
   a_width <- 9000; a_height=3500
  tiff(filename=file.path(getwd(), "outputs2020_lgbkonly", "output_plots",  namefile),   width = a_width, height = a_height,
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
@@ -219,7 +223,7 @@ a_var <- "VPUF"
     # do al list of plot to avoid using facet_wrap(~Region, scales="free_y")
     ggList <- lapply(split(dat, dat$Region), function(i) {
        ggplot(i, aes(x=Year, y=value,  group=StockAndVar, color=StockAndVar)) +   labs(title="",x="Year", y = paste0(a_var, " or F/FMSY")) +
-       geom_line(size=2)  + scale_color_brewer(palette="Paired") + theme_minimal()   # + ylim(c(0,10))
+       geom_line(size=2)  + scale_color_brewer(palette="Paired") + theme_minimal()   + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))   # + ylim(c(0,10))
     } )
   # plot as grid in 1 columns
   cowplot::plot_grid(plotlist = ggList, ncol = 2,
