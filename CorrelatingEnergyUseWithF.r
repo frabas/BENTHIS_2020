@@ -33,7 +33,7 @@ plot (westcod$Year, westcod$FishingPressure, type="l")
  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
- # BOTTOM-CONTACTING GEARS
+ # BOTTOM-CONTACTING GEARS  - LARGE MESH
  # cross with energy use and economic efficiency from the Danish fleet
   a_var <- "VPUF"
 a_var <- "CPUF"
@@ -62,6 +62,7 @@ a_var <- "CPUF"
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
   library(ggplot2)
   
+  # large mesh - dem
   dat <- f_and_vpuf[f_and_vpuf$Stock%in%c("COD.nsea", "PLE.nsea", "SOL.nsea", "HAD.nsea", "HKE.nsea", "NEP.kask", "COD.2224", "PLE.2123"),]
   dat$Region <- factor(dat$Region)
   
@@ -93,7 +94,7 @@ a_var <- "CPUF"
 
 
  # maybe worth to detrending on F/FMSY ts given we know the MP is targetting a value of 1 deliberately
- spp <- c("COD.nsea", "PLE.nsea", "SOL.nsea", "HAD.nsea", "POK.nsea", "HKE.nsea", "NEP.kask", "COD.2224", "PLE.2123", "SOL.2024")
+ spp <- c("COD.nsea", "PLE.nsea", "SOL.nsea", "HAD.nsea", "POK.nsea","HER.nsea",  "NEP.kask", "COD.2224", "PLE.2123", "SOL.2024")
  a_width <- 6000; a_height=2500
   tiff(filename=file.path(getwd(), "outputs2020", "output_plots",  "crosscorrelation.tif"),   width = a_width, height = a_height,
                                    units = "px", pointsize = 12,  res=400, compression = c("lzw"))
@@ -104,6 +105,86 @@ a_var <- "CPUF"
          lag.max = 5, type = c("correlation"),
      plot = TRUE, na.action = na.pass, xlab="", main = a_spp, ci.type = "white")
   dev.off()
+
+
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
+ # BOTTOM-CONTACTING GEARS  - SMALL MESH
+ # cross with energy use and economic efficiency from the Danish fleet
+  a_var <- "VPUF"
+a_var <- "CPUF"
+  if(a_var=="VPUF"){ load(file=file.path(getwd(), "outputs2020", paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForBotAllyAndStocks",years[1],"-",years[length(years)],".RData", sep="")))
+  }else{  load(file=file.path(getwd(), "outputs2020", paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatios",a_var,"ForBotAllyAndStocks",years[1],"-",years[length(years)],".RData", sep="")))}
+  # x
+  xx <- tapply(x$value, list(x$Stock, x$Year), mean, na.rm=TRUE) # avrage across grid cells and met...
+
+  xx <- cbind.data.frame(xx, Stock=rownames(xx))
+  library(data.table)
+  long <- melt(setDT(xx[, c("Stock", as.character(years))]), id.vars = c("Stock"), variable.name = "Year")
+  long <- as.data.frame(long[complete.cases(long),])
+
+
+  f_and_vpuf <- rbind.data.frame(
+    cbind.data.frame(saeu[,c("Stock","Year", "value")], Var="F/FMSY"),
+    cbind.data.frame(long[,c("Stock","Year", "value")], Var=a_var)
+    )
+
+ f_and_vpuf$Region <- sapply(strsplit(as.character(f_and_vpuf$Stock), split="\\."), function(x) x[2])
+ f_and_vpuf$StockAndVar <- paste(f_and_vpuf$Stock,f_and_vpuf$Var, sep=".")
+
+  namefile <- paste0("ts_f_and_",a_var,"_for_demsmallmesh_gridcells",years[1],"-",years[length(years)],".tif")
+  a_width <- 9000; a_height=3500
+  tiff(filename=file.path(getwd(), "outputs2020", "output_plots",  namefile),   width = a_width, height = a_height,
+                                   units = "px", pointsize = 12,  res=600, compression = c("lzw"))
+  library(ggplot2)
+  
+  # small mesh - 
+   dat <- f_and_vpuf[f_and_vpuf$Stock%in%c("SAN.nsea", "NOP.nsea", "HER.nsea"),]
+    dat$Region <- factor(dat$Region)
+  
+    # do al list of plot to avoid using facet_wrap(~Region, scales="free_y")
+    ggList <- lapply(split(dat, dat$Region), function(i) {
+       ggplot(i, aes(x=Year, y=value,  group=StockAndVar, color=StockAndVar)) +   labs(title="",x="Year", y = "CPUF or F/FMSY") +
+       geom_line(size=2)  + scale_color_brewer(palette="Paired") + theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  # + ylim(c(0,10))
+    } )
+  # plot as grid in 1 columns
+  cowplot::plot_grid(plotlist = ggList, ncol = 2,
+                   align = 'v', labels = levels(long$Region))
+
+  dev.off()
+
+  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
+ ## CROSS CORRELATION
+ f_and_vpuf <- f_and_vpuf[!is.na(f_and_vpuf$value),]
+ f_and_vpuf$value_detrended <- NA
+ dd <- lapply(split(f_and_vpuf, f=f_and_vpuf$Stock), function(x){
+         x<-lapply(split(x, f=x$Var), function(x){
+          print(x)
+           if(nrow(x)>0) x$value_detrended <- x$value -  (predict(lm(x$value~as.numeric(x$Year))))
+          return(x)
+        })
+      x <- do.call("rbind", x)
+      return(x)
+     })
+    x <- do.call("rbind", dd)
+
+
+ # maybe worth to detrending on F/FMSY ts given we know the MP is targetting a value of 1 deliberately
+ spp <- c("SAN.nsea", "NOP.nsea", "HER.nsea")
+  a_width <- 6000; a_height=2500
+  tiff(filename=file.path(getwd(), "outputs2020", "output_plots",  "crosscorrelation_smallmesh.tif"),   width = a_width, height = a_height,
+                                   units = "px", pointsize = 12,  res=400, compression = c("lzw"))
+ par(mfrow=c(2, length(spp)/2))
+ for (a_spp in spp)
+  ccf(x[x$Var=="F/FMSY" & x$Year %in% as.character(2012:2019) & x$Stock %in% a_spp,"value"],  # ideally we would detrended F/FMSY ts but the ts is too short that it creates misleading outcomes if we do so (given we are close to 1 in recent years...)
+       x[x$Var==a_var & x$Year %in% as.character(2012:2019) & x$Stock %in% a_spp,"value"],
+         lag.max = 5, type = c("correlation"),
+     plot = TRUE, na.action = na.pass, xlab="", main = a_spp, ci.type = "white")
+  dev.off()
+
+
+
 
  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##

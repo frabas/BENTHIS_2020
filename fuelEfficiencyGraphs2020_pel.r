@@ -468,7 +468,9 @@
  for(a_variable in variables){
  count <- count+1
  for (y in years){
-     dd <- get(paste0("aggResultPerMet_", y))
+     #dd <- get(paste0("aggResultPerMet_", y))
+     dd <- aggResultPerMetAlly[aggResultPerMetAlly$Year==y, ]
+     
      # get percent per stock for sectorisation
 
 
@@ -518,7 +520,7 @@
   the_agg$LE_MET <- gsub("SmallMesh_", "", the_agg$LE_MET)
   p <- ggplot(data=the_agg, aes(x=LE_MET, y=value, fill=Stock)) + #  geom_bar(stat="identity", position=position_dodge())
   geom_bar(stat="identity")   + labs(y = a_ylab, x = "Fleet-segments")  + #ylim(ylims[1], ylims[2]) +
-       scale_fill_manual(values=some_color_species) + facet_grid(. ~ year) + theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5, size=8))
+       scale_fill_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=1))  + facet_grid(. ~ year) + theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5, size=8))
   print(p)
 dev.off()
 
@@ -543,7 +545,8 @@ dev.off()
  the_agg <- agg[grep("SmallMesh",agg$LE_MET),]
   the_agg$LE_MET <- gsub("SmallMesh_", "", the_agg$LE_MET)  
  p <- ggplot(the_agg, aes(x=as.character(year), y=value, group=Stock)) +    facet_wrap(. ~ LE_MET, scales = "free_y")  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +   labs(y = a_ylab) +
-  geom_line(aes(color=Stock), size=1.5) +     labs(y = a_ylab, x = "Year")     + geom_point(aes(color=Stock), size=3)   + scale_color_manual(values=some_color_species) +
+  geom_line(aes(color=Stock), size=1.5) +     labs(y = a_ylab, x = "Year")     + geom_point(aes(color=Stock), size=3)   + 
+      scale_color_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=1))  +
   xlab("")     #    + ylim(ylims[1], ylims[2])
  print(p)
 dev.off()
@@ -582,7 +585,7 @@ dev.off()
  p <- ggplot(the_agg, aes(x=as.character(year), y=value, group=Stock)) + 
      facet_wrap(. ~ LE_MET, scales = "free_y")  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +   labs(y = a_ylab) +
   geom_area(aes(fill=Stock))  +     labs(y = a_ylab, x = "Year")   +
-   scale_fill_manual(values=some_color_species) +
+   scale_fill_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=1))  +
     xlab("")
  print(p)
 dev.off()
@@ -626,7 +629,9 @@ dev.off()
   a_long <- NULL
   long <- NULL
   for (y in years){
-     dd <- get(paste0("aggResultPerMet_", y))
+     #dd <- get(paste0("aggResultPerMet_", y))
+     dd <- aggResultPerMetAlly[aggResultPerMetAlly$Year==y, ]
+ 
     # get percent per stock for sectorisation
 
     if(length(grep("LE_LITRE_", colnames(dd)))==0){
@@ -696,7 +701,7 @@ dev.off()
 
  p <- ggplot(the_agg, aes(x=as.character(Year), y=value/a_unit, group=LE_MET)) +    facet_wrap(. ~ Stock, scales = "free_y")  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +   labs(y = a_ylab) +
   geom_line(aes(color=LE_MET), size=1.5) +     labs(y = a_ylab, x = "Year")     + geom_point(aes(color=LE_MET), size=3)   +
-  scale_color_manual(values=some_color_seg) +
+  scale_color_manual(values=some_color_seg, name="Fleet-segments") +   guides(fill =guide_legend(ncol=1)) + 
   xlab("")     #    + ylim(ylims[1], ylims[2])
  print(p)
 dev.off()
@@ -741,7 +746,7 @@ dev.off()
   
  p <- ggplot(the_agg, aes(x=as.character(Year), y=value/a_unit, group=LE_MET)) +    facet_wrap(. ~ Stock, scales = "free_y")  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +   labs(y = a_ylab) +
   geom_area(aes( fill=LE_MET))  +     labs(y = a_ylab, x = "Year")   +
-   scale_fill_manual(values=some_color_seg) +
+   scale_fill_manual(values=some_color_seg, name="Fleet-segments") +   guides(fill =guide_legend(ncol=1)) +
   xlab("")     #    + ylim(ylims[1], ylims[2])
  print(p)
 dev.off()

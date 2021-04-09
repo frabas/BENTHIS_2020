@@ -150,6 +150,8 @@
  
  # met to keep
  oth_mets <- c(oth_mets_dem, oth_mets_pel, "27.3_No_Matrix6_[12,18)","27.4_No_Matrix6_[12,18)", "27.3_No_Matrix6_[18,24)","27.4_No_Matrix6_[18,24)", paste0("NA","_",levels(aggResult$VesselSize)) )
+ oth_mets_27_3 <- oth_mets[grepl("27.3", oth_mets)]
+ oth_mets_27_4 <- oth_mets[grepl("27.4", oth_mets)]
  }
  #----
  
@@ -182,7 +184,8 @@
        # names(dd[cumsum(dd)/sum(dd)>.99])
        colnames(aggResult)[ colnames(aggResult) =="LE_MET_init"] <- "LE_MET"
        aggResult$LE_MET <- factor(aggResult$LE_MET)
-       levels(aggResult$LE_MET)[levels(aggResult$LE_MET) %in% oth_mets] <- "OTHER_0_0"
+       levels(aggResult$LE_MET)[levels(aggResult$LE_MET) %in% oth_mets_27_3] <- "27.3_OTHER_0_0"
+       levels(aggResult$LE_MET)[levels(aggResult$LE_MET) %in% oth_mets_27_4] <- "27.4_OTHER_0_0"
        levels(aggResult$LE_MET)[levels(aggResult$LE_MET) %in% "No_matrix6"] <- "OTHER_0_0"
        levels(aggResult$LE_MET)[levels(aggResult$LE_MET) %in% "NA"] <- "OTHER_0_0"
        levels(aggResult$LE_MET)[levels(aggResult$LE_MET) %in% "DRB_MOL_>=0_0_0"] <- "DRB_MOL_>0_0_0"
@@ -232,8 +235,18 @@
       levels(aggResult$target)[!levels(aggResult$target) %in% "LargeMesh"] <- "SmallMesh"
   
       aggResult$LE_MET <- factor(paste0(aggResult$target, "_", aggResult$F_SUBAREA,"_", aggResult$LE_MET, "_", aggResult$VesselSize))
-      levels(aggResult$LE_MET)[levels(aggResult$LE_MET) %in% oth_mets] <- "LargeMesh_OTHER_0_0_0"
-     
+      
+      # manage the OTHER mets
+      smallmesh_oth_mets_27_3 <- oth_mets_27_3[grepl("SmallMesh",oth_mets_27_3)]
+      smallmesh_oth_mets_27_4 <- oth_mets_27_4[grepl("SmallMesh",oth_mets_27_4)]
+      largemesh_oth_mets_27_3 <- oth_mets_27_3[grepl("LargeMesh",oth_mets_27_3)]
+      largemesh_oth_mets_27_4 <- oth_mets_27_4[grepl("LargeMesh",oth_mets_27_4)]
+      levels(aggResult$LE_MET)[levels(aggResult$LE_MET) %in% smallmesh_oth_mets_27_3] <- "SmallMesh_27.3_OTHER_0_0"
+      levels(aggResult$LE_MET)[levels(aggResult$LE_MET) %in% smallmesh_oth_mets_27_4] <- "SmallMesh_27.4_OTHER_0_0"
+      levels(aggResult$LE_MET)[levels(aggResult$LE_MET) %in% largemesh_oth_mets_27_3] <- "LargeMesh_27.3_OTHER_0_0"
+      levels(aggResult$LE_MET)[levels(aggResult$LE_MET) %in% largemesh_oth_mets_27_4] <- "LargeMesh_27.4_OTHER_0_0"
+      levels(aggResult$LE_MET)[levels(aggResult$LE_MET) %in% oth_mets[!oth_mets %in% c(smallmesh_oth_mets_27_3, smallmesh_oth_mets_27_4, largemesh_oth_mets_27_3, largemesh_oth_mets_27_4)]] <- "LargeMesh_OTHER_0_0_0"
+      
       # caution - a small fix for an annoying renaming of segment
       aggResult$LE_MET <- factor(aggResult$LE_MET)
       levels(aggResult$LE_MET)[levels(aggResult$LE_MET) %in% "LargeMesh_27.4_OTB_CRU_>=120_0_0_[24,40)"] <- "LargeMesh_27.4_OTB_DEF_>=120_0_0_[24,40)"
@@ -494,7 +507,9 @@
  for(a_variable in variables){
  count <- count+1
  for (y in years){
-     dd <- get(paste0("aggResultPerMet_", y))
+     #dd <- get(paste0("aggResultPerMet_", y))
+     dd <- aggResultPerMetAlly[aggResultPerMetAlly$Year==y, ]
+ 
      # get percent per stock for sectorisation
 
      # debug SAN
@@ -583,10 +598,10 @@ dev.off()
   the_agg$LE_MET <- gsub("LargeMesh_", "", the_agg$LE_MET)
  p <- ggplot(the_agg, aes(x=as.character(year), y=value, group=Stock)) +    facet_wrap(. ~ LE_MET, scales = "free_y")  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +   labs(y = a_ylab) +
   geom_line(aes(color=Stock), size=1.5) +     labs(y = a_ylab, x = "Year")     + geom_point(aes(color=Stock), size=3)   +
-   scale_color_manual(values=some_color_species) +
+   scale_color_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=1)) +
   xlab("")     #    + ylim(ylims[1], ylims[2])
  print(p)
-dev.off()
+ dev.off()
 
 # pel
  namefile <- paste0("ts_fuel_efficiency", a_variable, "_", years[1], "-", years[length(years)],  a_comment, "_PEL.tif")
@@ -595,8 +610,9 @@ dev.off()
  the_agg <- agg[grep("SmallMesh",agg$LE_MET),]
   the_agg$LE_MET <- gsub("SmallMesh_", "", the_agg$LE_MET)  
  p <- ggplot(the_agg, aes(x=as.character(year), y=value, group=Stock)) +    facet_wrap(. ~ LE_MET, scales = "free_y")  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +   labs(y = a_ylab) +
-  geom_line(aes(color=Stock), size=1.5) +     labs(y = a_ylab, x = "Year")     + geom_point(aes(color=Stock), size=3)   + scale_color_manual(values=some_color_species) +
-  xlab("")     #    + ylim(ylims[1], ylims[2])
+  geom_line(aes(color=Stock), size=1.5) +     labs(y = a_ylab, x = "Year")     + geom_point(aes(color=Stock), size=3) +
+   scale_color_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=1)) +
+     xlab("")     #    + ylim(ylims[1], ylims[2])
  print(p)
 dev.off()
 
@@ -634,7 +650,7 @@ dev.off()
   the_agg$LE_MET <- gsub("LargeMesh_", "", the_agg$LE_MET)
  p <- ggplot(the_agg, aes(x=as.character(year), y=value, group=Stock)) +    facet_wrap(. ~ LE_MET, scales = "free_y")  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +   labs(y = a_ylab) +
   geom_area(aes( fill=Stock))  +     labs(y = a_ylab, x = "Year")   +
-   scale_fill_manual(values=some_color_species) +
+   scale_fill_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=1)) +
   xlab("")     #    + ylim(ylims[1], ylims[2])
  print(p)
 dev.off()
@@ -660,7 +676,7 @@ dev.off()
  p <- ggplot(the_agg, aes(x=as.character(year), y=value, group=Stock)) + 
      facet_wrap(. ~ LE_MET, scales = "free_y")  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +   labs(y = a_ylab) +
   geom_area(aes(fill=Stock))  +     labs(y = a_ylab, x = "Year")   +
-   scale_fill_manual(values=some_color_species) +
+   scale_fill_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=1)) +
     xlab("")
  print(p)
 dev.off()
@@ -704,7 +720,8 @@ dev.off()
   a_long <- NULL
   long <- NULL
   for (y in years){
-     dd <- get(paste0("aggResultPerMet_", y))
+    # dd <- get(paste0("aggResultPerMet_", y))
+    dd <- aggResultPerMetAlly[aggResultPerMetAlly$Year==y, ]
     # get percent per stock for sectorisation
 
     if(length(grep("LE_LITRE_", colnames(dd)))==0){
@@ -768,12 +785,13 @@ dev.off()
   the_agg$LE_MET <- gsub("LargeMesh_", "", the_agg$LE_MET)
   
   # caution filter out non-relevant species for these fleets
-  the_agg<-  the_agg[! (grepl("OTHER", the_agg$Stock)  | grepl("NOP", the_agg$Stock) | grepl("HER", the_agg$Stock)  | grepl("WHB", the_agg$Stock) | grepl("SPR", the_agg$Stock) | grepl("HOM", the_agg$Stock) | grepl("CSH", the_agg$Stock) | grepl("PRA", the_agg$Stock) | grepl("MAC", the_agg$Stock) | grepl("SAN", the_agg$Stock) | grepl("ELE", the_agg$Stock)| grepl("MUS", the_agg$Stock) | grepl("WHG", the_agg$Stock)   ),]
+  #the_agg<-  the_agg[! (grepl("OTHER", the_agg$Stock)  | grepl("NOP", the_agg$Stock) | grepl("HER", the_agg$Stock)  | grepl("WHB", the_agg$Stock) | grepl("SPR", the_agg$Stock) | grepl("HOM", the_agg$Stock) | grepl("CSH", the_agg$Stock) | grepl("PRA", the_agg$Stock) | grepl("MAC", the_agg$Stock) | grepl("SAN", the_agg$Stock) | grepl("ELE", the_agg$Stock)| grepl("MUS", the_agg$Stock) | grepl("WHG", the_agg$Stock)   ),]
+  the_agg<-  the_agg[! (grepl("NOP", the_agg$Stock) | grepl("HER", the_agg$Stock)  | grepl("WHB", the_agg$Stock) | grepl("SPR", the_agg$Stock) | grepl("HOM", the_agg$Stock) | grepl("CSH", the_agg$Stock) | grepl("PRA", the_agg$Stock) | grepl("MAC", the_agg$Stock) | grepl("SAN", the_agg$Stock) | grepl("ELE", the_agg$Stock)| grepl("MUS", the_agg$Stock) | grepl("WHG", the_agg$Stock)   ),]
   
-  
+ library(ggplot2) 
  p <- ggplot(the_agg, aes(x=as.character(Year), y=value/a_unit, group=LE_MET)) +    facet_wrap(. ~ Stock, scales = "free_y")  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +   labs(y = a_ylab) +
   geom_line(aes(color=LE_MET), size=1.5) +     labs(y = a_ylab, x = "Year")     + geom_point(aes(color=LE_MET), size=3)   +
-  scale_color_manual(values=some_color_seg) +
+    scale_color_manual(values=some_color_seg, name="Fleet-segments") +   guides(fill =guide_legend(ncol=1)) +
   xlab("")     #    + ylim(ylims[1], ylims[2])
  print(p)
 dev.off()
@@ -786,12 +804,12 @@ dev.off()
   the_agg$LE_MET <- gsub("SmallMesh_", "", the_agg$LE_MET)
 
    # caution - filter out non-relevant species for these fleets
-  the_agg<-  the_agg[ !(grepl("OTHER", the_agg$Stock)  | grepl("COD", the_agg$Stock) | grepl("DAB", the_agg$Stock)  | grepl("FLE", the_agg$Stock)  | grepl("HOM 27.3", the_agg$Stock)  | grepl("LEM", the_agg$Stock)  | grepl("NEP", the_agg$Stock)  | grepl("NOP 27.3", the_agg$Stock) | grepl("PLE", the_agg$Stock) | grepl("SOL", the_agg$Stock) | grepl("TUR", the_agg$Stock) | grepl("WIT", the_agg$Stock) | grepl("POK", the_agg$Stock) | grepl("WHB", the_agg$Stock) | grepl("CSH 27.3", the_agg$Stock) | grepl("MON", the_agg$Stock) | grepl("ELE", the_agg$Stock) ),]
+  the_agg<-  the_agg[ !( grepl("COD", the_agg$Stock) | grepl("DAB", the_agg$Stock)  | grepl("FLE", the_agg$Stock)  | grepl("HOM 27.3", the_agg$Stock)  | grepl("LEM", the_agg$Stock)  | grepl("NEP", the_agg$Stock)  | grepl("NOP 27.3", the_agg$Stock) | grepl("PLE", the_agg$Stock) | grepl("SOL", the_agg$Stock) | grepl("TUR", the_agg$Stock) | grepl("WIT", the_agg$Stock) | grepl("POK", the_agg$Stock) | grepl("WHB", the_agg$Stock) | grepl("CSH 27.3", the_agg$Stock) | grepl("MON", the_agg$Stock) | grepl("ELE", the_agg$Stock) ),]
 
 
  p <- ggplot(the_agg, aes(x=as.character(Year), y=value/a_unit, group=LE_MET)) +    facet_wrap(. ~ Stock, scales = "free_y")  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +   labs(y = a_ylab) +
   geom_line(aes(color=LE_MET), size=1.5) +     labs(y = a_ylab, x = "Year")     + geom_point(aes(color=LE_MET), size=3)   +
-  scale_color_manual(values=some_color_seg) +
+   scale_color_manual(values=some_color_seg, name="Fleet-segments") +   guides(fill =guide_legend(ncol=1)) +
   xlab("")     #    + ylim(ylims[1], ylims[2])
  print(p)
 dev.off()
@@ -837,7 +855,7 @@ dev.off()
 
  p <- ggplot(the_agg, aes(x=as.character(Year), y=value/a_unit, group=LE_MET)) +    facet_wrap(. ~ Stock, scales = "free_y")  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +   labs(y = a_ylab) +
   geom_area(aes( fill=LE_MET))  +     labs(y = a_ylab, x = "Year")   +
-   scale_fill_manual(values=some_color_seg) +
+      scale_fill_manual(values=some_color_seg, name="Fleet-segments") +   guides(fill =guide_legend(ncol=1)) +
   xlab("")     #    + ylim(ylims[1], ylims[2])
  print(p)
 dev.off()
@@ -849,7 +867,7 @@ dev.off()
  the_agg <- long[grep("SmallMesh",long$LE_MET),]
 
    # caution filter out non-relevant species for these fleets
-  the_agg<-  the_agg[ !(grepl("OTHER", the_agg$Stock)  | grepl("COD", the_agg$Stock) | grepl("DAB", the_agg$Stock)  | grepl("FLE", the_agg$Stock)  | grepl("HOM 27.3", the_agg$Stock)  | grepl("LEM", the_agg$Stock)  | grepl("NEP", the_agg$Stock)  | grepl("NOP 27.3", the_agg$Stock) | grepl("PLE", the_agg$Stock) | grepl("SOL", the_agg$Stock) | grepl("TUR", the_agg$Stock) | grepl("WIT", the_agg$Stock) | grepl("POK", the_agg$Stock) | grepl("WHB", the_agg$Stock) | grepl("CSH 27.3", the_agg$Stock) | grepl("MON", the_agg$Stock) | grepl("ELE", the_agg$Stock) ),]
+  the_agg<-  the_agg[ !(grepl("COD", the_agg$Stock) | grepl("DAB", the_agg$Stock)  | grepl("FLE", the_agg$Stock)  | grepl("HOM 27.3", the_agg$Stock)  | grepl("LEM", the_agg$Stock)  | grepl("NEP", the_agg$Stock)  | grepl("NOP 27.3", the_agg$Stock) | grepl("PLE", the_agg$Stock) | grepl("SOL", the_agg$Stock) | grepl("TUR", the_agg$Stock) | grepl("WIT", the_agg$Stock) | grepl("POK", the_agg$Stock) | grepl("WHB", the_agg$Stock) | grepl("CSH 27.3", the_agg$Stock) | grepl("MON", the_agg$Stock) | grepl("ELE", the_agg$Stock) ),]
 
  # a visual fix adding all combi--
  dd <- expand.grid(LE_MET=levels(factor(the_agg$LE_MET)), Stock=levels(factor(the_agg$Stock)), Year=levels(factor(the_agg$Year)))
@@ -866,7 +884,7 @@ dev.off()
   the_agg$LE_MET <- gsub("SmallMesh_", "", the_agg$LE_MET)
  p <- ggplot(the_agg, aes(x=as.character(Year), y=value/a_unit, group=LE_MET)) +    facet_wrap(. ~ Stock, scales = "free_y")  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +   labs(y = a_ylab) +
   geom_area(aes( fill=LE_MET))  +     labs(y = a_ylab, x = "Year")   +
-   scale_fill_manual(values=some_color_seg) +
+   scale_fill_manual(values=some_color_seg, name="Fleet-segments") +   guides(fill =guide_legend(ncol=1)) +
   xlab("")     #    + ylim(ylims[1], ylims[2])
  print(p)
 dev.off()

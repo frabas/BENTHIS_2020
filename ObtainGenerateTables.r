@@ -69,6 +69,7 @@ library(doBy)
                                  AllmTons=dd2[,"AllmTons"] , AllmTons_cv=dd2[,"AllmTons_cv"],
                                  AllMEuros=dd3[,"AllMEuros"], AllMEuros_cv=dd3[,"AllMEuros_cv"])
   rownames(all_indic) <- rownames(dd)
+  library(doBy)
   all_indic <- orderBy(~ - AllMLitres, all_indic)
   
   top5 <- rownames(all_indic[1:5,])
@@ -103,7 +104,7 @@ library(doBy)
                                     units = "px", pointsize = 12,  res=600, compression = c("lzw"))
  library(ggplot2)
   p <- ggplot(a_data_to_plot, aes(x=LE_MET, y=value, fill=Var)) +    coord_flip() +   labs(title="",x="Top 5 Fleet-segments", y = "Value") +
-    geom_boxplot(outlier.colour="black", outlier.shape="", outlier.size=2, notch=FALSE) + ylim(c(0,75)) + scale_fill_brewer(palette="RdBu") + theme_minimal()
+    geom_boxplot(outlier.colour="black", outlier.shape="", outlier.size=2, notch=FALSE) + scale_fill_brewer(palette="RdBu") + theme_minimal() # + ylim(c(0,75))
   print(p)
   dev.off()
   
