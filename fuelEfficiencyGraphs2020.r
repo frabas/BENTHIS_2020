@@ -107,6 +107,7 @@
       load(file.path(getwd(),  "outputs2020", paste0("AggregatedSweptAreaPlusMet6AndVsize_",y,".RData") ))  # aggResult
       aggResult$LE_MET_init <- factor(aggResult$LE_MET_init)
       levels(aggResult$LE_MET_init) <- gsub("MCD", "CRU", levels(aggResult$LE_MET_init)) # immediate correction to avoid useless historical renaming MCD->CRU
+      levels(aggResult$LE_MET_init) <- gsub("OTB_CRU_90-119_0_0", "OTB_DEF_90-119_0_0", levels(aggResult$LE_MET_init)) # immediate correction to avoid an artifical split
 
       # debug
       aggResult <- aggResult[aggResult$LE_KG_LITRE >0,]
@@ -140,12 +141,12 @@
    pel <- res[grep("SmallMesh",res[,1]),]
    pel <- aggregate(pel$dd, list(pel[,1]), sum)
    pel <- orderBy(~ -x, pel)
-   oth_mets_pel <- as.character(pel[cumsum(pel[,2])/sum(pel[,2])>.80,1]) # 80% in effort in pel
+   oth_mets_pel <- as.character(pel[cumsum(pel[,2])/sum(pel[,2])>.75,1]) # 75% in effort in pel
   
    dem <- res[grep("LargeMesh",res[,1]),]
    dem <- aggregate(dem$dd, list(dem[,1]), sum)
    dem <- orderBy(~ -x, dem)
-   oth_mets_dem <- as.character(dem[cumsum(dem[,2])/sum(dem[,2])>.80,1]) # 80% in effort in dem
+   oth_mets_dem <- as.character(dem[cumsum(dem[,2])/sum(dem[,2])>.75,1]) # 75% in effort in dem
  
  
  # met to keep
@@ -163,9 +164,9 @@
  for (y in years){
     if(!per_metier_level6 && !per_vessel_size){
         load(file.path(getwd(), "outputs2020", paste0("AggregatedSweptAreaPlus_",y,".RData") ))  # aggResult
-        aggResult$LE_MET_init <- factor(aggResult$LE_MET_init)
-       levels(aggResult$LE_MET_init) <- gsub("MCD", "CRU", levels(aggResult$LE_MET_init)) # immediate correction to avoid useless historical renaming of MCD->CRU
-
+        aggResult$LE_MET_init <- factor(aggResult$LE_MET)
+        levels(aggResult$LE_MET_init) <- gsub("MCD", "CRU", levels(aggResult$LE_MET_init)) # immediate correction to avoid useless historical renaming of MCD->CRU
+  
               
         #correct some met:
         levels(aggResult$LE_MET)[levels(aggResult$LE_MET)=="OT_CRU"] <- "OT_MIX_NEP"
@@ -204,6 +205,7 @@
        load(file.path(getwd(), "outputs2020", paste0("AggregatedSweptAreaPlusMet6AndVsize_",y,".RData") ))  # aggResult
        aggResult$LE_MET_init <- factor(aggResult$LE_MET_init)
        levels(aggResult$LE_MET_init) <- gsub("MCD", "CRU", levels(aggResult$LE_MET_init)) # immediate correction to avoid useless historical renaming MCD->CRU
+       levels(aggResult$LE_MET_init) <- gsub("OTB_CRU_90-119_0_0", "OTB_DEF_90-119_0_0", levels(aggResult$LE_MET_init)) # immediate correction to avoid an artifical split
 
        # dd <- tapply(aggResult$effort_mins, aggResult$LE_MET_init, sum)
        # dd <- dd[order(-dd)]
@@ -290,35 +292,33 @@
     aggResult <- cbind.data.frame (aggResult, dd)
     aggResult$VPUFSWAallsp <- apply (aggResult[, paste0('LE_VPUFSWA_', spp)], 1, sum, na.rm=TRUE)
 
-     
-    dd <- apply (aggResult, 1, function (x) {
-               idx_cols <- grepl("LE_VPUF_", names(x))
-               idx <- which.max(as.numeric(x[idx_cols]))
-               gsub("LE_VPUF_", "", names(x[idx_cols])[idx])
+  
+    idx_cols <- grepl("LE_VPUF_", names(aggResult))    
+    dd <- apply (aggResult[,idx_cols], 1, function (x) {
+               idx <- which.max(as.numeric(x))[1]
                })
-    aggResult$sp_with_max_vpuf <- dd          
+    aggResult$sp_with_max_vpuf <-   gsub("LE_VPUF_", "", names(aggResult[,idx_cols])[dd])          
 
-    dd <- apply (aggResult, 1, function (x) {
-               idx_cols <- grepl("LE_CPUE_", names(x))
-               idx <- which.max(as.numeric(x[idx_cols]))
-               gsub("LE_CPUE_", "", names(x[idx_cols])[idx])
+    idx_cols <- grepl("LE_CPUE_", names(aggResult))    
+    dd <- apply (aggResult[,idx_cols], 1, function (x) {
+               idx <- which.max(as.numeric(x))[1]
                })
-    aggResult$sp_with_max_cpue <- dd          
+    aggResult$sp_with_max_cpue <-   gsub("LE_CPUE_", "", names(aggResult[,idx_cols])[dd])          
 
-    dd <- apply (aggResult, 1, function (x) {
-               idx_cols <- grepl("LE_CPUF_", names(x))
-               idx <- which.max(as.numeric(x[idx_cols]))
-               gsub("LE_CPUF_", "", names(x[idx_cols])[idx])
+   idx_cols <- grepl("LE_CPUF_", names(aggResult))    
+   dd <- apply (aggResult[,idx_cols], 1, function (x) {
+               idx <- which.max(as.numeric(x)) [1]
                })
-    aggResult$sp_with_max_cpuf <- dd          
-   
-    dd <- apply (aggResult, 1, function (x) {
-               idx_cols <- grepl("LE_VPUFSWA_", names(x))
-               idx <- which.max(as.numeric(x[idx_cols]))
-               gsub("LE_VPUFSWA_", "", names(x[idx_cols])[idx])
-               })
-    aggResult$sp_with_max_vpufswa <- dd          
+   aggResult$sp_with_max_cpuf <-   gsub("LE_CPUF_", "", names(aggResult[,idx_cols])[dd])          
 
+    
+   idx_cols <- grepl("LE_VPUFSWA_", names(aggResult))    
+   dd <- apply (aggResult[,idx_cols], 1, function (x) {
+               idx <- which.max(as.numeric(x))[1]
+               })
+   aggResult$sp_with_max_vpufswa <-   gsub("LE_VPUFSWA_", "", names(aggResult[,idx_cols])[dd])          
+
+ 
     # capture an export for quickmap2020.r
     save(aggResult, file=file.path(getwd(), "outputs2020", paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForBottContact_", y, ".RData", sep=""))) 
 
