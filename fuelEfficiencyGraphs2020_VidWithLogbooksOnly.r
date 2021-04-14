@@ -177,6 +177,12 @@ library(vmstools)
    eflalo$F_DIVISION <- idx[,"F_DIVISION"]
    eflalo[is.na(eflalo$F_DIVISION), "F_DIVISION"] <- paste0(eflalo[is.na(eflalo$F_DIVISION), "F_SUBAREA"],".a") # few points on coastline
 
+   #
+   eflalo$LE_MET <- factor(eflalo$LE_MET)
+   levels(eflalo$LE_MET) <- gsub("MCD_90-119_0_0", "DEF_90-119_0_0", levels(eflalo$LE_MET)) # immediate correction to avoid an artifical split
+   levels(eflalo$LE_MET) <- gsub("_MCD_>=120", "_DEF_>=120", levels(eflalo$LE_MET)) # immediate correction to avoid an artifical split
+
+
    # code small vs large mesh
    eflalo$target <- factor(eflalo$LE_MET) # init
    code <- sapply(strsplit(levels(eflalo$target), split="_"), function(x) x[3])
@@ -189,12 +195,12 @@ library(vmstools)
 
    pel <- dd[grep("SmallMesh",names(dd))]
    pel <- pel[order(pel, decreasing=TRUE)]
-   oth_mets_pel <-  names(pel)[cumsum(pel)/sum(pel)>.9]
+   oth_mets_pel <-  names(pel)[cumsum(pel)/sum(pel)>.75]
    oth_mets_pel <- c(oth_mets_pel, "NA_27.3_No_Matrix6_(0,12]", "NA_27.4_No_Matrix6_(0,12]")
 
    dem <- dd[grep("LargeMesh",names(dd))]
    dem <- dem[order(dem, decreasing=TRUE)]
-   oth_mets_dem <-  names(dem)[cumsum(dem)/sum(dem)>.9]
+   oth_mets_dem <-  names(dem)[cumsum(dem)/sum(dem)>.75]
    oth_mets_dem <- c(oth_mets_dem, "NA_27.3_No_Matrix6_(0,12]", "NA_27.4_No_Matrix6_(0,12]")
 
 
@@ -264,27 +270,31 @@ library(vmstools)
   eflalo$VPUFallsp <- apply (eflalo[, paste0('LE_VPUF_', spp)], 1, sum, na.rm=TRUE)
 
 
-
-  dd <- apply (eflalo, 1, function (x) {
-               idx_cols <- grepl("LE_VPUF_", names(x))
-               idx <- which.max(as.numeric(x[idx_cols]))
-               gsub("LE_VPUF_", "", names(x[idx_cols])[idx])
+    idx_cols <- grepl("LE_VPUF_", names(eflalo))    
+    dd <- apply (eflalo[,idx_cols], 1, function (x) {
+               idx <- which.max(as.numeric(x))[1]
                })
-  eflalo$sp_with_max_vpuf <- dd
+    eflalo$sp_with_max_vpuf <-   gsub("LE_VPUF_", "", names(eflalo[,idx_cols])[dd])          
 
-  dd <- apply (eflalo, 1, function (x) {
-               idx_cols <- grepl("LE_CPUE_", names(x))
-               idx <- which.max(as.numeric(x[idx_cols]))
-               gsub("LE_CPUE_", "", names(x[idx_cols])[idx])
+    idx_cols <- grepl("LE_CPUE_", names(eflalo))    
+    dd <- apply (eflalo[,idx_cols], 1, function (x) {
+               idx <- which.max(as.numeric(x))[1]
                })
-  eflalo$sp_with_max_cpue <- dd
+    eflalo$sp_with_max_cpue <-   gsub("LE_CPUE_", "", names(eflalo[,idx_cols])[dd])          
 
-  dd <- apply (eflalo, 1, function (x) {
-               idx_cols <- grepl("LE_CPUF_", names(x))
-               idx <- which.max(as.numeric(x[idx_cols]))
-               gsub("LE_CPUF_", "", names(x[idx_cols])[idx])
+   idx_cols <- grepl("LE_CPUF_", names(eflalo))    
+   dd <- apply (eflalo[,idx_cols], 1, function (x) {
+               idx <- which.max(as.numeric(x)) [1]
                })
-  eflalo$sp_with_max_cpuf <- dd
+   eflalo$sp_with_max_cpuf <-   gsub("LE_CPUF_", "", names(eflalo[,idx_cols])[dd])          
+
+    
+   idx_cols <- grepl("LE_VPUFSWA_", names(eflalo))    
+   dd <- apply (eflalo[,idx_cols], 1, function (x) {
+               idx <- which.max(as.numeric(x))[1]
+               })
+   eflalo$sp_with_max_vpufswa <-   gsub("LE_VPUFSWA_", "", names(eflalo[,idx_cols])[dd])          
+
 
 
   # capture an export for quickmap2020.r
