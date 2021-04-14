@@ -676,8 +676,8 @@ fls <- fls[grep("tacsatSweptArea_", fls)]
         tacsatIntGearVEREF$VE_REF_FT_REF           <-  paste0(tacsatIntGearVEREF$VE_REF,"_",tacsatIntGearVEREF$FT_REF) 
         nb_fishing_pts_per_VE_REF_FT_REF           <-  table(tacsatIntGearVEREF$VE_REF_FT_REF) # for dispatching evenly on fishing pts
         tacsatIntGearVEREF$FUEL_LITRE_STEAMING     <- steaming_cons_per_VE_REF_FT_REF[tacsatIntGearVEREF$VE_REF_FT_REF]  /  table(tacsatIntGearVEREF$VE_REF_FT_REF)[tacsatIntGearVEREF$VE_REF_FT_REF]  
-        tacsatIntGearVEREF$_LE_KG_LITRE_FUEL       <- tacsatIntGearVEREF$LITRE_FUEL_FISHING + tacsatIntGearVEREF$FUEL_LITRE_STEAMING 
-        tacsatpGearVEREF <- tacsatpGearVEREF[, !colnames(tacsatpGearVEREF) %in% c("VE_REF_FT_REF", "max_vessel_speed", "max_consumed", "a", "FUEL_LITRE_STEAMING")] # cleaning
+        tacsatIntGearVEREF$LE_KG_LITRE_FUEL       <- tacsatIntGearVEREF$LITRE_FUEL_FISHING + tacsatIntGearVEREF$FUEL_LITRE_STEAMING 
+        tacsatIntGearVEREF <- tacsatIntGearVEREF[, !colnames(tacsatIntGearVEREF) %in% c("VE_REF_FT_REF", "max_vessel_speed", "max_consumed", "a", "FUEL_LITRE_STEAMING")] # cleaning
 
         
         save(tacsatIntGearVEREF, file=file.path(outPath,a_year,"interpolated",
@@ -764,7 +764,7 @@ fls <- fls[grep("tacsatSweptArea_", fls)]
 
 lst <- list(); count <- 0
 vid_with_errors <- NA
-cols2keep <- c("SI_LATI","SI_LONG","SI_DATE","LE_GEAR","LE_MET","SWEPT_AREA_KM2","SWEPT_AREA_KM2_LOWER","SWEPT_AREA_KM2_UPPER", "GEAR_WIDTH", "SI_DATIM", "SI_FT" )  
+cols2keep <- c("SI_LATI","SI_LONG","SI_DATE","LE_GEAR","LE_MET","SWEPT_AREA_KM2","SWEPT_AREA_KM2_LOWER","SWEPT_AREA_KM2_UPPER", "GEAR_WIDTH", "SI_DATIM", "SI_FT", "LE_KG_LITRE_FUEL" )  
 for(iFile in fls){
   cat(paste(iFile, "\n"))
   count <- count+1
