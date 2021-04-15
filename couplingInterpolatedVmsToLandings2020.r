@@ -51,10 +51,10 @@ if(.Platform$OS.type == "unix") {
   overwrite <- TRUE
  
   
- if(FALSE){  # do not re-run...this takes ages!
+ if(TRUE){  # do not re-run...this takes ages!
 
   ##-----------------------------------
-  ## SPLIT CATCH AND FUEL AMONG THE INTERPOLATED PINGS
+  ## SPLIT CATCH AMONG THE INTERPOLATED PINGS
   ##-----------------------------------
   #- PER YEAR
   for (a_year in years){
@@ -72,8 +72,6 @@ if(.Platform$OS.type == "unix") {
      ctry   <- "DNK"
      eflalo <- eflalo[ grep(ctry, as.character(eflalo$VE_REF)),]  # keep the national vessels only.
 
-     # add a fuel comsumption column to eflalo
-     # TODO
      eflalo$FT_DDATIM  <- as.POSIXct(paste(eflalo$FT_DDAT,eflalo$FT_DTIME, sep = " "),
                                tz = "GMT", format = "%d/%m/%Y  %H:%M")
      eflalo$FT_LDATIM  <- as.POSIXct(paste(eflalo$FT_LDAT,eflalo$FT_LTIME, sep = " "),
@@ -84,7 +82,7 @@ if(.Platform$OS.type == "unix") {
      eflalo$dummy          <- 1
      eflalo$LE_EFF         <- eflalo$LE_EFF / merge(eflalo,aggregate(eflalo$dummy,by=list(eflalo$ID),FUN=sum),by.x="ID",by.y="Group.1",all.x=T)$x
      
-     # deprecated. Better to inform from the VMS  
+     # deprecated. Better to inform fuel cons from the VMS  
      #table.fuelcons.per.engine       <-  read.table(file= file.path(dataPath, "IBM_datainput_engine_consumption.txt"), header=TRUE,sep="")
      #linear.model                    <-  lm(calc_cons_L_per_hr_max_rpm~ kW2, data=table.fuelcons.per.engine)  # conso = a*Kw +b   # to guess its fuel consumption at maximal speed
      #eflalo$LE_KG_LITRE_FUEL         <-  predict(linear.model, newdata=data.frame(kW2=as.numeric(as.character(eflalo$VE_KW)))) * eflalo$LE_EFF # Liter per hour * effort this trip in hour
@@ -107,7 +105,9 @@ if(.Platform$OS.type == "unix") {
          a_vid   <-  tacsatIntGearVEREF$VE_REF [1]
          a_gear  <-  tacsatIntGearVEREF$LE_GEAR[1]
 
-         if(length(grep("LE_KG", colnames(tacsatIntGearVEREF)))>1 ) cat('this tacsat object has already been merged!! likely to fail.\n')
+         cnm <- colnames(tacsatIntGearVEREF)
+         cnm <- cnm[!cnm%in%c("LE_KG_LITRE_FUEL")]
+         if(length(grep("LE_KG", cnm))>1 ) cat('this tacsat object has already been merged!! likely to fail.\n')
       
          # avoid redoing if the outcome file already there for this vessel-gear combination
          do_it <-TRUE
@@ -116,12 +116,15 @@ if(.Platform$OS.type == "unix") {
 
          
          if(do_it){
+           tacsatIntGearVEREF <- tacsatIntGearVEREF[,!colnames(tacsatIntGearVEREF)%in%"LITRE_FUEL"]
+           colnames(tacsatIntGearVEREF)[colnames(tacsatIntGearVEREF)=="LE_KG_LITRE_FUEL"] <- "LITRE_FUEL" # force renaming to avoid splitAmongPings() to fail
            tacsatIntGearVEREF      <- splitAmongPings(tacsat=subset(tacsatIntGearVEREF, LE_GEAR == a_gear & VE_REF == a_vid),
                                               eflalo=subset(eflalo, LE_GEAR == a_gear & VE_REF == a_vid),
                                               variable="all",level="day",conserve=T)
                                           # note that we can safely ignore the warning as it corresponds to the 0 catch
                                           # this is because sometimes the declaration of rectangle (in eflalo) does not match the rectangle from VMS points
-
+           colnames(tacsatIntGearVEREF)[colnames(tacsatIntGearVEREF)=="LITRE_FUEL"] <- "LE_KG_LITRE_FUEL" # force renaming for back compatibility
+       
            # check e.g. for cod
            #library(raster)
            #plotTools(tacsatIntGearVEREF,level="gridcell", xlim=c(-56,25),ylim=c(45,75),zlim=NULL,log=F, gridcell=c(0.1,0.05), color=NULL, control.tacsat=list(clm="LE_KG_COD"))
@@ -257,7 +260,7 @@ if(.Platform$OS.type == "unix") {
            'SOL', 'SPR', 'TUR', 'WHB', 'WIT', 'WHG',
             'OTH')
 
-   cols2keep <- c("VE_REF", "VE_LEN", "VE_KW", "SI_LATI","SI_LONG","SI_DATE","LE_GEAR","LE_MET","LE_MET_init","SWEPT_AREA_KM2","SWEPT_AREA_KM2_LOWER","SWEPT_AREA_KM2_UPPER", "GEAR_WIDTH", "SI_DATIM", "SI_FT" ) 
+   cols2keep <- c("VE_REF", "VE_LEN", "VE_KW", "SI_LATI","SI_LONG","SI_DATE","LE_GEAR","LE_MET","LE_MET_init","SWEPT_AREA_KM2","SWEPT_AREA_KM2_LOWER","SWEPT_AREA_KM2_UPPER", "GEAR_WIDTH", "SI_DATIM", "SI_FT") 
 
    for (a_year in years){
     cat(paste(a_year, "\n"))
