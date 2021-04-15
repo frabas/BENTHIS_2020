@@ -64,7 +64,7 @@ if(.Platform$OS.type == "windows") {
  }
 
 #for (a_year in c(2012:2019))    {  # on WINDOWS system...
-for (a_year in c(2005:2011))    {  # on WINDOWS system...
+##for (a_year in c(2005:2011))    {  # on WINDOWS system...
 
 
 overwrite    <- TRUE
@@ -223,7 +223,7 @@ if(length(fls)!=0  && overwrite==FALSE) do_it <- FALSE
 
 if(do_it){
   
-  if(FALSE){
+  if(TRUE){
   #-----------------------------------------------------------------------------
   # Cleaning tacsat (keep track of removed records)
   #-----------------------------------------------------------------------------
@@ -746,7 +746,7 @@ nrow(tacsatSweptArea[is.na(tacsatSweptArea$SWEPT_AREA_KM2),])
 # save
 save(tacsatSweptArea, file=file.path(outPath,a_year, paste("tacsatSweptArea.RData", sep="")),compress=T)
 
-} # end FALSE
+##} # end FALSE
 
 
 

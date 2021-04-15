@@ -18,8 +18,9 @@
 
 
 
-R_exe=/appl/R/bin/R-3.4.1
-$R_exe R CMD BATCH '--args a_year=2012' BenthisWorkflow2020_pel.r wk2012.R.out &
+#R_exe=/appl/R/bin/R-3.4.1
+R_exe=/appl/R/bin/R-3.6.3-mkl
+$R_exe R CMD BATCH '--args a_year=2019' BenthisWorkflow2020_pel.r wk2019_pel.R.out &
 
 # need to install first the R libraries for vmstools on the 'linuxsh' node
 # e.g. first look after the R packages online on cran

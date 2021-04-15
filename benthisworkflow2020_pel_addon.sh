@@ -13,8 +13,8 @@
 #BSUB -B
 #BSUB -N
 
-#BSUB -o Output_benthwkf2_%J.out 
-#BSUB -e Error_benthwkf2_%J.err 
+#BSUB -o Output_benthwkf3_%J.out 
+#BSUB -e Error_benthwkf3_%J.err 
 
 
  
@@ -22,7 +22,7 @@
 #R_exe=/appl/R/bin/R-3.4.1
 #R_exe=/appl/R/3.6.3-mk12020/bin/R
 R_exe=/appl/R/bin/R-3.6.3-mkl
-$R_exe R CMD BATCH '--args year1=2012 year2=2019' couplingInterpolatedVmsToLandings2020_pel.r wk201219addon.R.out &
+$R_exe R CMD BATCH '--args year1=2005 year2=2019' couplingInterpolatedVmsToLandings2020_pel.r wk201219peladdon.R.out &
 
 # need to install first the R libraries for vmstools on the 'linuxsh' node
 # e.g. first look after the R packages online on cran
