@@ -239,33 +239,31 @@
     aggResult <- cbind.data.frame (aggResult, dd)
     aggResult$VPUFSWAallsp <- apply (aggResult[, paste0('LE_VPUFSWA_', spp)], 1, sum, na.rm=TRUE)
 
-    dd <- apply (aggResult, 1, function (x) {
-               idx_cols <- grepl("LE_VPUF_", names(x))
-               idx <- which.max(as.numeric(x[idx_cols]))
-               gsub("LE_VPUF_", "", names(x[idx_cols])[idx])
+   idx_cols <- grepl("LE_VPUF_", names(aggResult))    
+    dd <- apply (aggResult[,idx_cols], 1, function (x) {
+               idx <- which.max(as.numeric(x))[1]
                })
-    aggResult$sp_with_max_vpuf <- dd          
+    aggResult$sp_with_max_vpuf <-   gsub("LE_VPUF_", "", names(aggResult[,idx_cols])[dd])          
 
-    dd <- apply (aggResult, 1, function (x) {
-               idx_cols <- grepl("LE_CPUE_", names(x))
-               idx <- which.max(as.numeric(x[idx_cols]))
-               gsub("LE_CPUE_", "", names(x[idx_cols])[idx])
+    idx_cols <- grepl("LE_CPUE_", names(aggResult))    
+    dd <- apply (aggResult[,idx_cols], 1, function (x) {
+               idx <- which.max(as.numeric(x))[1]
                })
-    aggResult$sp_with_max_cpue <- dd          
+    aggResult$sp_with_max_cpue <-   gsub("LE_CPUE_", "", names(aggResult[,idx_cols])[dd])          
 
-    dd <- apply (aggResult, 1, function (x) {
-               idx_cols <- grepl("LE_CPUF_", names(x))
-               idx <- which.max(as.numeric(x[idx_cols]))
-               gsub("LE_CPUF_", "", names(x[idx_cols])[idx])
+   idx_cols <- grepl("LE_CPUF_", names(aggResult))    
+   dd <- apply (aggResult[,idx_cols], 1, function (x) {
+               idx <- which.max(as.numeric(x)) [1]
                })
-    aggResult$sp_with_max_cpuf <- dd          
-   
-    dd <- apply (aggResult, 1, function (x) {
-               idx_cols <- grepl("LE_VPUFSWA_", names(x))
-               idx <- which.max(as.numeric(x[idx_cols]))
-               gsub("LE_VPUFSWA_", "", names(x[idx_cols])[idx])
+   aggResult$sp_with_max_cpuf <-   gsub("LE_CPUF_", "", names(aggResult[,idx_cols])[dd])          
+
+    
+   idx_cols <- grepl("LE_VPUFSWA_", names(aggResult))    
+   dd <- apply (aggResult[,idx_cols], 1, function (x) {
+               idx <- which.max(as.numeric(x))[1]
                })
-    aggResult$sp_with_max_vpufswa <- dd          
+   aggResult$sp_with_max_vpufswa <-   gsub("LE_VPUFSWA_", "", names(aggResult[,idx_cols])[dd])          
+
 
     # capture an export for quickmap2020.r
     save(aggResult, file=file.path(getwd(), "outputs2020_pel", paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPel_", y, ".RData", sep=""))) 
@@ -501,13 +499,13 @@
  ##!!!!!!!!!!!!!!!!!!!!!!!!!##
  ##!!!!!!!!!!!!!!!!!!!!!!!!!##
  library(ggplot2)
- if(a_variable=="LE_KG_LITRE_FUEL") {a_ylab <- "Fuel use (litre)"; ylims=c(0,max(as.data.frame(agg)[,a_variable],100000))}
- if(a_variable=="CPUEallsp") {a_ylab <- "CPUE (kg per effort)";  ylims=c(0,max(as.data.frame(agg)[,a_variable],15))}
- if(a_variable=="CPUFallsp") {a_ylab <- "CPUF (kg per litre)";  ylims=c(0,max(as.data.frame(agg)[,a_variable],15))}
- if(a_variable=="VPUFallsp") {a_ylab <- "VPUF  (euro per litre)";  ylims=c(0,max(as.data.frame(agg)[,a_variable],15))}
- if(a_variable=="VPUFSWAallsp") {a_ylab <- "VPUFSWA  (euro per swept area)";  ylims=c(0,max(as.data.frame(agg)[,a_variable],100000))}
- if(a_variable=="KKGallsp") {a_ylab <- "Landings (tons)";  ylims=c(0,max(as.data.frame(agg)[,a_variable],100000))}
- if(a_variable=="KEUROallsp") {a_ylab <- "Landings  (keuros)";  ylims=c(0,max(as.data.frame(agg)[,a_variable],100000))}
+ if(a_variable=="CPUEallsp") {a_unit <- 1e3; a_ylab <- "CPUE (kg per effort)";  ylims=c(0,max(as.data.frame(agg)[,a_variable],15))}
+ if(a_variable=="CPUFallsp") {a_unit <- 1e3; a_ylab <- "CPUF (kg per litre)";  ylims=c(0,max(as.data.frame(agg)[,a_variable],15))}
+ if(a_variable=="VPUFallsp") {a_unit <- 1e3; a_ylab <- "VPUF  (euro per litre)";  ylims=c(0,max(as.data.frame(agg)[,a_variable],15))}
+ if(a_variable=="VPUFSWAallsp") {a_unit <- 1e3; a_ylab <- "VPUFSWA  (euro per swept area)";  ylims=c(0,max(as.data.frame(agg)[,a_variable],100000))}
+ if(a_variable=="LE_KG_LITRE_FUEL") {a_unit <- 1e3; a_unit <- 1e6; a_ylab <- "Fuel use (millions litres)"; ylims=c(0,max(as.data.frame(long)[,a_variable],100000))}
+ if(a_variable=="KKGallsp") {a_unit <- 1e3; a_ylab <- "Landings (tons)";  ylims=c(0,max(as.data.frame(long)[,a_variable],100000))}
+ if(a_variable=="KEUROallsp") {a_unit <- 1e3; a_ylab <- "Landings  (keuros)";  ylims=c(0,max(as.data.frame(long)[,a_variable],100000))}
 
  a_width <- 9500 ; a_height <- 4200
    a_comment <- "" ; if(per_metier_level6) a_comment <- "_met6";  if(per_vessel_size) a_comment <- paste0(a_comment,"_vsize") ; if(per_region) a_comment <- paste0(a_comment,"_region")
@@ -518,7 +516,7 @@
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
   the_agg <- agg[grep("SmallMesh",agg$LE_MET),]
   the_agg$LE_MET <- gsub("SmallMesh_", "", the_agg$LE_MET)
-  p <- ggplot(data=the_agg, aes(x=LE_MET, y=value, fill=Stock)) + #  geom_bar(stat="identity", position=position_dodge())
+  p <- ggplot(data=the_agg, aes(x=LE_MET, y=value/a_unit, fill=Stock)) + #  geom_bar(stat="identity", position=position_dodge())
   geom_bar(stat="identity")   + labs(y = a_ylab, x = "Fleet-segments")  + #ylim(ylims[1], ylims[2]) +
        scale_fill_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=1))  + facet_grid(. ~ year) + theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5, size=8))
   print(p)
@@ -544,7 +542,7 @@ dev.off()
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
  the_agg <- agg[grep("SmallMesh",agg$LE_MET),]
   the_agg$LE_MET <- gsub("SmallMesh_", "", the_agg$LE_MET)  
- p <- ggplot(the_agg, aes(x=as.character(year), y=value, group=Stock)) +    facet_wrap(. ~ LE_MET, scales = "free_y")  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +   labs(y = a_ylab) +
+ p <- ggplot(the_agg, aes(x=as.character(year), y=value/a_unit, group=Stock)) +    facet_wrap(. ~ LE_MET, scales = "free_y")  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +   labs(y = a_ylab) +
   geom_line(aes(color=Stock), size=1.5) +     labs(y = a_ylab, x = "Year")     + geom_point(aes(color=Stock), size=3)   + 
       scale_color_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=1))  +
   xlab("")     #    + ylim(ylims[1], ylims[2])
@@ -568,7 +566,7 @@ dev.off()
  namefile <- paste0("ts_fuel_efficiency", a_variable, "_", years[1], "-", years[length(years)],  a_comment, "_PEL_areaplot.tif")
  tiff(filename=file.path(getwd(), "outputs2020_pel", "output_plots",  namefile),   width = a_width, height = a_height,
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
- the_agg <- agg[grep("SmallMesh",agg$LE_MET),]
+ the_agg <- as.data.frame(agg[grep("SmallMesh",agg$LE_MET),])
  
  # a visual fix adding all combi--
  dd <- expand.grid(LE_MET=levels(factor(the_agg$LE_MET)), Stock=levels(factor(the_agg$Stock)), year=levels(factor(the_agg$year)))
@@ -582,7 +580,7 @@ dev.off()
  #---
  
   the_agg$LE_MET <- gsub("SmallMesh_", "", the_agg$LE_MET)  
- p <- ggplot(the_agg, aes(x=as.character(year), y=value, group=Stock)) + 
+ p <- ggplot(the_agg, aes(x=as.character(year), y=value/a_unit, group=Stock)) + 
      facet_wrap(. ~ LE_MET, scales = "free_y")  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +   labs(y = a_ylab) +
   geom_area(aes(fill=Stock))  +     labs(y = a_ylab, x = "Year")   +
    scale_fill_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=1))  +
@@ -724,7 +722,7 @@ dev.off()
  namefile <- paste0("ts_fuel_efficiency_per_stk_", a_variable, "_", years[1], "-", years[length(years)],  a_comment, "_PEL_areaplot.tif")
  tiff(filename=file.path(getwd(), "outputs2020_pel", "output_plots",  namefile),   width = a_width, height = a_height,
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
- the_agg <- long[grep("SmallMesh",long$LE_MET),]
+ the_agg <- as.data.frame(long[grep("SmallMesh",long$LE_MET),])
 
  
  # a visual fix adding all combi--

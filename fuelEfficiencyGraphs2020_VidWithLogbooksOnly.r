@@ -220,7 +220,15 @@ library(vmstools)
   eflalo$LE_KG_LITRE_FUEL         <-  predict(linear.model, newdata=data.frame(kW2=as.numeric(as.character(eflalo$VE_KW)))) * eflalo$LE_EFF # Liter per hour * effort this trip in hour
 
 
-
+  # from there decrease the maximal fuel cons by a conversion factor assuming the engine is not switch on all the time:
+  #1.	All trawling and Flyshooting (OTB, OTM, TBB, DRB, SSC, etc.): Engine load/conversion factor of 90% for the duration of the trip (Assumed as an average across shorter or longer periods of steaming, trawling, setting or hauling) 
+  #2.	All passive gears (GNS, Pots, lines, etc.): Engine load/conversion factor of 50% for the duration of the trip (Assumed as an average across shorter or longer periods of steaming, setting or hauling)
+  #3.	Danish seiners (SDN): Engine load/conversion factor of 67% for the duration of the trip (Assumed as an average across shorter or longer periods of steaming, setting or hauling)
+  # TO DO:
+  
+  
+  
+  
 
   ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
   ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##

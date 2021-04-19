@@ -51,7 +51,7 @@ if(.Platform$OS.type == "unix") {
   overwrite <- TRUE
  
   
- if(TRUE){  # do not re-run...this takes ages!
+ if(FALSE){  # do not re-run...this takes ages!
 
   ##-----------------------------------
   ## SPLIT CATCH AMONG THE INTERPOLATED PINGS

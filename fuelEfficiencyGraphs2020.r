@@ -268,6 +268,7 @@
     aggResult$KEUROallsp <- apply (aggResult[, paste0('LE_EURO_', spp)], 1, sum, na.rm=TRUE) / 1e3 # in thousands euros
 
     # compute some ratios
+    #dd <- sweep(aggResult[, paste0('LE_KG_', spp)], 1,  aggResult$KKGallsp*1e3, FUN="/")
     dd <- sweep(aggResult[, paste0('LE_KG_', spp)], 1,  aggResult$effort_mins, FUN="/")
     colnames(dd) <- paste0('LE_CPUE_', spp)
     dd <- do.call(data.frame,lapply(dd, function(x) replace(x, is.infinite(x) | is.nan(x) , NA)))
@@ -390,7 +391,7 @@
      dd <- cbind.data.frame(Year=y, dd)
      aggResultPerMetAlly <- rbind.data.frame(aggResultPerMetAlly, dd)
   }   
-  save(aggResultPerMetAlly, file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndVsizeAndRatiosBottContact.RData", sep=""))) 
+  #save(aggResultPerMetAlly, file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndVsizeAndRatiosBottContact.RData", sep=""))) 
 
 
   load(file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndVsizeAndRatiosBottContact.RData", sep="")))  # aggResultPerMetAlly
@@ -450,7 +451,9 @@
   a_summary <- rbind.data.frame(info1[paste0("LE_KG_", spp)], info2[paste0("LE_EURO_", spp)], info3[paste0("LE_LITRE_", spp)] )
   colnames(a_summary) <- spp
   rownames(a_summary) <- c("Thousands tons", "Millions euros", "Millions litres")
-
+  a_summary
+  
+  
   # dem
   library(ggplot2)
   a_width <- 5000;  a_height <- 2000
@@ -508,7 +511,7 @@
  count <- count+1
  for (y in years){
      #dd <- get(paste0("aggResultPerMet_", y))
-     dd <- aggResultPerMetAlly[aggResultPerMetAlly$Year==y, ]
+     dd <- as.data.frame(aggResultPerMetAlly[aggResultPerMetAlly$Year==y, ])
  
      # get percent per stock for sectorisation
 
@@ -634,7 +637,7 @@ dev.off()
  tiff(filename=file.path(getwd(), "outputs2020", "output_plots",  namefile),   width = a_width, height = a_height,
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
  
- the_agg <- agg[grep("LargeMesh",agg$LE_MET),]
+ the_agg <- as.data.frame(agg[grep("LargeMesh",agg$LE_MET),])
  
  # a visual fix adding all combi--
  dd <- expand.grid(LE_MET=levels(factor(the_agg$LE_MET)), Stock=levels(factor(the_agg$Stock)), year=levels(factor(the_agg$year)))
@@ -659,7 +662,7 @@ dev.off()
  namefile <- paste0("ts_fuel_efficiency", a_variable, "_", years[1], "-", years[length(years)],  a_comment, "_PEL_areaplot.tif")
  tiff(filename=file.path(getwd(), "outputs2020", "output_plots",  namefile),   width = a_width, height = a_height,
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
- the_agg <- agg[grep("SmallMesh",agg$LE_MET),]
+ the_agg <- as.data.frame(agg[grep("SmallMesh",agg$LE_MET),])
  
  # a visual fix adding all combi--
  dd <- expand.grid(LE_MET=levels(factor(the_agg$LE_MET)), Stock=levels(factor(the_agg$Stock)), year=levels(factor(the_agg$year)))
@@ -753,7 +756,23 @@ dev.off()
    # assign area to species as a proxy of stock
    long$Stock <- paste(long$Stock, sapply(strsplit(as.character(long$LE_MET), split="_"), function(x) x[2]))
 
-
+  # filtering the ratios:
+  # a quick informative table (for kg) for filtering out the ratios that are misleading because low catch kg
+  nm <- colnames(aggResultPerMetAlly)
+  tot <- aggregate(aggResultPerMetAlly[, grepl("LE_KG_", nm)], list(aggResultPerMetAlly$LE_MET), mean)  # annual average
+  tot <- orderBy(~ - LE_KG_LITRE_FUEL, tot)
+  tot[,-1] <- round(tot[,-1]) # kg
+  head(tot, 5)
+  colnames(tot)[1] <- "LE_MET" 
+  a_long_for_filter <- melt(setDT(tot[,c("LE_MET", paste0("LE_KG_", spp))]), id.vars = c("LE_MET"), variable.name = "Var2", value.name="value2")
+  a_long_for_filter$Var2 <- gsub("LE_KG_", prefixes[count], a_long_for_filter$Var2)
+  long <- merge(long, a_long_for_filter, by.x=c("LE_MET", "Var"), by.y=c("LE_MET", "Var2"))
+  long <- long[long$value2>5000,] # here the actual filtering....i.e. keep only seg and value when total catch kg is > threshold in kg
+  long <- as.data.frame(long)
+  long <- long[,c("LE_MET","Var", "Year","Stock", "value", a_variable)]
+  
+  
+  
  ##!!!!!!!!!!!!!!!!!!!!!!!!!##
  ##!!!!!!!!!!!!!!!!!!!!!!!!!##
  ##!!!!!!!!!!!!!!!!!!!!!!!!!##
