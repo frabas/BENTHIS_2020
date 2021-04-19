@@ -215,19 +215,24 @@ library(vmstools)
   ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
   ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
   # fuel comsumption
-  table.fuelcons.per.engine       <-  read.table(file= file.path(dataPath, "IBM_datainput_engine_consumption.txt"), header=TRUE,sep="")
-  linear.model                    <-  lm(calc_cons_L_per_hr_max_rpm~ kW2, data=table.fuelcons.per.engine)  # conso = a*Kw +b   # to guess its fuel consumption at maximal speed
-  eflalo$LE_KG_LITRE_FUEL         <-  predict(linear.model, newdata=data.frame(kW2=as.numeric(as.character(eflalo$VE_KW)))) * eflalo$LE_EFF # Liter per hour * effort this trip in hour
-
+  
 
   # from there decrease the maximal fuel cons by a conversion factor assuming the engine is not switch on all the time:
   #1.	All trawling and Flyshooting (OTB, OTM, TBB, DRB, SSC, etc.): Engine load/conversion factor of 90% for the duration of the trip (Assumed as an average across shorter or longer periods of steaming, trawling, setting or hauling) 
   #2.	All passive gears (GNS, Pots, lines, etc.): Engine load/conversion factor of 50% for the duration of the trip (Assumed as an average across shorter or longer periods of steaming, setting or hauling)
   #3.	Danish seiners (SDN): Engine load/conversion factor of 67% for the duration of the trip (Assumed as an average across shorter or longer periods of steaming, setting or hauling)
   # TO DO:
+  eflalo$convfactor <- 1
+  convfactor <- c("OTB"=0.9,"GN"=0.5,"SSC"=0.67,"GTR"=0.5,"PTM"=0.9,"DRB"=0.9,"MIS"=0.5,"GNS"=0.5,"FPN"=0.5,"LL"=0.5,"UNK"=0.5,"SDN"=0.67,"LHP"=0.5,"LLS"=0.5,
+                      "GND"=0.5,"PTB"=0.9,"OTM"=0.9,"LLD"=0.5,"FYK"=0.5,"FPO"=0.5,"LH"=0.5,"OTT"=0.9,"TBB"=0.9,"FIX"=0.5,"LX"=0.5,"DRH"=0.5,"OFG"=0.5,"ZZZ"=0.5,
+                      "GTN"=0.5,"DRC"=0.5,"LTL"=0.5,"TBN"=0.9,"AHB"=0.5,"BMS"=0.5,"DRO"=0.5,"KLM"=0.5,"BRJ"=0.5)
+  eflalo$convfactor <- convfactor[as.character(eflalo$LE_GEAR)]       
+        
   
-  
-  
+  table.fuelcons.per.engine       <-  read.table(file= file.path(dataPath, "IBM_datainput_engine_consumption.txt"), header=TRUE,sep="")
+  linear.model                    <-  lm(calc_cons_L_per_hr_max_rpm~ kW2, data=table.fuelcons.per.engine)  # conso = a*Kw +b   # to guess its fuel consumption at maximal speed
+  eflalo$LE_KG_LITRE_FUEL         <-  predict(linear.model, newdata=data.frame(kW2=as.numeric(as.character(eflalo$VE_KW)))) * eflalo$LE_EFF * eflalo$convfactor # Liter per hour * effort this trip in hour
+
   
 
   ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
@@ -492,8 +497,24 @@ library(vmstools)
     long <- long[complete.cases(long),]
 
 
-
-
+  # filtering the ratios:
+  # a quick informative table (for kg) for filtering out the ratios that are misleading because low catch kg
+  if(a_variable %in% c("CPUEallsp", "CPUFallsp", "VPUFallsp")){
+     nm <- colnames(aggResultPerMetAlly)
+     tot <- aggregate(aggResultPerMetAlly[, grepl("LE_KG_", nm)], list(aggResultPerMetAlly$LE_MET), mean)  # annual average
+     tot <- orderBy(~ - LE_KG_LITRE_FUEL, tot)
+     tot[,-1] <- round(tot[,-1]) # kg
+     head(tot, 5)
+     colnames(tot)[1] <- "LE_MET" 
+     a_long_for_filter <- melt(setDT(tot[,c("LE_MET", paste0("LE_KG_", spp))]), id.vars = c("LE_MET"), variable.name = "Var2", value.name="value2")
+     a_long_for_filter$Var2 <- gsub("LE_KG_", "", a_long_for_filter$Var2)
+     long <- merge(long, a_long_for_filter, by.x=c("LE_MET", "Stock"), by.y=c("LE_MET", "Var2"))
+     long <- long[long$value2>500,] # here the actual filtering....i.e. keep only seg and value when total catch kg is > threshold in kg
+     long <- as.data.frame(long)
+     long <- long[,c("LE_MET","Stock", a_variable, "Year", "value")]
+  }
+ 
+ 
  ##!!!!!!!!!!!!!!!!!!!!!!!!!##
  ##!!!!!!!!!!!!!!!!!!!!!!!!!##
  ##!!!!!!!!!!!!!!!!!!!!!!!!!##
@@ -700,6 +721,23 @@ dev.off()
    # assign area to species as a proxy of stock
    long$Stock <- paste(long$Stock, sapply(strsplit(as.character(long$LE_MET), split="_"), function(x) x[2]))
 
+  
+  # filtering the ratios:
+  # a quick informative table (for kg) for filtering out the ratios that are misleading because low catch kg
+  if(a_variable %in% c("CPUEallseg", "CPUFallseg", "VPUFallseg")){
+     nm <- colnames(aggResultPerMetAlly)
+     tot <- aggregate(aggResultPerMetAlly[, grepl("LE_KG_", nm)], list(aggResultPerMetAlly$LE_MET), mean)  # annual average
+     tot <- orderBy(~ - LE_KG_LITRE_FUEL, tot)
+     tot[,-1] <- round(tot[,-1]) # kg
+     head(tot, 5)
+     colnames(tot)[1] <- "LE_MET" 
+     a_long_for_filter <- melt(setDT(tot[,c("LE_MET", paste0("LE_KG_", spp))]), id.vars = c("LE_MET"), variable.name = "Var2", value.name="value2")
+     a_long_for_filter$Var2 <- gsub("LE_KG_", prefixes[count], a_long_for_filter$Var2)
+     long <- merge(long, a_long_for_filter, by.x=c("LE_MET", "Var"), by.y=c("LE_MET", "Var2"))
+     long <- long[long$value2>500,] # here the actual filtering....i.e. keep only seg and value when total catch kg is > threshold in kg
+     long <- as.data.frame(long)
+     long <- long[,c("LE_MET","Var", "Year", "Stock", "value",  a_variable)]
+  }
 
 
  ##!!!!!!!!!!!!!!!!!!!!!!!!!##
