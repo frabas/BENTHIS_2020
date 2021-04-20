@@ -456,7 +456,7 @@
   
   # dem
   library(ggplot2)
-  a_width <- 5000;  a_height <- 2000
+  a_width <- 5500;  a_height <- 2000
   namefile <- paste0("barplot_fuel_efficiency_bottcontact_per_species-2005-2019.tif")
   tiff(filename=file.path(getwd(), "outputs2020", "output_plots",  namefile),   width = a_width, height = a_height,
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
@@ -468,7 +468,7 @@
     long$Species <- sapply(strsplit(as.character(long$Var), split="_"), function(x) x[3])
     long$VarType <- factor(sapply(strsplit(as.character(long$Var), split="_"), function(x) x[2]))
     long$value   <- long$value  /1e6 # millions
-    levels(long$VarType) <- c("Millions Euros", "Thousánd Tons", "Millions Litres")
+    levels(long$VarType) <- c("Millions Euros", "Thousand Tons", "Millions Litres")
     long$Species <- with(long, reorder(Species, value, median)) # reorder
     long$Species <- factor(long$Species, levels=rev(levels(long$Species))) # reverse
     

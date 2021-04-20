@@ -81,7 +81,7 @@ quickmap <- function(namefile = paste0("LE_KG_COD_2019", ".tif"),
   # caution: test if early stop.
   do_it <- FALSE
     cat("look into ", namefile, " and ", nametype[1],"\n")
-    if( grepl("sp_with_max_vpuf",nametype[1]) || grepl("sp_with_max_cpue",nametype[1]) || grepl("sp_with_max_cpuf",nametype[1]) ||  sp_with_max_vpufswa("VPUF",nametype[1])
+    if( grepl("sp_with_max_vpuf",nametype[1]) || grepl("sp_with_max_cpue",nametype[1]) || grepl("sp_with_max_cpuf",nametype[1]) ||  grepl("sp_with_max_vpufswa",nametype[1])
          || any(aggResult[!is.na(aggResult[,nametype[1]]),nametype[1]]>0.5))
     {
       do_it <- TRUE
@@ -239,7 +239,7 @@ quickmap <- function(namefile = paste0("LE_KG_COD_2019", ".tif"),
    a_func           <- "sum"
   if( grepl("CPUE",a_nametype) || grepl("CPUF",a_nametype) || grepl("VPUE",a_nametype) ||  grepl("VPUF",a_nametype) ||
       grepl("CPUEallsp",a_nametype) || grepl("CPUFallsp",a_nametype) || grepl("VPUEallsp",a_nametype) || grepl("VPUFallsp",a_nametype)) a_func <- "mean"    # do an average in cells when ratios provided in input
-  if( grepl("sp_with_max_vpuf",a_nametype) || grepl("sp_with_max_cpue",a_nametype) || grepl("sp_with_max_cpuf",a_nametype) ||  sp_with_max_vpufswa("VPUF",a_nametype)) {
+  if( grepl("sp_with_max_vpuf",a_nametype) || grepl("sp_with_max_cpue",a_nametype) || grepl("sp_with_max_cpuf",a_nametype) ||  grepl("sp_with_max_vpufswa",a_nametype)) {
               a_func <- function(x) {names(table(x))[which.max(table(x))]}  # find the most frequent sp
        }
 
@@ -278,7 +278,7 @@ quickmap <- function(namefile = paste0("LE_KG_COD_2019", ".tif"),
     my_data <- subset(my_data,is.na(gridCellID)==FALSE)
 
     # then, do an agg
-    if(grepl("sp_with_max_vpuf",a_nametype) || grepl("sp_with_max_cpue",a_nametype) || grepl("sp_with_max_cpuf",a_nametype) ||  sp_with_max_vpufswa("VPUF",a_nametype)){
+    if(grepl("sp_with_max_vpuf",a_nametype) || grepl("sp_with_max_cpue",a_nametype) || grepl("sp_with_max_cpuf",a_nametype) ||  grepl("sp_with_max_vpufswa",a_nametype)){
         my_data[my_data[,"CPUEallsp"]==0,a_nametype] <- as.character(0) # debug misclassified (false positive in pelagic)
         my_data           <- aggregate(as.character(my_data[,a_nametype]), list(my_data$gridCellID), a_func)   
         } else{
@@ -348,7 +348,7 @@ quickmap <- function(namefile = paste0("LE_KG_COD_2019", ".tif"),
   #  writeRaster(rstr_eea, file.path(outPath, paste("DispatchedStecfLandingsOnVMS4", a_species, sep='')), format = "GTiff", overwrite=TRUE)
 
 
-   if(grepl("sp_with_max_vpuf",a_nametype) || grepl("sp_with_max_cpue",a_nametype) || grepl("sp_with_max_cpuf",a_nametype) ||  sp_with_max_vpufswa("VPUF",a_nametype)){
+   if(grepl("sp_with_max_vpuf",a_nametype) || grepl("sp_with_max_cpue",a_nametype) || grepl("sp_with_max_cpuf",a_nametype) ||  grepl("sp_with_max_vpufswa",a_nametype)){
       some_color_species<- c("COD"="#E69F00", "CSH"="hotpink", "DAB"="#56B4E9", "ELE"="#F0E442", "FLE"="green",
                        "HAD"="#0072B2", "HER"="mediumorchid4", "HKE"="#CC79A7","HOM"="indianred2", "LEM"="#EEC591",
                         "MAC"="#458B00", "MON"="#F0F8FF", "MUS"="black", "NEP"="#e3dcbf", "NOP"="#CD5B45", "PLE"="lightseagreen",
@@ -436,7 +436,7 @@ quickmap <- function(namefile = paste0("LE_KG_COD_2019", ".tif"),
   #       limits="", title=a_title_leg,
   #       legend= the_breaks_leg,
   #       cex=1.3, col="black") 
-   if(grepl("sp_with_max_vpuf",a_nametype) || grepl("sp_with_max_cpue",a_nametype) || grepl("sp_with_max_cpuf",a_nametype) ||  sp_with_max_vpufswa("VPUF",a_nametype)){
+   if(grepl("sp_with_max_vpuf",a_nametype) || grepl("sp_with_max_cpue",a_nametype) || grepl("sp_with_max_cpuf",a_nametype) ||  grepl("sp_with_max_vpufswa",a_nametype)){
    
       legend("topright", legend=names(some_color_species), fill=some_color_species, bty="o", border=NA,  ncol=4, box.col="white", title=a_title_leg)       
    
@@ -743,7 +743,7 @@ quickmap <- function(namefile = paste0("LE_KG_COD_2019", ".tif"),
  }}
  
 
-# AVERAGE OVER THE ENTIRE PERIOD 2012-2019 - BOTTOM CONTACTING GEARS
+# AVERAGE OVER THE ENTIRE PERIOD 2005-2019 - BOTTOM CONTACTING GEARS
  load(file.path(getwd(), "outputs2020", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForBottContact_",2012,".RData") ))  # aggResult
  metiers <-   as.character(unique(aggResult$LE_MET))
  load(file.path(getwd(), "outputs2020", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForBottContact_",2019,".RData") ))  # aggResult
@@ -810,7 +810,7 @@ quickmap <- function(namefile = paste0("LE_KG_COD_2019", ".tif"),
  
  
 
-# AVERAGE OVER THE ENTIRE PERIOD 2012-2019 -PELAGIC GEARS
+# AVERAGE OVER THE ENTIRE PERIOD 2005-2019 -PELAGIC GEARS
  load(file.path(getwd(), "outputs2020_pel", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPel_",2012,".RData") ))  # aggResult
  metiers <-   as.character(unique(aggResult$LE_MET))
  load(file.path(getwd(), "outputs2020_pel", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPel_",2019,".RData") ))  # aggResult
@@ -818,7 +818,7 @@ quickmap <- function(namefile = paste0("LE_KG_COD_2019", ".tif"),
  metiers <- metiers[!grepl("NA", metiers)]
  plot_per_c_square <- FALSE
  library(rgdal);  library(raster); fao_areas <- readOGR(file.path(getwd(), "FAO_AREAS", "FAO_AREAS.shp"))
- years <- 2012:2019
+ years <- 2005:2019
 agg <- NULL
  for (y in years){
     load(file.path(getwd(),  "outputs2020_pel", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPel_",y,".RData") )) # aggResult
@@ -882,7 +882,7 @@ agg <- NULL
  ## PLOT PER CELL THE SEPCIES COLOR CODE WITH THE LOCALLY HIGHEST VPUF etc.
  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
  
- #AVERAGE OVER THE ENTIRE PERIOD 2012-2019 - BOTTOM CONTACTING GEARS
+ #AVERAGE OVER THE ENTIRE PERIOD 2005-2019 - BOTTOM CONTACTING GEARS
  load(file.path(getwd(), "outputs2020", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForBottContact_",2012,".RData") ))  # aggResult
  metiers <-   as.character(unique(aggResult$LE_MET))
  load(file.path(getwd(), "outputs2020", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForBottContact_",2019,".RData") ))  # aggResult
@@ -923,7 +923,7 @@ agg <- NULL
          )
 
 
-# AVERAGE OVER THE ENTIRE PERIOD 2012-2019 -PELAGIC GEARS
+# AVERAGE OVER THE ENTIRE PERIOD 2005-2019 -PELAGIC GEARS
  load(file.path(getwd(), "outputs2020_pel", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPel_",2012,".RData") ))  # aggResult
  metiers <-   as.character(unique(aggResult$LE_MET))
  load(file.path(getwd(), "outputs2020_pel", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPel_",2019,".RData") ))  # aggResult
@@ -931,7 +931,7 @@ agg <- NULL
  metiers <- metiers[!grepl("NA", metiers)]
  plot_per_c_square <- FALSE
  library(rgdal);  library(raster); fao_areas <- readOGR(file.path(getwd(), "FAO_AREAS", "FAO_AREAS.shp"))
- years <- 2012:2019
+ years <- 2005:2019
 agg <- NULL
  for (y in years){
     load(file.path(getwd(),  "outputs2020_pel", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPel_",y,".RData") )) # aggResult

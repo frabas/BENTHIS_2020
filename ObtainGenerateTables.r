@@ -253,8 +253,10 @@ library(doBy)
   # BOTTOM CONTACTING GEARS
    load(file=file.path(getwd(), "outputs2020",  paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForBotAlly_",years[1],"-",years[length(years)],".RData", sep="")))
     x <- AllAggResultsBot
-  lon <- "CELL_LONG" ; lat <- "CELL_LATI"
-  
+   lon <- "CELL_LONG" ; lat <- "CELL_LATI"
+   rm(AllAggResultsBot)
+   gc() 
+   x <- x[,colnames(x) %in% c(grID)]
   
   # code F_SUBAREA (time consuming code...)
    # Convert all points first to SpatialPoints first
@@ -275,7 +277,8 @@ library(doBy)
    projection(coords) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")   # a guess!
    idx <- over(coords, fao_areas)
    x$F_CODE <- idx[,"F_CODE"]
-
+   gc()
+  
    # check
    plot(fao_areas[fao_areas$F_CODE %in% c("27.3.d.24","27.3.b.23"),])
    points( x[is.na(x$F_CODE), c(lon, lat)], col=3, pch="+")
@@ -297,7 +300,8 @@ library(doBy)
   x <- x[!is.na(x$F_CODE),] # remove very few records
 
  save(x, file=file.path("C:", "temp", "x.RData"))
-
+ gc()
+ 
   #  convert to long
   x$ID <- paste0(x$VE_REF, x$Year, x$LE_ID)
   library(data.table)
@@ -313,6 +317,7 @@ library(doBy)
 
 
   x<- long
+  gc()
   
   # find out areas to Retrieve Stocks from Species
    x$code_area <- as.character(x$F_CODE)
