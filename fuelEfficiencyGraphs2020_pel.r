@@ -762,3 +762,369 @@ dev.off()
 
 
 
+
+
+
+
+
+
+
+
+
+ 
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
+ 
+#REDO SOME STUFF FOR A STANDALONE CODE:
+setwd (file.path("D:","FBA","BENTHIS_2020"))   # adapt to your need
+library(doBy)
+years <- 2005:2019
+spp <- c("COD", "CSH","DAB","ELE","FLE","HAD","HER","HKE","HOM","LEM","MAC","MON","MUS","NEP","NOP","PLE","POK","PRA", "SAN","SOL","SPR","TUR","WHB","WIT","WHG","OTH")
+color_species <- c("#E69F00","hotpink","#56B4E9","#F0E442", "green", "#0072B2", "mediumorchid4", "#CC79A7",
+                    "indianred2", "#EEC591", "#458B00", "#F0F8FF", "black", "#e3dcbf", "#CD5B45", "lightseagreen",
+                    "#6495ED", "#CDC8B1", "#00FFFF", "#8B0000", "#008B8B", "#A9A9A9", "#76a5c4", "red", "yellow", "blue")
+some_color_species<- c("COD"="#E69F00", "CSH"="hotpink", "DAB"="#56B4E9", "ELE"="#F0E442", "FLE"="green",
+                        "HAD"="#0072B2", "HER"="mediumorchid4", "HKE"="#CC79A7","HOM"="indianred2", "LEM"="#EEC591",
+                         "MAC"="#458B00", "MON"="#F0F8FF", "MUS"="black", "NEP"="#e3dcbf", "NOP"="#CD5B45", "PLE"="lightseagreen",
+                         "POK"="#6495ED", "PRA"="#CDC8B1", "SAN"="#00FFFF", "SOL"="#8B0000", "SPR"="#008B8B", "TUR"="#A9A9A9", "WHB"="#76a5c4",
+                          "WIT"="red", "WHG"="yellow", "OTH"="blue")
+load(file=file.path(getwd(), "outputs2020_pel", paste("aggResultPerMetAllyMet6AndVsizeAndRatiosForPel.RData", sep="")))  # aggResultPerMetAlly
+spp <- colnames(aggResultPerMetAlly) [grep("LE_EURO_", colnames(aggResultPerMetAlly))]   ; spp <- gsub("LE_EURO_", "", spp) ; spp <- spp [!spp=="SPECS"]
+
+
+
+ ### SUMMARIZE LANDINGS AND CPUF ON THE SAME GRAPH.......
+ variables <- c("KKGallsp", "LE_KG_LITRE_FUEL", "CPUFallsp",  "VPUFallsp")
+ prefixes  <- c("LE_KG_","LE_KG_",   "LE_CPUF_",  "LE_VPUF_")
+ the_names <- c("(a)","(b)", "(c)", "(d)")
+
+ count <- 0
+ the_agg <- NULL
+ for(a_variable in variables){
+ count <- count+1
+ for (y in years){
+     #dd <- get(paste0("aggResultPerMet_", y))
+     dd <- aggResultPerMetAlly[aggResultPerMetAlly$Year==y, ]
+
+     # get percent per stock for sectorisation
+
+
+     PercentThisStk <- dd[paste0(prefixes[count],spp)] / apply(dd[paste0(prefixes[count],spp)], 1, sum, na.rm=TRUE)*100
+     colnames(PercentThisStk)  <- paste0("Percent_",spp)
+     dd <- cbind.data.frame (dd, PercentThisStk)
+     VarThisStk <- sweep(dd[,colnames(PercentThisStk)]/100, 1, dd[,a_variable], FUN="*")
+     colnames(VarThisStk)  <- spp
+     dd <- cbind.data.frame (dd, VarThisStk)
+     # reshape
+     library(data.table)
+     long <- melt(setDT(dd[,c("LE_MET",a_variable, colnames(VarThisStk))]), id.vars = c("LE_MET",a_variable), variable.name = "Stock")
+     colnames(long)[colnames(long)==a_variable] <- "Total"
+     
+     #as.data.frame(long)
+     long <- long[complete.cases(long),]
+
+     long$LE_MET <- paste(long$LE_MET, the_names[count])
+     
+     if(y==years[1]){
+     agg <- cbind.data.frame(long, year=y)
+     }
+      else{
+      agg <- rbind.data.frame(agg,
+             cbind.data.frame(long, year=y))
+     }
+     
+   }
+
+     the_agg <- rbind.data.frame(as.data.frame(the_agg), as.data.frame(agg))
+ }
+
+
+
+
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!##
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!##
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!##
+ a_width <- 6200 ; a_height <- 10500
+ library(ggplot2)
+ a_unit <- 1
+ a_comment <- ""
+
+# pel
+ namefile <- paste0("ts_fuel_efficiency", a_variable, "_", years[1], "-", years[length(years)],  a_comment, "_PEL_areaplot_land_and_CPUF.tif")
+ tiff(filename=file.path(getwd(), "outputs2020_pel", "output_plots",  namefile),   width = a_width, height = a_height,
+                                   units = "px", pointsize = 12,  res=600, compression = c("lzw"))
+ the_agg_plot <- as.data.frame(the_agg[grep("SmallMesh",the_agg$LE_MET),])
+
+ # a visual fix adding all combi--
+ dd <- expand.grid(LE_MET=levels(factor(the_agg_plot$LE_MET)), Stock=levels(factor(the_agg_plot$Stock)), year=levels(factor(the_agg_plot$year)))
+ dd$value <- 0
+ dd[,"Total"] <- 0
+ dd <- dd[,colnames(the_agg_plot)]
+ rownames(the_agg_plot) <- paste0(the_agg_plot$LE_MET,the_agg_plot$Stock,the_agg_plot$year)
+ rownames(dd) <- paste0(dd$LE_MET,dd$Stock,dd$year)
+ dd <- dd[!rownames(dd)%in%rownames(the_agg_plot),]
+ the_agg_plot <- rbind.data.frame(the_agg_plot, dd)
+ #---
+
+  the_agg_plot$LE_MET <- gsub("SmallMesh_", "", the_agg_plot$LE_MET)
+  
+the_agg_plot1 <- as.data.frame(the_agg_plot[grep("(a)",the_agg_plot$LE_MET),])
+
+ p1 <- ggplot(the_agg_plot1, aes(x=as.character(year), y=value/a_unit, group=Stock)) +
+     facet_wrap(. ~ LE_MET, scales = "free_y", ncol=1)  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +  
+  geom_area(aes(fill=Stock))  +     labs(y = "Landings (tons)", x = "Year")   +
+   scale_fill_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=8))  +
+    xlab("")
+ #print(p1)
+
+ the_agg_plot3 <- as.data.frame(the_agg_plot[grep("(c)",the_agg_plot$LE_MET),])
+
+ p3 <- ggplot(the_agg_plot3, aes(x=as.character(year), y=value/a_unit, group=Stock)) +
+     facet_wrap(. ~ LE_MET, scales = "free_y", ncol=1)  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +   
+  geom_area(aes(fill=Stock))  +     labs(y = "CPUF (kg per litre)", x = "Year")   +
+   scale_fill_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=8))  +
+    xlab("")
+ #print(p3)
+
+  the_agg_plot4 <- as.data.frame(the_agg_plot[grep("(d)",the_agg_plot$LE_MET),])
+
+ p4 <- ggplot(the_agg_plot4, aes(x=as.character(year), y=value/a_unit, group=Stock)) +
+     facet_wrap(. ~ LE_MET, scales = "free_y", ncol=1)  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +  
+  geom_area(aes(fill=Stock))  +     labs(y = "VPUF (euro per litre)", x = "Year")   +
+   scale_fill_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=8))  +
+    xlab("")
+ #print(p4)
+
+
+ library(ggpubr)
+ggarrange(p1, p3, p4, ncol=3, common.legend = TRUE, legend="bottom")
+
+dev.off()
+
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!##
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!##
+ ##!!!!!!!!!!!!!!!!!!!!!!!!!##
+
+
+
+
+##!!!!!!!!!!!!!!!!!!!!!!##
+## SUMMARY BARPLOT WITH AVERAGE OVER THE PERIOD 
+##!!!!!!!!!!!!!!!!!!!!!!##
+
+
+##!!!!!!!!!!!!!!!!!!!!!!##
+## PEL 
+ a_width <- 3200 ; a_height <- 6500
+ library(ggplot2)
+
+ the_agg_plot <- as.data.frame(the_agg[grep("SmallMesh",the_agg$LE_MET),])
+
+ # a visual fix adding all combi--
+ dd <- expand.grid(LE_MET=levels(factor(the_agg_plot$LE_MET)), Stock=levels(factor(the_agg_plot$Stock)), year=levels(factor(the_agg_plot$year)))
+ dd$value <- 0
+ dd[,"Total"] <- 0
+ dd <- dd[,colnames(the_agg_plot)]
+ rownames(the_agg_plot) <- paste0(the_agg_plot$LE_MET,the_agg_plot$Stock,the_agg_plot$year)
+ rownames(dd) <- paste0(dd$LE_MET,dd$Stock,dd$year)
+ dd <- dd[!rownames(dd)%in%rownames(the_agg_plot),]
+ the_agg_plot <- rbind.data.frame(the_agg_plot, dd)
+ #---
+
+  the_agg_plot$LE_MET <- gsub("SmallMesh_", "", the_agg_plot$LE_MET)
+
+# PEL
+ namefile <- paste0("barplot_mean_fuel_efficiency", a_variable, "_", years[1], "-", years[length(years)],  a_comment, "_PEL_plot_land_and_CPUF_and_VPUF.tif")
+ tiff(filename=file.path(getwd(), "outputs2020_pel", "output_plots",  namefile),   width = a_width, height = a_height,
+                                   units = "px", pointsize = 12,  res=600, compression = c("lzw"))
+ the_agg_plot1 <- as.data.frame(the_agg_plot[grep("(a)",the_agg_plot$LE_MET, fixed=TRUE),])
+ the_agg_plot1$LE_MET <- gsub("\\(a)","", the_agg_plot1$LE_MET)
+  p1 <- ggplot(data=the_agg_plot1, aes(x=LE_MET, y=value/a_unit, fill=Stock)) + #  geom_bar(stat="identity", position=position_dodge())
+  geom_bar(stat = "summary", fun = "mean") +  labs(y = "Landings (tons)", x= "") +
+       scale_fill_manual(values=some_color_species, name="Species") + theme_minimal() + theme(axis.text.x=element_blank()) + guides(fill =guide_legend(ncol=7))  
+  #print(p1)
+
+ the_agg_plot2 <- as.data.frame(the_agg_plot[grep("(b)",the_agg_plot$LE_MET, fixed=TRUE),])
+ the_agg_plot2$LE_MET <- gsub("\\(b)","", the_agg_plot2$LE_MET)
+  p2 <- ggplot(data=the_agg_plot2, aes(x=LE_MET, y=value/1e3, fill=Stock)) + #  geom_bar(stat="identity", position=position_dodge())
+  geom_bar(stat = "summary", fun = "mean") +  labs(y ="Fuel (thousands litre)", x= "") +
+       scale_fill_manual(values=some_color_species, name="Species")  + theme_minimal() + theme(axis.text.x=element_blank()) + guides(fill =guide_legend(ncol=7))  
+  #print(p2)
+
+ the_agg_plot3 <- as.data.frame(the_agg_plot[grep("(c)",the_agg_plot$LE_MET, fixed=TRUE),])
+ the_agg_plot3$LE_MET <- gsub("\\(c)","", the_agg_plot3$LE_MET)
+  p3 <- ggplot(data=the_agg_plot3, aes(x=LE_MET, y=value/a_unit, fill=Stock)) + #  geom_bar(stat="identity", position=position_dodge())
+  geom_bar(stat = "summary", fun = "mean") +  labs(y ="CPUF (kg per litre)", x= "") +
+       scale_fill_manual(values=some_color_species, name="Species")  + theme_minimal() + theme(axis.text.x=element_blank()) + guides(fill =guide_legend(ncol=7))  
+  #print(p3)
+
+  the_agg_plot4 <- as.data.frame(the_agg_plot[grep("(d)",the_agg_plot$LE_MET, fixed=TRUE),])
+  the_agg_plot4$LE_MET <- gsub("\\(d)","", the_agg_plot4$LE_MET)
+  p4 <- ggplot(data=the_agg_plot4, aes(x=LE_MET, y=value/a_unit, fill=Stock)) + #  geom_bar(stat="identity", position=position_dodge())
+  geom_bar(stat = "summary", fun = "mean") +  labs(y = "VPUF (euro per litre)", x= "Fleet-segments") +
+       scale_fill_manual(values=some_color_species, name="Species") + theme_minimal() + guides(fill =guide_legend(ncol=7))  + 
+        theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5, size=8))
+  #print(p4)
+
+   library(ggpubr)
+ggarrange(p1, p2, p3, p4, ncol=1, heights=c(1,1,1,2),common.legend = TRUE, legend="bottom")
+
+dev.off()
+
+
+
+
+
+
+
+
+
+
+ ##!!!!!!!!!!!!!!!!!!!!!!##
+ ##!!!!!!!!!!!!!!!!!!!!!!##
+ ##!!!!!!!!!!!!!!!!!!!!!!##
+ ##!!!!!!!!!!!!!!!!!!!!!!##
+ ##!!!!!!!!!!!!!!!!!!!!!!##
+ ##!!!!!!!!!!!!!!!!!!!!!!##
+ ##!!!!!!!!!!!!!!!!!!!!!!##
+ ##!!!!!!!!!!!!!!!!!!!!!!##
+ ## SPECIES ORIENTED - SECTORED PER FLEET-SEG
+ ## DEM
+### SUMMARIZE LANDINGS AND CPUF ON THE SAME GRAPH.......
+
+
+#!!!!!!!!!!!!
+#!!!!!!!!!!!!
+#!!!!!!!!!!!!
+# PEL
+   
+   some_color_seg <-  c("#7FC97F", "#BEAED4", "#FDC086", "#FFFF99", "#386CB0", "#F0027F", "#BF5B17", "#666666", "#1B9E77", "#D95F02", "#7570B3", "#E7298A", "#66A61E", "#E6AB02", "#A6761D", "#666666", "#A6CEE3", "#1F78B4", "#B2DF8A", "#33A02C", "#FB9A99", "#E31A1C", "#FDBF6F",
+   "#FF7F00", "#CAB2D6", "#6A3D9A", "#FFFF99", "#B15928", "#FBB4AE", "#B3CDE3", "#CCEBC5", "#DECBE4", "#FED9A6", "#FFFFCC", "#E5D8BD", "#FDDAEC", "#F2F2F2", "#B3E2CD", "#FDCDAC", "#CBD5E8", "#F4CAE4", "#E6F5C9", "#FFF2AE", "#F1E2CC", "#CCCCCC", "#E41A1C",
+   "#377EB8", "#4DAF4A", "#984EA3", "#FF7F00", "#FFFF33", "#A65628", "#F781BF", "#999999", "#66C2A5", "#FC8D62", "#8DA0CB", "#E78AC3", "#A6D854", "#FFD92F", "#E5C494", "#B3B3B3", "#8DD3C7", "#FFFFB3", "#BEBADA", "#FB8072", "#80B1D3", "#FDB462", "#B3DE69",
+   "#FCCDE5", "#D9D9D9", "#BC80BD", "#CCEBC5", "#FFED6F")
+
+ variables <- c("KKGallsp", "LE_KG_LITRE_FUEL", "CPUFallsp",  "VPUFallsp")
+ prefixes  <- c("LE_KG_","LE_KG_",   "LE_CPUF_",  "LE_VPUF_")
+ the_names <- c("(a)","(b)", "(c)", "(d)")
+
+ count <- 0
+ the_agg <- NULL
+ for(a_variable in variables){
+ count <- count+1
+ for (y in years){
+    dd <- aggResultPerMetAlly[aggResultPerMetAlly$Year==y, ]
+  
+    dd <- cbind.data.frame(Year=y, dd)
+   
+    # reshape first
+    library(data.table)
+    a_long <- melt(setDT(dd[,c("LE_MET", "Year",  paste0(prefixes[count], spp))]), id.vars = c("LE_MET", "Year"), variable.name = "Var")
+    a_long$Stock <- sapply(strsplit(as.character(a_long$Var), split="_"), function(x) x[3])
+
+    an_agg <- aggregate(a_long$value, list(a_long$Stock, a_long$Year), sum, na.rm=TRUE)   # CAUTION ABOUT THE INTERPRETATION HERE AS WE ARE SUMMING VPUEs...
+    colnames(an_agg) <- c("Stock", "Year", a_variable)
+    a_long <- merge(a_long, an_agg)
+    
+    #as.data.frame(long)
+    a_long <- a_long[complete.cases(a_long),]
+
+   # assign area to species as a proxy of stock
+   a_long$Stock <- paste(a_long$Stock, sapply(strsplit(as.character(a_long$LE_MET), split="_"), function(x) x[2]))
+
+   colnames(a_long)[colnames(a_long) %in% c(a_variable)] <- "Total"
+   
+  
+   
+  
+   a_long$LE_MET <- paste(a_long$LE_MET, the_names[count])
+   a_long <- as.data.frame(a_long)
+   a_long$LE_MET <- factor(a_long$LE_MET)
+   
+     if(y==years[1]){
+     agg <- cbind.data.frame(as.data.frame(a_long))
+     }
+      else{
+      agg <- rbind.data.frame(as.data.frame(agg),
+             cbind.data.frame(a_long))
+     }
+     
+   }
+
+     the_agg <- rbind.data.frame(as.data.frame(the_agg), as.data.frame(agg))
+ }
+
+ # filtering the ratios:
+   # a quick informative table (for kg) for filtering out the ratios that are misleading because low catch kg
+   ss <- the_agg[the_agg$Var %in%  paste0("LE_KG_", spp) & as.numeric(as.character(the_agg$value))>5000e3, ]  # < 5000tons?
+   the_agg <- the_agg[the_agg$Stock %in% unique(ss$Stock),]
+
+   
+   the_agg <- the_agg[,-grep("Var", colnames(the_agg))]
+
+
+##--------
+a_width <- 6200 ; a_height <- 8500
+library(ggplot2)
+a_comment <- ""
+a_unit <- 1
+
+namefile <- paste0("ts_fuel_efficiency", a_variable, "_", years[1], "-", years[length(years)],  a_comment, "_PEL_areaplot_per_stk_land_and_CPUF.tif")
+ tiff(filename=file.path(getwd(), "outputs2020_pel", "output_plots",  namefile),   width = a_width, height = a_height,
+                                   units = "px", pointsize = 12,  res=600, compression = c("lzw"))
+ the_agg_plot <- as.data.frame(the_agg[grep("SmallMesh",the_agg$LE_MET),])
+
+   # caution filter out non-relevant species for these fleets
+  the_agg_plot<-  the_agg_plot[ !(grepl("COD", the_agg_plot$Stock) | grepl("DAB", the_agg_plot$Stock)  | grepl("FLE", the_agg_plot$Stock)  | grepl("HOM", the_agg_plot$Stock)  | grepl("LEM", the_agg_plot$Stock)  | grepl("NEP", the_agg_plot$Stock)  | grepl("NOP 27.3", the_agg_plot$Stock) | grepl("PLE", the_agg_plot$Stock) | grepl("SOL", the_agg_plot$Stock) | grepl("TUR", the_agg_plot$Stock) | grepl("WIT", the_agg_plot$Stock) | grepl("POK", the_agg_plot$Stock) | grepl("WHB", the_agg_plot$Stock) | grepl("CSH 27.3", the_agg_plot$Stock) | grepl("MON", the_agg_plot$Stock) | grepl("ELE", the_agg_plot$Stock) ),]
+
+ # a visual fix adding all combi--
+ dd <- expand.grid(LE_MET=levels(factor(the_agg_plot$LE_MET)), Stock=levels(factor(the_agg_plot$Stock)), Year=levels(factor(the_agg_plot$Year)))
+ dd$value <- 0
+ dd[,"Total"] <- 0
+ dd <- dd[,colnames(the_agg_plot)]
+ rownames(the_agg_plot) <- paste0(the_agg_plot$LE_MET,the_agg_plot$Stock,the_agg_plot$Year)
+ rownames(dd) <- paste0(dd$LE_MET,dd$Stock,dd$Year)
+ dd <- dd[!rownames(dd)%in%rownames(the_agg_plot),]
+ the_agg_plot <- rbind.data.frame(the_agg_plot, dd)
+ #---
+
+  the_agg_plot$LE_MET <- gsub("LargeMesh_", "", the_agg_plot$LE_MET)
+  
+  the_agg_plot1 <- as.data.frame(the_agg_plot[grep("(a)",the_agg_plot$LE_MET, fixed=TRUE),])
+  the_agg_plot1$LE_MET <- gsub("\\(a)","", the_agg_plot1$LE_MET)
+
+  p1 <- ggplot(the_agg_plot1, aes(x=as.character(Year), y=value/1e3, group=LE_MET)) +
+     facet_wrap(. ~ Stock, scales = "free_y", ncol=1)  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +
+      geom_area(aes(fill=LE_MET))  +     labs(y = "Landings (tons)", x = "Year")   +
+      scale_fill_manual(values=some_color_seg, name="Fleet-segments") +   guides(fill =guide_legend(ncol=2))  +
+    xlab("")
+ 
+  the_agg_plot3 <- as.data.frame(the_agg_plot[grep("(c)",the_agg_plot$LE_MET, fixed=TRUE),])
+  the_agg_plot3$LE_MET <- gsub("\\(c)","", the_agg_plot3$LE_MET)
+  
+  p3 <- ggplot(the_agg_plot3, aes(x=as.character(Year), y=value/a_unit, group=LE_MET)) +
+     facet_wrap(. ~ Stock, scales = "free_y", ncol=1)  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +  
+      geom_area(aes(fill=LE_MET))  +     labs(y = "CPUF (kg per litre)", x = "Year")   +
+      scale_fill_manual(values=some_color_seg, name="Fleet-segments") +   guides(fill =guide_legend(ncol=2))  +
+    xlab("")
+ 
+  the_agg_plot4 <- as.data.frame(the_agg_plot[grep("(d)",the_agg_plot$LE_MET, fixed=TRUE),])
+  the_agg_plot4$LE_MET <- gsub("\\(d)","", the_agg_plot4$LE_MET)
+
+ p4 <- ggplot(the_agg_plot4, aes(x=as.character(Year), y=value/a_unit, group=LE_MET)) +
+     facet_wrap(. ~ Stock, scales = "free_y", ncol=1)  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +   
+      geom_area(aes(fill=LE_MET))  +     labs(y = "VPUF (euro per litre)", x = "Year")   +
+      scale_fill_manual(values=some_color_seg, name="Fleet-segments") +   guides(fill =guide_legend(ncol=2))  +
+    xlab("")
+ 
+
+ library(ggpubr)
+ggarrange(p1, p3, p4, ncol=3, common.legend = TRUE, legend="bottom")
+
+dev.off()
+
