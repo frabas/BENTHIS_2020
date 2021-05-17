@@ -229,9 +229,13 @@ quickmap <- function(namefile = paste0("LE_KG_COD_2019", ".tif"),
   }
   if(grepl("CPUE",a_nametype) || grepl("CPUF",a_nametype) || grepl("VPUE",a_nametype) ||  grepl("VPUF",a_nametype) ||
       grepl("CPUEallsp",a_nametype) || grepl("CPUFallsp",a_nametype) || grepl("VPUEallsp",a_nametype) || grepl("VPUFallsp",a_nametype)){
-    if(grid_agg_res== (1/60)) the_breaks_baseline<-  c(0, round(exp(seq(-1, 2.5, by=0.3)),1), 10000)    # if 1 minute  i.e. 0.16 degree
-    if(grid_agg_res== (3/60)) the_breaks_baseline<- c(0, round(exp(seq(-1, 2.5, by=0.3)),1), 10000)     # if 3 minutes i.e. 0.05 degrees
-    if(grid_agg_res== 0.01)   the_breaks_baseline<-  c(0, round(exp(seq(-1, 2.5, by=0.3)),1), 10000)     # less than 1 minute  i.e. 0.01 degree
+ #   if(grid_agg_res== (1/60)) the_breaks_baseline<-  c(0, round(exp(seq(-1, 2.5, by=0.3)),1), 10000)    # if 1 minute  i.e. 0.16 degree
+ #   if(grid_agg_res== (3/60)) the_breaks_baseline<- c(0, round(exp(seq(-1, 2.5, by=0.3)),1), 10000)     # if 3 minutes i.e. 0.05 degrees
+ #   if(grid_agg_res== 0.01)   the_breaks_baseline<-  c(0, round(exp(seq(-1, 2.5, by=0.3)),1), 10000)     # less than 1 minute  i.e. 0.01 degree
+   if(grid_agg_res== (1/60)) the_breaks_baseline<- c(0, round(exp(seq(-0, 4, by=0.5)),0), 10000)    # if 1 minute  i.e. 0.16 degree
+    if(grid_agg_res== (3/60)) the_breaks_baseline<- c(0, round(exp(seq(-0, 4, by=0.5)),0), 10000)     # if 3 minutes i.e. 0.05 degrees
+    if(grid_agg_res== 0.01)   the_breaks_baseline<-  c(0, round(exp(seq(-0, 4, by=0.5)),0), 10000)     # less than 1 minute  i.e. 0.01 degree
+  
   }
 
 
@@ -266,7 +270,7 @@ quickmap <- function(namefile = paste0("LE_KG_COD_2019", ".tif"),
     colintens             <- brewer.pal(9,"YlOrRd")
     resx <- grid_agg_res
     resy <- grid_agg_res
-    grd <- createGrid(xrange,yrange,resx=resx, resy=resy, type="SpatialGrid", exactBorder=TRUE)
+    grd <- createGrid(xlims,ylims,resx=resx, resy=resy, type="SpatialGrid", exactBorder=TRUE)
 
     # Grid all tacsatSweptArea data
     # Convert all tacsat points first to SpatialPoints
@@ -784,6 +788,11 @@ quickmap <- function(namefile = paste0("LE_KG_COD_2019", ".tif"),
          )
  }
  
+ #!#!#!#!#!#!#!#!
+ #!#!#!#!#!#!#!#!
+ #!PAPER
+ #!#!#!#!#!#!#!#!
+ #!#!#!#!#!#!#!#!
  #ALL METIERS POOLED
  aggall <- agg
  aggall$LE_MET <- "BottomContactingGears"
@@ -852,6 +861,11 @@ agg <- NULL
          )
  }
  
+ #!#!#!#!#!#!#!#!
+ #!#!#!#!#!#!#!#!
+ #!PAPER
+ #!#!#!#!#!#!#!#!
+ #!#!#!#!#!#!#!#!
  #ALL METIERS POOLED
  aggall <- agg
  aggall$LE_MET <- "PelagicGears"
@@ -899,6 +913,11 @@ agg <- NULL
                                                        "sp_with_max_vpuf", "sp_with_max_cpue", "sp_with_max_cpuf", "sp_with_max_vpufswa")])
                )  
  }
+ #!#!#!#!#!#!#!#!
+ #!#!#!#!#!#!#!#!
+ #!PAPER
+ #!#!#!#!#!#!#!#!
+ #!#!#!#!#!#!#!#!
  aggall <- agg
  aggall$LE_MET <- "BottomContactingGears"
  quickmap (namefile = paste0("ColorSpCodeMapFor_","BottomContactingGears","_",years[1],"-",years[length(years)],".tif"),
@@ -922,7 +941,7 @@ agg <- NULL
                      output_dir=file.path(getwd(), "outputs2020", "output_plots_maps_met")
          )
 
-
+    
 # AVERAGE OVER THE ENTIRE PERIOD 2005-2019 -PELAGIC GEARS
  load(file.path(getwd(), "outputs2020_pel", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPel_",2012,".RData") ))  # aggResult
  metiers <-   as.character(unique(aggResult$LE_MET))
@@ -941,6 +960,11 @@ agg <- NULL
                                                        "sp_with_max_vpuf", "sp_with_max_cpue", "sp_with_max_cpuf", "sp_with_max_vpufswa")])
                )  
  }
+ #!#!#!#!#!#!#!#!
+ #!#!#!#!#!#!#!#!
+ #!PAPER
+ #!#!#!#!#!#!#!#!
+ #!#!#!#!#!#!#!#!
 aggall <- agg
  aggall$LE_MET <- "PelagicGears"
  quickmap (namefile = paste0("ColorSpCodeMapFor_","PelagicGears","_",years[1],"-",years[length(years)],".tif"),

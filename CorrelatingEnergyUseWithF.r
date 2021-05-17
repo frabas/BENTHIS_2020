@@ -56,15 +56,49 @@ a_var <- "CPUF"
  f_and_vpuf$Region <- sapply(strsplit(as.character(f_and_vpuf$Stock), split="\\."), function(x) x[2])
  f_and_vpuf$StockAndVar <- paste(f_and_vpuf$Stock,f_and_vpuf$Var, sep=".")
 
+  
+  # large mesh - dem
+  dat <- f_and_vpuf[f_and_vpuf$Stock%in%c("COD.nsea", "PLE.nsea", "SOL.nsea", "HER.nsea", "POK.nsea", "HAD.nsea", "HKE.nsea", "NEP.kask", "COD.2224", "PLE.2123", "SOL.2024"),]
+  dat$Region <- factor(dat$Region)
+  
+  
+  # compute diff for figuring out the anomalies
+  dat<- do.call("rbind.data.frame", lapply(split(dat, dat$StockAndVar), function(x) {
+     x$diff <- c(0, diff(as.numeric(x$value))) # + mean(x$value)
+     x })  
+     )
+     
+     dat$col <- factor(ifelse(dat$diff > 0, 2, 1))
+   
+   
+  namefile <- paste0("ts_anomalies_f_and_",a_var,"_for_dem1_gridcells",years[1],"-",years[length(years)],".tif")
+  a_width <- 7000; a_height=7000
+  tiff(filename=file.path(getwd(), "outputs2020", "output_plots",  namefile),   width = a_width, height = a_height,
+                                   units = "px", pointsize = 12,  res=600, compression = c("lzw"))
+  library(ggplot2)
+   spp <- c("HER.nsea", "HAD.nsea", "POK.nsea", "SOL.2024") # select those with significant cross-correlation
+   plots <- list(NULL)
+   count <- 0
+   for (sp in 1: length(spp)){
+     count <- count +1
+     plots[[count]] <-  ggplot(dat[dat$Var=="F/FMSY" & dat$Stock==spp[sp],], aes(x=Year, y=diff,  group=StockAndVar, fill=col)) +   labs(title="",x="Year", y = paste("F/FMSY", spp[sp])) +
+       geom_bar(stat = "identity", show.legend=FALSE)  + scale_fill_manual(values=c("blue", "red"))  + theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  # + ylim(c(0,10))
+     count <- count +1
+     plots[[count]] <- ggplot(dat[dat$Var=="CPUF" & dat$Stock==spp[sp],], aes(x=Year, y=diff,  group=StockAndVar, fill=col)) +   labs(title="",x="Year", y = paste("CPUF", spp[sp])) +
+       geom_bar(stat = "identity", show.legend=FALSE)  + scale_fill_manual(values=c("blue", "red"))  + theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  # + ylim(c(0,10))
+} 
+    cowplot::plot_grid(plotlist = plots, ncol = 2,
+                   align = 'v', labels = rep(c("F/FMSY", "CPUF"), each= length(sp)))
+dev.off()
+
+ 
+ 
+ 
   namefile <- paste0("ts_f_and_",a_var,"_for_dem_gridcells",years[1],"-",years[length(years)],".tif")
   a_width <- 9000; a_height=3500
   tiff(filename=file.path(getwd(), "outputs2020", "output_plots",  namefile),   width = a_width, height = a_height,
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
   library(ggplot2)
-  
-  # large mesh - dem
-  dat <- f_and_vpuf[f_and_vpuf$Stock%in%c("COD.nsea", "PLE.nsea", "SOL.nsea", "HAD.nsea", "HKE.nsea", "NEP.kask", "COD.2224", "PLE.2123"),]
-  dat$Region <- factor(dat$Region)
   
     # do al list of plot to avoid using facet_wrap(~Region, scales="free_y")
     ggList <- lapply(split(dat, dat$Region), function(i) {
@@ -94,7 +128,7 @@ a_var <- "CPUF"
 
 
  # maybe worth to detrending on F/FMSY ts given we know the MP is targetting a value of 1 deliberately
- spp <- c("COD.nsea", "PLE.nsea", "SOL.nsea", "HAD.nsea", "POK.nsea","HER.nsea",  "NEP.kask", "COD.2224", "PLE.2123", "SOL.2024")
+ spp <- c("COD.nsea", "PLE.nsea", "SOL.nsea", "PRA.nsea", "HER.nsea", "HAD.nsea", "HKE.nsea",  "POK.nsea", "NEP.kask", "COD.2224", "PLE.2123", "SOL.2024")
  a_width <- 6000; a_height=2500
   tiff(filename=file.path(getwd(), "outputs2020", "output_plots",  "crosscorrelation.tif"),   width = a_width, height = a_height,
                                    units = "px", pointsize = 12,  res=400, compression = c("lzw"))
@@ -133,6 +167,19 @@ a_var <- "CPUF"
  f_and_vpuf$Region <- sapply(strsplit(as.character(f_and_vpuf$Stock), split="\\."), function(x) x[2])
  f_and_vpuf$StockAndVar <- paste(f_and_vpuf$Stock,f_and_vpuf$Var, sep=".")
 
+  
+    # compute diff for figuring out the anomalies
+  dat<- do.call("rbind.data.frame", lapply(split(f_and_vpuf, f_and_vpuf$StockAndVar), function(x) {
+     x$diff <- c(0, diff(as.numeric(x$value))) # + mean(x$value)
+     x })  
+     )
+     
+     dat$col <- factor(ifelse(dat$diff > 0, 2, 1))
+   
+   
+
+  
+  
   namefile <- paste0("ts_f_and_",a_var,"_for_demsmallmesh_gridcells",years[1],"-",years[length(years)],".tif")
   a_width <- 9000; a_height=3500
   tiff(filename=file.path(getwd(), "outputs2020", "output_plots",  namefile),   width = a_width, height = a_height,
@@ -212,6 +259,40 @@ a_var <- "CPUF"
  f_and_vpuf$Region <- sapply(strsplit(as.character(f_and_vpuf$Stock), split="\\."), function(x) x[2])
  f_and_vpuf$StockAndVar <- paste(f_and_vpuf$Stock,f_and_vpuf$Var, sep=".")
 
+   # compute diff for figuring out the anomalies
+  dat<- do.call("rbind.data.frame", lapply(split(f_and_vpuf, f_and_vpuf$StockAndVar), function(x) {
+     x$diff <- c(0, diff(as.numeric(x$value))) # + mean(x$value)
+     x })  
+     )
+     
+     dat$col <- factor(ifelse(dat$diff > 0, 2, 1))
+ 
+ #!#!#!#!#!#!#
+ #! PAPER
+ #!#!#!#!#!#!#
+
+   namefile <- paste0("ts_anomalies_f_and_",a_var,"_for_pel_gridcells",years[1],"-",years[length(years)],".tif")
+  a_width <- 7000; a_height=4500
+  tiff(filename=file.path(getwd(), "outputs2020", "output_plots",  namefile),   width = a_width, height = a_height,
+                                   units = "px", pointsize = 12,  res=600, compression = c("lzw"))
+  library(ggplot2)
+   spp <- c("HER.nsea", "SPR.2232", "MAC.nsea") # select those with significant cross-correlation
+   plots <- list(NULL)
+   count <- 0
+   for (sp in 1: length(spp)){
+     count <- count +1
+     plots[[count]] <-  ggplot(dat[dat$Var=="F/FMSY" & dat$Stock==spp[sp],], aes(x=Year, y=diff,  group=StockAndVar, fill=col)) +   labs(title="",x="Year", y = paste("F/FMSY", spp[sp])) +
+       geom_bar(stat = "identity", show.legend=FALSE)  + scale_fill_manual(values=c("blue", "red"))  + theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  # + ylim(c(0,10))
+     count <- count +1
+     plots[[count]] <- ggplot(dat[dat$Var=="CPUF" & dat$Stock==spp[sp],], aes(x=Year, y=diff,  group=StockAndVar, fill=col)) +   labs(title="",x="Year", y = paste("CPUF", spp[sp])) +
+       geom_bar(stat = "identity", show.legend=FALSE)  + scale_fill_manual(values=c("blue", "red"))  + theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  # + ylim(c(0,10))
+} 
+    cowplot::plot_grid(plotlist = plots, ncol = 2,
+                   align = 'v', labels = rep(c("F/FMSY", "CPUF"), each= length(sp)))
+dev.off()
+
+
+
   namefile <- paste0("ts_f_and_",a_var,"_for_pel_gridcells",years[1],"-",years[length(years)],".tif")
   a_width <- 9000; a_height=3500
   tiff(filename=file.path(getwd(), "outputs2020_pel", "output_plots",  namefile),   width = a_width, height = a_height,
@@ -289,8 +370,44 @@ a_var <- "CPUF"
     cbind.data.frame(long[,c("Stock","Year", "value")], Var=a_var)
     )
 
- f_and_vpuf$Region <- sapply(strsplit(as.character(f_and_vpuf$Stock), split="\\."), function(x) x[2])
- f_and_vpuf$StockAndVar <- paste(f_and_vpuf$Stock,f_and_vpuf$Var, sep=".")
+     f_and_vpuf$Region <- sapply(strsplit(as.character(f_and_vpuf$Stock), split="\\."), function(x) x[2])
+   f_and_vpuf$StockAndVar <- paste(f_and_vpuf$Stock,f_and_vpuf$Var, sep=".")
+
+
+    # compute diff for figuring out the anomalies
+  dat<- do.call("rbind.data.frame", lapply(split(f_and_vpuf, f_and_vpuf$StockAndVar), function(x) {
+     x$diff <- c(0, diff(as.numeric(x$value))) # + mean(x$value)
+     x })  
+     )
+     
+     dat$col <- factor(ifelse(dat$diff > 0, 2, 1))
+ 
+ #!#!#!#!#!#!#
+ #! PAPER
+ #!#!#!#!#!#!#
+
+   namefile <- paste0("ts_anomalies_f_and_",a_var,"_for_smallvids_gridcells",years[1],"-",years[length(years)],".tif")
+  a_width <- 7000; a_height=3500
+  tiff(filename=file.path(getwd(), "outputs2020", "output_plots",  namefile),   width = a_width, height = a_height,
+                                   units = "px", pointsize = 12,  res=600, compression = c("lzw"))
+  library(ggplot2)
+   spp <- c("COD.nsea", "COD.2224") # select those with significant cross-correlation
+   plots <- list(NULL)
+   count <- 0
+   for (sp in 1: length(spp)){
+     count <- count +1
+     plots[[count]] <-  ggplot(dat[dat$Var=="F/FMSY" & dat$Stock==spp[sp],], aes(x=Year, y=diff,  group=StockAndVar, fill=col)) +   labs(title="",x="Year", y = paste("F/FMSY", spp[sp])) +
+       geom_bar(stat = "identity", show.legend=FALSE)  + scale_fill_manual(values=c("blue", "red"))  + theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  # + ylim(c(0,10))
+     count <- count +1
+     plots[[count]] <- ggplot(dat[dat$Var=="CPUF" & dat$Stock==spp[sp],], aes(x=Year, y=diff,  group=StockAndVar, fill=col)) +   labs(title="",x="Year", y = paste("CPUF", spp[sp])) +
+       geom_bar(stat = "identity", show.legend=FALSE)  + scale_fill_manual(values=c("blue", "red"))  + theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  # + ylim(c(0,10))
+} 
+    cowplot::plot_grid(plotlist = plots, ncol = 2,
+                   align = 'v', labels = rep(c("F/FMSY", "CPUF"), each= length(sp)))
+dev.off()
+
+
+ 
 
   namefile <- paste0("ts_f_and_",a_var,"_for_lgbkonly_gridcells",years[1],"-",years[length(years)],".tif")
   a_width <- 9000; a_height=3500
