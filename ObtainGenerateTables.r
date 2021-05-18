@@ -75,6 +75,9 @@ library(doBy)
   top5 <- rownames(all_indic[1:5,])
   write.table(round(all_indic[1:5,],2), "clipboard", sep="\t", row.names=TRUE, col.names=TRUE)
 
+  top7 <- rownames(all_indic[1:7,])
+  write.table(round(all_indic[1:7,],2), "clipboard", sep="\t", row.names=TRUE, col.names=TRUE)
+
   dd$LE_MET <- rownames(dd)
   library(data.table)
   long <- melt(setDT(dd[, c("LE_MET", as.character(years))]), id.vars = c("LE_MET"), variable.name = "Year")
@@ -138,6 +141,8 @@ library(doBy)
   top5 <- rownames(all_indic[1:5,])
   write.table(round(all_indic[1:5,],2), "clipboard", sep="\t", row.names=TRUE, col.names=TRUE)
 
+  top7 <- rownames(all_indic[1:7,])
+  write.table(round(all_indic[1:7,],2), "clipboard", sep="\t", row.names=TRUE, col.names=TRUE)
 
   dd$LE_MET <- rownames(dd)
   library(data.table)
@@ -204,6 +209,9 @@ library(doBy)
 
   top5 <- rownames(all_indic[1:5,])
   write.table(round(all_indic[1:5,],2), "clipboard", sep="\t", row.names=TRUE, col.names=TRUE)
+  
+  top7 <- rownames(all_indic[1:7,])
+  write.table(round(all_indic[1:7,],2), "clipboard", sep="\t", row.names=TRUE, col.names=TRUE)
 
 
   dd$LE_MET <- rownames(dd)
