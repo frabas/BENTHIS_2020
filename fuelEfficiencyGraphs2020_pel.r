@@ -69,7 +69,7 @@
                          "WIT"="red", "WHG"="yellow", "OTH"="blue")
 
  per_metier_level6 <- TRUE
- per_vessel_size <- TRUE
+ per_vessel_size <- FALSE
  per_region     <- TRUE
  
  # search in Baltic and North Sea
@@ -140,6 +140,64 @@
                                 "NA_27.4_No_Matrix6_[40,100)", "NA_27.2_No_Matrix6_[40,100)",
                                                       paste0("NA","_",levels(aggResult$VesselSize)) )
  }
+ 
+ 
+ 
+ # find metiers lvl6-Vsize to merge
+ if(per_metier_level6 && !per_vessel_size){
+   res <- NULL
+   for (y in years){
+      load(file.path(getwd(),  "outputs2020_pel", paste0("AggregatedSweptAreaPlusMet6_",y,".RData") ))  # aggResult
+      aggResult$LE_MET_init <- factor(aggResult$LE_MET_init)
+      levels(aggResult$LE_MET_init) <- gsub("MCD", "CRU", levels(aggResult$LE_MET_init)) # immediate correction to avoid useless historical renaming MCD->CRU
+     
+      # debug
+      aggResult <- aggResult[aggResult$LE_KG_LITRE >0,]
+   
+       # code F_SUBAREA (time consuming code...)
+      # Convert all points first to SpatialPoints first
+      library(rgdal)
+      library(raster)
+      an <- function(x) as.numeric(as.character(x))
+      coords <- SpatialPoints(cbind(SI_LONG=an(aggResult[, "CELL_LONG"]), SI_LATI=an(aggResult[, "CELL_LATI"])))
+      fao_areas <- spTransform(fao_areas, CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"))    # convert to longlat
+      projection(coords) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")   # a guess!
+      idx <- over(coords, fao_areas)
+      aggResult$F_SUBAREA <- idx[,"F_SUBAREA"]
+      aggResult[is.na(aggResult$F_SUBAREA), "F_SUBAREA"] <- "27.4" # few points on coastline
+      aggResult$F_DIVISION <- idx[,"F_DIVISION"]
+      aggResult[is.na(aggResult$F_DIVISION), "F_DIVISION"] <- paste0(aggResult[is.na(aggResult$F_DIVISION), "F_SUBAREA"],".a") # few points on coastline      
+      
+      # code small vs large mesh
+      aggResult$target <- aggResult$LE_MET # init
+      code <- sapply(strsplit(levels(aggResult$target), split="_"), function(x) x[3])
+      levels(aggResult$target) <- code
+      levels(aggResult$target)[levels(aggResult$target) %in% c(">=105","100-119","90-119",">=120","90-104")] <- "LargeMesh"
+      levels(aggResult$target)[!levels(aggResult$target) %in% "LargeMesh"] <- "SmallMesh"
+    
+      dd <- tapply(aggResult$effort_mins, paste0(aggResult$target, "_", aggResult$F_SUBAREA, "_", aggResult$LE_MET_init), sum)
+      res <- rbind.data.frame(res, cbind.data.frame(names(dd), dd))
+    
+      # for info:
+      #aggResult <- cbind.data.frame(aggResult, code=paste0(aggResult$target, "_", aggResult$F_SUBAREA, "_", aggResult$LE_MET_init, "_", aggResult$VesselSize))
+      #print(y)
+      #print(head(aggResult[aggResult$code=="NA_27.4_No_Matrix6_[40,100)",]))
+
+      }
+      
+   pel <- res[grep("SmallMesh",res[,1]),]
+   pel <- aggregate(pel$dd, list(pel[,1]), sum)
+   pel <- orderBy(~ -x, pel)
+   oth_mets_pel <- as.character(pel[cumsum(pel[,2])/sum(pel[,2])>.92,1]) # 90% in effort in pel
+  
+   dem <- res[grep("LargeMesh",res[,1]),]   # all dem are misplaced and should be removed here because we don´t want these metiers in this routine here. Also likely the result of fishermen spelling the wrong gear in logbooks (OTB for OTM), or polyvalent pelagic vessels.
+
+ # met to keep
+ oth_mets <- c(oth_mets_pel, as.character(dem[,1]), 
+                                "NA_27.3_No_Matrix6","27.4_No_Matrix6_[12,18)", "NA_27.3_No_Matrix6","NA_27.4_No_Matrix6", 
+                                "NA_27.4_No_Matrix6", "NA_27.2_No_Matrix6",
+                                                      paste0("NA") )
+ }
  #----
  
    sum(res[res[,1] %in% oth_mets,2])
@@ -195,6 +253,54 @@
        
  
       aggResult$LE_MET <- factor(paste0(aggResult$target, "_", aggResult$F_SUBAREA,"_", aggResult$LE_MET, "_", aggResult$VesselSize))
+      levels(aggResult$LE_MET)[levels(aggResult$LE_MET) %in% oth_mets] <- "SmallMesh_OTHER_0_0_0"
+       
+  }
+  
+
+  if(per_metier_level6 && !per_vessel_size) {
+       load(file.path(getwd(), "outputs2020_pel", paste0("AggregatedSweptAreaPlusMet6_",y,".RData") ))  # aggResult
+         
+       aggResult$LE_MET_init <- factor(aggResult$LE_MET_init)
+       colnames(aggResult)[ colnames(aggResult) =="LE_MET_init"] <- "LE_MET"
+        
+       ##!#!#!#!caution#!#!#!#!
+       ##!! remove the difference among OTM and PTM
+       aggResult[grepl("PTM",aggResult$LE_MET), "LE_KG_LITRE_FUEL"] <-  aggResult[grepl("PTM",aggResult$LE_MET), "LE_KG_LITRE_FUEL"] *2 # because pair trawling
+       levels(aggResult$LE_MET) <- gsub("OTM", "TM", levels(aggResult$LE_MET))
+       levels(aggResult$LE_MET) <- gsub("PTM", "TM", levels(aggResult$LE_MET))
+       oth_mets  <- gsub("OTM", "TM", oth_mets) 
+       oth_mets  <- gsub("PTM", "TM", oth_mets) 
+       ##!#!#!#!caution#!#!#!#!
+      
+     
+      # code F_SUBAREA (time consuming code...)
+      # Convert all points first to SpatialPoints first
+      library(rgdal)
+      library(raster)
+      an <- function(x) as.numeric(as.character(x))
+      coords <- SpatialPoints(cbind(SI_LONG=an(aggResult[, "CELL_LONG"]), SI_LATI=an(aggResult[, "CELL_LATI"])))
+      fao_areas <- spTransform(fao_areas, CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"))    # convert to longlat
+      projection(coords) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")   # a guess!
+      idx <- over(coords, fao_areas)
+      aggResult$F_SUBAREA <- idx[,"F_SUBAREA"]
+      aggResult[is.na(aggResult$F_SUBAREA), "F_SUBAREA"] <- "27.4" # few points on coastline
+      aggResult$F_DIVISION <- idx[,"F_DIVISION"]
+      aggResult[is.na(aggResult$F_DIVISION), "F_DIVISION"] <- paste0(aggResult[is.na(aggResult$F_DIVISION), "F_SUBAREA"],".a") # few points on coastline      
+    
+      # code small vs large mesh
+      aggResult$target <- aggResult$LE_MET # init
+      code <- sapply(strsplit(levels(aggResult$target), split="_"), function(x) x[3])
+      levels(aggResult$target) <- code
+      levels(aggResult$target)[levels(aggResult$target) %in% c(">=105","100-119","90-119",">=120","90-104")] <- "LargeMesh"
+      levels(aggResult$target)[!levels(aggResult$target) %in% "LargeMesh"] <- "SmallMesh"
+  
+       # remove
+       aggResult <- aggResult[!aggResult$target %in% "LargeMesh",] # we don´t want to see the LargeMesh in this routine.
+       aggResult <- aggResult[!grepl("OTB", aggResult$LE_MET),] # we don´t want to see the LargeMesh in this routine.
+       
+ 
+      aggResult$LE_MET <- factor(paste0(aggResult$target, "_", aggResult$F_SUBAREA,"_", aggResult$LE_MET))
       levels(aggResult$LE_MET)[levels(aggResult$LE_MET) %in% oth_mets] <- "SmallMesh_OTHER_0_0_0"
        
   }
@@ -266,8 +372,12 @@
 
 
     # capture an export for quickmap2020.r
-    save(aggResult, file=file.path(getwd(), "outputs2020_pel", paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPel_", y, ".RData", sep=""))) 
-
+     if(per_metier_level6 && per_vessel_size) {
+       save(aggResult, file=file.path(getwd(), "outputs2020_pel", paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPel_", y, ".RData", sep=""))) 
+       }
+     if(per_metier_level6 && !per_vessel_size) {
+       save(aggResult, file=file.path(getwd(), "outputs2020_pel", paste("AggregatedSweptAreaPlusMet6AndRatiosForPel_", y, ".RData", sep=""))) 
+       }
 
     # then, do the aggregation for following ggplots
     agg_by <- "LE_MET"
@@ -314,6 +424,14 @@
     # collate
     aggResultPerMet <- cbind(aggResultPerMet, aggResultPerMet2[,-c(1:length(agg_by))])
 
+    # then do some estimates, caution, after the aggregation for those ones 
+    # litre per kilo catch
+    aggResultPerMet$FPUCallsp <- aggResultPerMet$LE_KG_LITRE_FUEL/(aggResultPerMet$KKGallsp*100) 
+    aggResultPerMet$FPUCallsp [is.infinite(aggResultPerMet$FPUCallsp)] <- 0
+
+    # litre per euro catch
+    aggResultPerMet$FPUVallsp <-  aggResultPerMet$LE_KG_LITRE_FUEL/(aggResultPerMet$KEUROallsp*100)
+    aggResultPerMet$FPUVallsp [is.infinite(aggResultPerMet$FPUVallsp)] <- 0
 
    assign(paste0("aggResultPerMet_", y), aggResultPerMet)
    cat(paste0("saved for ", y, "\n"))
@@ -337,9 +455,11 @@
      aggResultPerMetAlly <- rbind.data.frame(aggResultPerMetAlly, dd)
   }   
   #save(aggResultPerMetAlly, file=file.path(getwd(), "outputs2020_pel", paste("aggResultPerMetAllyMet6AndVsizeAndRatiosForPel.RData", sep=""))) 
+  #save(aggResultPerMetAlly, file=file.path(getwd(), "outputs2020_pel", paste("aggResultPerMetAllyMet6AndRatiosForPel.RData", sep=""))) 
 
 
-  load(file=file.path(getwd(), "outputs2020_pel", paste("aggResultPerMetAllyMet6AndVsizeAndRatiosForPel.RData", sep="")))  # aggResultPerMetAlly
+  #load(file=file.path(getwd(), "outputs2020_pel", paste("aggResultPerMetAllyMet6AndVsizeAndRatiosForPel.RData", sep="")))  # aggResultPerMetAlly
+  load(file=file.path(getwd(), "outputs2020_pel", paste("aggResultPerMetAllyMet6AndRatiosForPel.RData", sep="")))  # aggResultPerMetAlly
   library(doBy)
   
   spp <- colnames(aggResultPerMetAlly) [grep("LE_EURO_", colnames(aggResultPerMetAlly))]   ; spp <- gsub("LE_EURO_", "", spp) ; spp <- spp [!spp=="SPECS"]
@@ -794,15 +914,16 @@ some_color_species<- c("COD"="#E69F00", "CSH"="hotpink", "DAB"="#56B4E9", "ELE"=
                          "MAC"="#458B00", "MON"="#F0F8FF", "MUS"="black", "NEP"="#e3dcbf", "NOP"="#CD5B45", "PLE"="lightseagreen",
                          "POK"="#6495ED", "PRA"="#CDC8B1", "SAN"="#00FFFF", "SOL"="#8B0000", "SPR"="#008B8B", "TUR"="#A9A9A9", "WHB"="#76a5c4",
                           "WIT"="red", "WHG"="yellow", "OTH"="blue")
-load(file=file.path(getwd(), "outputs2020_pel", paste("aggResultPerMetAllyMet6AndVsizeAndRatiosForPel.RData", sep="")))  # aggResultPerMetAlly
+#load(file=file.path(getwd(), "outputs2020_pel", paste("aggResultPerMetAllyMet6AndVsizeAndRatiosForPel.RData", sep="")))  # aggResultPerMetAlly
+load(file=file.path(getwd(), "outputs2020_pel", paste("aggResultPerMetAllyMet6AndRatiosForPel.RData", sep="")))  # aggResultPerMetAlly
 spp <- colnames(aggResultPerMetAlly) [grep("LE_EURO_", colnames(aggResultPerMetAlly))]   ; spp <- gsub("LE_EURO_", "", spp) ; spp <- spp [!spp=="SPECS"]
 
 
 
  ### SUMMARIZE LANDINGS AND CPUF ON THE SAME GRAPH.......
- variables <- c("KKGallsp", "LE_KG_LITRE_FUEL", "CPUFallsp",  "VPUFallsp")
- prefixes  <- c("LE_KG_","LE_KG_",   "LE_CPUF_",  "LE_VPUF_")
- the_names <- c("(a)","(b)", "(c)", "(d)")
+ variables <- c("KKGallsp", "LE_KG_LITRE_FUEL", "CPUFallsp",  "VPUFallsp", "FPUCallsp", "FPUVallsp")
+ prefixes  <- c("LE_KG_","LE_KG_",   "LE_CPUF_",  "LE_VPUF_", "LE_KG_", "LE_KG_")
+ the_names <- c("(a)","(b)", "(c)", "(d)", "(e)", "(f)")
 
  count <- 0
  the_agg <- NULL
@@ -1015,7 +1136,9 @@ spp <- colnames(aggResultPerMetAlly) [grep("LE_EURO_", colnames(aggResultPerMetA
 
 
 # PEL
- namefile <- paste0("barplot_mean_fuel_efficiency", a_variable, "_", years[1], "-", years[length(years)],  a_comment, "_PEL_plot_land_and_CPUF_and_VPUF.tif")
+ #namefile <- paste0("barplot_mean_fuel_efficiency", a_variable, "_", years[1], "-", years[length(years)],  a_comment, "_PEL_plot_land_and_CPUF_and_VPUF.tif")
+ namefile <- paste0("barplot_mean_fuel_efficiency_", years[1], "-", years[length(years)], "_PEL_plot_land_and_FPUC_and_FPUV.tif")
+ collecting_table <- NULL
  tiff(filename=file.path(getwd(), "outputs2020_pel", "output_plots",  namefile),   width = a_width, height = a_height,
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
  the_agg_plot1 <- as.data.frame(the_agg_plot[grep("(a)",the_agg_plot$LE_MET, fixed=TRUE),])
@@ -1025,14 +1148,16 @@ spp <- colnames(aggResultPerMetAlly) [grep("LE_EURO_", colnames(aggResultPerMetA
   geom_bar(stat = "summary", fun = "mean") +  labs(y = "Landings (tons)", x= "") +
        scale_fill_manual(values=some_color_species, name="Species") + theme_minimal() + theme(axis.text.x=element_blank()) + guides(fill =guide_legend(ncol=7))  
   #print(p1)
+  collecting_table <- rbind.data.frame(collecting_table, cbind.data.frame(type="PelagicFishing_SmallMesh", seg=levels(the_agg_plot1$LE_MET), var="Landings (tons)", average=tapply(the_agg_plot1$Total, the_agg_plot1$LE_MET, mean)))
 
  the_agg_plot2 <- as.data.frame(the_agg_plot[grep("(b)",the_agg_plot$LE_MET, fixed=TRUE),])
  the_agg_plot2$LE_MET <- gsub("\\(b)","", the_agg_plot2$LE_MET)
- the_agg_plot2$LE_MET <- factor(the_agg_plot3$LE_MET, level=fleet_segments_ordered) # reorder
+ the_agg_plot2$LE_MET <- factor(the_agg_plot2$LE_MET, level=fleet_segments_ordered) # reorder
  p2 <- ggplot(data=the_agg_plot2, aes(x=LE_MET, y=value/1e3, fill=Stock)) + #  geom_bar(stat="identity", position=position_dodge())
   geom_bar(stat = "summary", fun = "mean") +  labs(y ="Fuel (thousands litre)", x= "") +
        scale_fill_manual(values=some_color_species, name="Species")  + theme_minimal() + theme(axis.text.x=element_blank()) + guides(fill =guide_legend(ncol=7))  
   #print(p2)
+  collecting_table <- rbind.data.frame(collecting_table, cbind.data.frame(type="PelagicFishing_SmallMesh", seg=levels(the_agg_plot2$LE_MET), var="Fuel (thousands litre)", average=tapply(the_agg_plot2$Total, the_agg_plot2$LE_MET, mean)))
 
  the_agg_plot3 <- as.data.frame(the_agg_plot[grep("(c)",the_agg_plot$LE_MET, fixed=TRUE),])
  the_agg_plot3$LE_MET <- gsub("\\(c)","", the_agg_plot3$LE_MET)
@@ -1041,6 +1166,7 @@ spp <- colnames(aggResultPerMetAlly) [grep("LE_EURO_", colnames(aggResultPerMetA
   geom_bar(stat = "summary", fun = "mean") +  labs(y ="CPUF (kg per litre)", x= "") +
        scale_fill_manual(values=some_color_species, name="Species")  + theme_minimal() + theme(axis.text.x=element_blank()) + guides(fill =guide_legend(ncol=7))  
   #print(p3)
+  collecting_table <- rbind.data.frame(collecting_table, cbind.data.frame(type="PelagicFishing_SmallMesh", seg=levels(the_agg_plot3$LE_MET), var="CPUF (kg per litre)", average=tapply(the_agg_plot3$Total, the_agg_plot3$LE_MET, mean)))
 
   the_agg_plot4 <- as.data.frame(the_agg_plot[grep("(d)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot4$LE_MET <- gsub("\\(d)","", the_agg_plot4$LE_MET)
@@ -1048,14 +1174,43 @@ spp <- colnames(aggResultPerMetAlly) [grep("LE_EURO_", colnames(aggResultPerMetA
   p4 <- ggplot(data=the_agg_plot4, aes(x=LE_MET, y=value/a_unit, fill=Stock)) + #  geom_bar(stat="identity", position=position_dodge())
   geom_bar(stat = "summary", fun = "mean") +  labs(y = "VPUF (euro per litre)", x= "Fleet-segments") +
        scale_fill_manual(values=some_color_species, name="Species") + theme_minimal() + guides(fill =guide_legend(ncol=7))  + 
+       theme(axis.text.x=element_blank()) 
+        #theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5, size=8))
+  #print(p4)
+  collecting_table <- rbind.data.frame(collecting_table, cbind.data.frame(type="PelagicFishing_SmallMesh", seg=levels(the_agg_plot4$LE_MET), var="VPUF (euro per litre)", average=tapply(the_agg_plot4$Total, the_agg_plot4$LE_MET, mean)))
+
+  the_agg_plot5 <- as.data.frame(the_agg_plot[grep("(e)",the_agg_plot$LE_MET, fixed=TRUE),])
+  the_agg_plot5$LE_MET <- gsub("\\(e)","", the_agg_plot5$LE_MET)
+  the_agg_plot5$LE_MET <- factor(the_agg_plot5$LE_MET, level=fleet_segments_ordered) # reorder
+  p5 <- ggplot(data=the_agg_plot5, aes(x=LE_MET, y=value/a_unit, fill=Stock)) + #  geom_bar(stat="identity", position=position_dodge())
+  geom_bar(stat = "summary", fun = "mean") +  labs(y = "Litre per kg catch", x= "Fleet-segments") +
+       scale_fill_manual(values=some_color_species, name="Species") + theme_minimal() + guides(fill =guide_legend(ncol=7))  + 
+         theme(axis.text.x=element_blank()) 
+        #theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5, size=8))
+  #print(p4)
+   collecting_table <- rbind.data.frame(collecting_table, cbind.data.frame(type="PelagicFishing_SmallMesh", seg=levels(the_agg_plot5$LE_MET), var="Litre per kg catch", average=tapply(the_agg_plot5$Total, the_agg_plot5$LE_MET, mean)))
+
+   the_agg_plot6 <- as.data.frame(the_agg_plot[grep("(f)",the_agg_plot$LE_MET, fixed=TRUE),])
+  the_agg_plot6$LE_MET <- gsub("\\(f)","", the_agg_plot6$LE_MET)
+  the_agg_plot6$LE_MET <- factor(the_agg_plot6$LE_MET, level=fleet_segments_ordered) # reorder
+  p6 <- ggplot(data=the_agg_plot6, aes(x=LE_MET, y=value/a_unit, fill=Stock)) + #  geom_bar(stat="identity", position=position_dodge())
+  geom_bar(stat = "summary", fun = "mean") +  labs(y = "Litre per euro catch", x= "Fleet-segments") +
+       scale_fill_manual(values=some_color_species, name="Species") + theme_minimal() + guides(fill =guide_legend(ncol=7))  + 
         theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5, size=8))
   #print(p4)
+   collecting_table <- rbind.data.frame(collecting_table, cbind.data.frame(type="PelagicFishing_SmallMesh", seg=levels(the_agg_plot6$LE_MET), var="Litre per euro catch", average=tapply(the_agg_plot6$Total, the_agg_plot6$LE_MET, mean)))
 
    library(ggpubr)
-ggarrange(p1, p2, p3, p4, ncol=1, heights=c(1,1,1,2),common.legend = TRUE, legend="bottom")
+ggarrange(p1, p2, p5, p6, ncol=1, heights=c(1,1,1,2),common.legend = TRUE, legend="bottom")
 
 dev.off()
 
+# export underlying data
+write.table(collecting_table,
+            file=file.path(getwd(), "outputs2020_pel", "output_plots", 
+            paste("barplot_mean_fuel_efficiency_", years[1], "-", years[length(years)], "_PEL_plot_land_and_FPUC_and_FPUV.dat")),
+             row.names=FALSE, quote=FALSE, sep=";")
+            
 
 
 
