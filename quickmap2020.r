@@ -237,11 +237,22 @@ quickmap <- function(namefile = paste0("LE_KG_COD_2019", ".tif"),
     if(grid_agg_res== 0.01)   the_breaks_baseline<-  c(0, round(exp(seq(-0, 4, by=0.5)),0), 10000)     # less than 1 minute  i.e. 0.01 degree
   
   }
-
-
+  if(a_met="PelagicGears" && (grepl("FPUCallsp",a_nametype) || grepl("FPUVallsp",a_nametype))){
+   if(grid_agg_res== (1/60)) the_breaks_baseline<- c(0, round(exp(seq(-1, 1.7, by=0.3)),1), 10000)       # if 1 minute  i.e. 0.16 degree
+    if(grid_agg_res== (3/60)) the_breaks_baseline<- c(0, round(exp(seq(-1, 1.7, by=0.3)),1), 10000)       # if 3 minutes i.e. 0.05 degrees
+    if(grid_agg_res== 0.01)   the_breaks_baseline<-  c(0, round(exp(seq(-1, 1.7, by=0.3)),1), 10000)   # less than 1 minute  i.e. 0.01 degree
+  
+  }
+  if(a_met="BottomContactingGears" && (grepl("FPUCallsp",a_nametype) || grepl("FPUVallsp",a_nametype))){
+   if(grid_agg_res== (1/60)) the_breaks_baseline<-  c(0, round(exp(seq(-0, 1.6, by=0.2)),1), 10000)       # if 1 minute  i.e. 0.16 degree
+    if(grid_agg_res== (3/60)) the_breaks_baseline<-  c(0, round(exp(seq(-0, 1.6, by=0.2)),1), 10000)        # if 3 minutes i.e. 0.05 degrees
+    if(grid_agg_res== 0.01)   the_breaks_baseline<-   c(0, round(exp(seq(-0, 1.6, by=0.2)),1), 10000)   # less than 1 minute  i.e. 0.01 degree
+  
+  }
+ 
   #-------------------------
    a_func           <- "sum"
-  if( grepl("CPUE",a_nametype) || grepl("CPUF",a_nametype) || grepl("VPUE",a_nametype) ||  grepl("VPUF",a_nametype) ||
+  if( grepl("FPUCallsp",a_nametype) || grepl("FPUVallsp",a_nametype) || grepl("CPUE",a_nametype) || grepl("CPUF",a_nametype) || grepl("VPUE",a_nametype) ||  grepl("VPUF",a_nametype) ||
       grepl("CPUEallsp",a_nametype) || grepl("CPUFallsp",a_nametype) || grepl("VPUEallsp",a_nametype) || grepl("VPUFallsp",a_nametype)) a_func <- "mean"    # do an average in cells when ratios provided in input
   if( grepl("sp_with_max_vpuf",a_nametype) || grepl("sp_with_max_cpue",a_nametype) || grepl("sp_with_max_cpuf",a_nametype) ||  grepl("sp_with_max_vpufswa",a_nametype)) {
               a_func <- function(x) {names(table(x))[which.max(table(x))]}  # find the most frequent sp
@@ -427,6 +438,8 @@ quickmap <- function(namefile = paste0("LE_KG_COD_2019", ".tif"),
   if(grepl("VPUFallsp", a_nametype)) a_title_leg <- c("euro per litre") 
   if(grepl("LE_CPUF", a_nametype)) a_title_leg <- c("kg per litre") 
   if(grepl("CPUFallsp", a_nametype)) a_title_leg <- c("kg per litre") 
+  if(grepl("FPUCallsp", a_nametype)) a_title_leg <- c("litre per kg catch") 
+  if(grepl("FPUVallsp", a_nametype)) a_title_leg <- c("litre per euro catch") 
   if(grepl("LE_CPUE", a_nametype)) a_title_leg <- c("kg per effective effort") 
   if(grepl("CPUEallsp", a_nametype)) a_title_leg <- c("kg per effective effort") 
   if(grepl("LE_VPUE", a_nametype)) a_title_leg <- c("euro per effective effort") 
@@ -747,20 +760,41 @@ quickmap <- function(namefile = paste0("LE_KG_COD_2019", ".tif"),
  }}
  
 
+
+
+
+########
+########
+########
+########
+########
+########
 # AVERAGE OVER THE ENTIRE PERIOD 2005-2019 - BOTTOM CONTACTING GEARS
- load(file.path(getwd(), "outputs2020", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForBottContact_",2012,".RData") ))  # aggResult
+ load(file.path(getwd(), "outputs2020", paste0("AggregatedSweptAreaPlusMet6AndRatiosForBottContact_",2012,".RData") ))  # aggResult
+# load(file.path(getwd(), "outputs2020", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForBottContact_",2012,".RData") ))  # aggResult
  metiers <-   as.character(unique(aggResult$LE_MET))
- load(file.path(getwd(), "outputs2020", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForBottContact_",2019,".RData") ))  # aggResult
+ #load(file.path(getwd(), "outputs2020", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForBottContact_",2019,".RData") ))  # aggResult
+ load(file.path(getwd(), "outputs2020", paste0("AggregatedSweptAreaPlusMet6AndRatiosForBottContact_",2012,".RData") ))  # aggResult
  metiers <-  unique(c(metiers, as.character(unique(aggResult$LE_MET))))
  metiers <- metiers[!grepl("NA", metiers)]
  plot_per_c_square <- FALSE
  library(rgdal);  library(raster); fao_areas <- readOGR(file.path(getwd(), "FAO_AREAS", "FAO_AREAS.shp"))
  agg <- NULL
  for (y in years){
-    load(file.path(getwd(),  "outputs2020", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForBottContact_",y,".RData") )) # aggResult
+    #load(file.path(getwd(),  "outputs2020", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForBottContact_",y,".RData") )) # aggResult
+    load(file.path(getwd(), "outputs2020", paste0("AggregatedSweptAreaPlusMet6AndRatiosForBottContact_",2012,".RData") ))  # aggResult
+    
+    # litre per kilo catch
+    aggResult$FPUCallsp <- aggResult$LE_KG_LITRE_FUEL/(aggResult$KKGallsp*100) 
+    aggResult$FPUCallsp [is.infinite(aggResult$FPUCallsp)] <- 0
+
+    # litre per euro catch
+    aggResult$FPUVallsp <-  aggResult$LE_KG_LITRE_FUEL/(aggResult$KEUROallsp*100)
+    aggResult$FPUVallsp [is.infinite(aggResult$FPUVallsp)] <- 0
+
     agg <- rbind.data.frame(agg, 
                cbind.data.frame(year=y,aggResult[,c("LE_MET","CELL_LONG", "CELL_LATI",
-                                                      "CPUEallsp","CPUFallsp","VPUFallsp", "VPUFSWAallsp",
+                                                      "CPUEallsp","CPUFallsp","VPUFallsp", "VPUFSWAallsp", "FPUCallsp", "FPUVallsp",
                                                        "sp_with_max_vpuf", "sp_with_max_cpue", "sp_with_max_cpuf", "sp_with_max_vpufswa")])
                )  
  }
@@ -771,7 +805,7 @@ quickmap <- function(namefile = paste0("LE_KG_COD_2019", ".tif"),
                      #nameobj  = "aggResult", 
                      aggResult   =  agg, # file.path(getwd(),"outputs2020", paste("AggregatedSweptAreaPlus_2019.RData") ), 
                      a_unit   = 1, # 1 because 1 year agg
-                     nametype =c("CPUEallsp","CPUFallsp","VPUFallsp"), ## 3 plots
+                     nametype =c("CPUEallsp","FPUCallsp","VPUFallsp"), ## 3 plots
                      a_met    = a_met,
                      long     = "CELL_LONG", 
                      lat      = "CELL_LATI",
@@ -801,7 +835,7 @@ quickmap <- function(namefile = paste0("LE_KG_COD_2019", ".tif"),
                      #nameobj  = "aggResult", 
                      aggResult   =  aggall, # file.path(getwd(),"outputs2020", paste("AggregatedSweptAreaPlus_2019.RData") ), 
                      a_unit   = 1, # 1 because 1 year agg
-                     nametype =c("CPUEallsp","CPUFallsp","VPUFallsp"), ## 3 plots
+                     nametype =c("CPUEallsp","FPUCallsp","VPUFallsp"), ## 3 plots
                      a_met    = "BottomContactingGears",
                      long     = "CELL_LONG", 
                      lat      = "CELL_LATI",
@@ -818,11 +852,21 @@ quickmap <- function(namefile = paste0("LE_KG_COD_2019", ".tif"),
          ) 
  
  
-
+ 
+ 
+ 
+########
+########
+########
+########
+########
+########
 # AVERAGE OVER THE ENTIRE PERIOD 2005-2019 -PELAGIC GEARS
- load(file.path(getwd(), "outputs2020_pel", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPel_",2012,".RData") ))  # aggResult
+ #load(file.path(getwd(), "outputs2020_pel", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPel_",2012,".RData") ))  # aggResult
+ load(file.path(getwd(), "outputs2020_pel", paste0("AggregatedSweptAreaPlusMet6AndRatiosForPel_",2012,".RData") ))  # aggResult
  metiers <-   as.character(unique(aggResult$LE_MET))
- load(file.path(getwd(), "outputs2020_pel", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPel_",2019,".RData") ))  # aggResult
+ #load(file.path(getwd(), "outputs2020_pel", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPel_",2019,".RData") ))  # aggResult
+ load(file.path(getwd(), "outputs2020_pel", paste0("AggregatedSweptAreaPlusMet6AndRatiosForPel_",2019,".RData") ))  # aggResult
  metiers <-  unique(c(metiers, as.character(unique(aggResult$LE_MET))))
  metiers <- metiers[!grepl("NA", metiers)]
  plot_per_c_square <- FALSE
@@ -830,10 +874,20 @@ quickmap <- function(namefile = paste0("LE_KG_COD_2019", ".tif"),
  years <- 2005:2019
 agg <- NULL
  for (y in years){
-    load(file.path(getwd(),  "outputs2020_pel", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPel_",y,".RData") )) # aggResult
+    #load(file.path(getwd(),  "outputs2020_pel", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPel_",y,".RData") )) # aggResult   
+    load(file.path(getwd(),  "outputs2020_pel", paste0("AggregatedSweptAreaPlusMet6AndRatiosForPel_",y,".RData") )) # aggResult   
+     
+    # litre per kilo catch
+    aggResult$FPUCallsp <- aggResult$LE_KG_LITRE_FUEL/(aggResult$KKGallsp*100) 
+    aggResult$FPUCallsp [is.infinite(aggResult$FPUCallsp)] <- 0
+
+    # litre per euro catch
+    aggResult$FPUVallsp <-  aggResult$LE_KG_LITRE_FUEL/(aggResult$KEUROallsp*100)
+    aggResult$FPUVallsp [is.infinite(aggResult$FPUVallsp)] <- 0
+
     agg <- rbind.data.frame(agg, 
                cbind.data.frame(year=y,aggResult[,c("LE_MET","CELL_LONG", "CELL_LATI",
-                                                      "CPUEallsp","CPUFallsp","VPUFallsp", "VPUFSWAallsp",
+                                                      "CPUEallsp","CPUFallsp","VPUFallsp", "VPUFSWAallsp", "FPUCallsp", "FPUVallsp",
                                                        "sp_with_max_vpuf", "sp_with_max_cpue", "sp_with_max_cpuf", "sp_with_max_vpufswa")])
                )  
  }
@@ -844,7 +898,7 @@ agg <- NULL
                      #nameobj  = "aggResult", 
                      aggResult   =  agg, # file.path(getwd(),"outputs2020", paste("AggregatedSweptAreaPlus_2019.RData") ), 
                      a_unit   = 1, # 1 because 1 year agg
-                     nametype =c("CPUEallsp","CPUFallsp","VPUFallsp"), ## 3 plots
+                     nametype =c("CPUEallsp","FPUCallsp","VPUFallsp"), ## 3 plots
                      a_met    = a_met,
                      long     = "CELL_LONG", 
                      lat      = "CELL_LATI",
@@ -874,7 +928,7 @@ agg <- NULL
                      #nameobj  = "aggResult", 
                      aggResult   =  aggall, # file.path(getwd(),"outputs2020", paste("AggregatedSweptAreaPlus_2019.RData") ), 
                      a_unit   = 1, # 1 because 1 year agg
-                     nametype =c("CPUEallsp","CPUFallsp","VPUFallsp"), ## 4 plots
+                     nametype =c("CPUEallsp","FPUCallsp","VPUFallsp"), ## 4 plots
                      a_met    = "PelagicGears",
                      long     = "CELL_LONG", 
                      lat      = "CELL_LATI",
@@ -892,6 +946,18 @@ agg <- NULL
 
  
  
+ 
+ 
+ 
+ 
+ 
+ 
+########
+########
+########
+########
+########
+########
  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
  ## PLOT PER CELL THE SEPCIES COLOR CODE WITH THE LOCALLY HIGHEST VPUF etc.
  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
@@ -942,10 +1008,21 @@ agg <- NULL
          )
 
     
+
+
+
+########
+########
+########
+########
+########
+########
 # AVERAGE OVER THE ENTIRE PERIOD 2005-2019 -PELAGIC GEARS
- load(file.path(getwd(), "outputs2020_pel", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPel_",2012,".RData") ))  # aggResult
+ #load(file.path(getwd(), "outputs2020_pel", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPel_",2012,".RData") ))  # aggResult
+ load(file.path(getwd(), "outputs2020_pel", paste0("AggregatedSweptAreaPlusMet6AndRatiosForPel_",2012,".RData") ))  # aggResult
  metiers <-   as.character(unique(aggResult$LE_MET))
- load(file.path(getwd(), "outputs2020_pel", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPel_",2019,".RData") ))  # aggResult
+ #load(file.path(getwd(), "outputs2020_pel", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPel_",2019,".RData") ))  # aggResult
+ load(file.path(getwd(), "outputs2020_pel", paste0("AggregatedSweptAreaPlusMet6AndRatiosForPel_",2012,".RData") ))  # aggResult
  metiers <-  unique(c(metiers, as.character(unique(aggResult$LE_MET))))
  metiers <- metiers[!grepl("NA", metiers)]
  plot_per_c_square <- FALSE
@@ -953,10 +1030,21 @@ agg <- NULL
  years <- 2005:2019
 agg <- NULL
  for (y in years){
-    load(file.path(getwd(),  "outputs2020_pel", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPel_",y,".RData") )) # aggResult
+   load(file.path(getwd(), "outputs2020_pel", paste0("AggregatedSweptAreaPlusMet6AndRatiosForPel_",2012,".RData") ))  # aggResult
+   #load(file.path(getwd(),  "outputs2020_pel", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPel_",y,".RData") )) # aggResult
+   
+   # litre per kilo catch
+    aggResult$FPUCallsp <- aggResult$LE_KG_LITRE_FUEL/(aggResult$KKGallsp*100) 
+    aggResult$FPUCallsp [is.infinite(aggResult$FPUCallsp)] <- 0
+
+    # litre per euro catch
+    aggResult$FPUVallsp <-  aggResult$LE_KG_LITRE_FUEL/(aggResult$KEUROallsp*100)
+    aggResult$FPUVallsp [is.infinite(aggResult$FPUVallsp)] <- 0
+  
+   
     agg <- rbind.data.frame(agg, 
                cbind.data.frame(year=y,aggResult[,c("LE_MET","CELL_LONG", "CELL_LATI",
-                                                      "CPUEallsp","CPUFallsp","VPUFallsp", "VPUFSWAallsp",
+                                                      "CPUEallsp","CPUFallsp","VPUFallsp", "VPUFSWAallsp", "FPUCallsp", "FPUVallsp",
                                                        "sp_with_max_vpuf", "sp_with_max_cpue", "sp_with_max_cpuf", "sp_with_max_vpufswa")])
                )  
  }
