@@ -8,11 +8,14 @@
 #years <- 2012:2019
 years <- 2005:2019
 
+
+
 if(FALSE){
 AllAggResultsBot <- NULL
 for (y in years){
   # bottom contacting gears dem and pel
-   load(file=file.path(getwd(), "outputs2020", paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForBottContact_", y, ".RData", sep="")))
+   #load(file=file.path(getwd(), "outputs2020", paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForBottContact_", y, ".RData", sep="")))
+   load(file=file.path(getwd(), "outputs2020", paste("AggregatedSweptAreaPlusMet6AndRatiosForBottContact_", y, ".RData", sep="")))
     aggResult$totkg <-  apply(aggResult[,grepl("LE_KG_", colnames(aggResult))], 1, sum)
     aggResult$toteuros <-  apply(aggResult[,grepl("LE_EURO_", colnames(aggResult))], 1, sum)
     AllAggResultsBot <- rbind.data.frame(
@@ -21,13 +24,15 @@ for (y in years){
                             )
 
  } # end y
-  save(AllAggResultsBot, file=file.path(getwd(), "outputs2020",  paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForBotAlly_",years[1],"-",years[length(years)],".RData", sep="")))
+  #save(AllAggResultsBot, file=file.path(getwd(), "outputs2020",  paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForBotAlly_",years[1],"-",years[length(years)],".RData", sep="")))
+  save(AllAggResultsBot, file=file.path(getwd(), "outputs2020",  paste("AggregatedSweptAreaPlusMet6AndRatiosForBotAlly_",years[1],"-",years[length(years)],".RData", sep="")))
   ##---
 
 AllAggResultsPel <- NULL
 for (y in years){
    # pelagic gears
-    load(file=file.path(getwd(), "outputs2020_pel", paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPel_", y, ".RData", sep="")))
+    #load(file=file.path(getwd(), "outputs2020_pel", paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPel_", y, ".RData", sep="")))
+    load(file=file.path(getwd(), "outputs2020_pel", paste("AggregatedSweptAreaPlusMet6AndRatiosForPel_", y, ".RData", sep="")))
      aggResult$totkg <-  apply(aggResult[,grepl("LE_KG_", colnames(aggResult))], 1, sum)
      aggResult$toteuros <-  apply(aggResult[,grepl("LE_EURO_", colnames(aggResult))], 1, sum)
      AllAggResultsPel <- rbind.data.frame(
@@ -36,7 +41,8 @@ for (y in years){
                             )
 
 } # end y
-  save(AllAggResultsPel, file=file.path(getwd(), "outputs2020_pel",  paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPelAlly",years[1],"-",years[length(years)],".RData", sep="")))
+  #save(AllAggResultsPel, file=file.path(getwd(), "outputs2020_pel",  paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPelAlly",years[1],"-",years[length(years)],".RData", sep="")))
+  save(AllAggResultsPel, file=file.path(getwd(), "outputs2020_pel",  paste("AggregatedSweptAreaPlusMet6AndRatiosForPelAlly",years[1],"-",years[length(years)],".RData", sep="")))
 
 
 
@@ -49,7 +55,8 @@ library(doBy)
  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
   # general tables  and plot
-   load(file=file.path(getwd(), "outputs2020",  paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForBotAlly_",years[1],"-",years[length(years)],".RData", sep="")))
+   #load(file=file.path(getwd(), "outputs2020",  paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForBotAlly_",years[1],"-",years[length(years)],".RData", sep="")))
+   load(file=file.path(getwd(), "outputs2020",  paste("AggregatedSweptAreaPlusMet6AndRatiosForBotAlly_",years[1],"-",years[length(years)],".RData", sep="")))
   
   # BOTTOM CONTACTING GEARS
   # Fuel use per metier over the period
@@ -58,15 +65,20 @@ library(doBy)
   dd   <- cbind.data.frame(dd, AllMLitres_cv=apply(dd, 1, FUN=function(x) sqrt(var(x, na.rm=TRUE))/mean(x, na.rm=TRUE)))
 
   dd2 <- round(tapply(AllAggResultsBot$totkg, list(AllAggResultsBot$LE_MET, AllAggResultsBot$Year ), sum))/1e6 # '000 tons
-  dd2  <- cbind.data.frame(dd2, AllmTons=apply(dd2, 1, mean, na.rm=TRUE))
-  dd2   <- cbind.data.frame(dd2, AllmTons_cv=apply(dd2, 1, FUN=function(x) sqrt(var(x, na.rm=TRUE))/mean(x, na.rm=TRUE)))
+  dd2  <- cbind.data.frame(dd2, AllkTons=apply(dd2, 1, mean, na.rm=TRUE))
+  dd2   <- cbind.data.frame(dd2, AllkTons_cv=apply(dd2, 1, FUN=function(x) sqrt(var(x, na.rm=TRUE))/mean(x, na.rm=TRUE)))
 
   dd3 <- round(tapply(AllAggResultsBot$toteuros, list(AllAggResultsBot$LE_MET, AllAggResultsBot$Year ), sum)/1e6,2) # millions
   dd3  <- cbind.data.frame(dd3, AllMEuros=apply(dd3, 1, mean, na.rm=TRUE))
   dd3   <- cbind.data.frame(dd3, AllMEuros_cv=apply(dd3, 1, FUN=function(x) sqrt(var(x, na.rm=TRUE))/mean(x, na.rm=TRUE)))
 
-  all_indic <- cbind.data.frame( AllMLitres=dd[,"AllMLitres"], AllMLitres_cv=dd[,"AllMLitres_cv"],
-                                 AllmTons=dd2[,"AllmTons"] , AllmTons_cv=dd2[,"AllmTons_cv"],
+  dd4 <- round(tapply(AllAggResultsBot$effort_mins/60, list(AllAggResultsBot$LE_MET, AllAggResultsBot$Year ), sum)/1e3,2) # '000 hours
+  dd4  <- cbind.data.frame(dd4, AllkHours =apply(dd4, 1, mean, na.rm=TRUE))
+  dd4   <- cbind.data.frame(dd4, AllkHours_cv=apply(dd4, 1, FUN=function(x) sqrt(var(x, na.rm=TRUE))/mean(x, na.rm=TRUE)))
+
+  all_indic <- cbind.data.frame( AllkHours =dd4[,"AllkHours"], AllkHours_cv=dd4[,"AllkHours_cv"],
+                                 AllMLitres=dd[,"AllMLitres"], AllMLitres_cv=dd[,"AllMLitres_cv"],
+                                 AllkTons=dd2[,"AllkTons"] , AllmTons_cv=dd2[,"AllkTons_cv"],
                                  AllMEuros=dd3[,"AllMEuros"], AllMEuros_cv=dd3[,"AllMEuros_cv"])
   rownames(all_indic) <- rownames(dd)
   library(doBy)
@@ -117,30 +129,33 @@ library(doBy)
  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
   # PELAGIC GEARS
-   load(file=file.path(getwd(), "outputs2020_pel",  paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPelAlly",years[1],"-",years[length(years)],".RData", sep="")))
+   #load(file=file.path(getwd(), "outputs2020_pel",  paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPelAlly",years[1],"-",years[length(years)],".RData", sep="")))
+   load(file=file.path(getwd(), "outputs2020_pel",  paste("AggregatedSweptAreaPlusMet6AndRatiosForPelAlly",years[1],"-",years[length(years)],".RData", sep="")))
 
-  # Fuel use per metier over the period
   dd <- round(tapply(AllAggResultsPel$LE_KG_LITRE_FUEL, list(AllAggResultsPel$LE_MET, AllAggResultsPel$Year ), sum))/1e6 # millions litre fuel
   dd  <- cbind.data.frame(dd, AllMLitres=apply(dd, 1, mean, na.rm=TRUE))
   dd   <- cbind.data.frame(dd, AllMLitres_cv=apply(dd, 1, FUN=function(x) sqrt(var(x, na.rm=TRUE))/mean(x, na.rm=TRUE)))
 
   dd2 <- round(tapply(AllAggResultsPel$totkg, list(AllAggResultsPel$LE_MET, AllAggResultsPel$Year ), sum))/1e6 # '000 tons
-  dd2  <- cbind.data.frame(dd2, AllmTons=apply(dd2, 1, mean, na.rm=TRUE))
-  dd2   <- cbind.data.frame(dd2, AllmTons_cv=apply(dd2, 1, FUN=function(x) sqrt(var(x, na.rm=TRUE))/mean(x, na.rm=TRUE)))
+  dd2  <- cbind.data.frame(dd2, AllkTons=apply(dd2, 1, mean, na.rm=TRUE))
+  dd2   <- cbind.data.frame(dd2, AllkTons_cv=apply(dd2, 1, FUN=function(x) sqrt(var(x, na.rm=TRUE))/mean(x, na.rm=TRUE)))
 
   dd3 <- round(tapply(AllAggResultsPel$toteuros, list(AllAggResultsPel$LE_MET, AllAggResultsPel$Year ), sum)/1e6,2) # millions
   dd3  <- cbind.data.frame(dd3, AllMEuros=apply(dd3, 1, mean, na.rm=TRUE))
   dd3   <- cbind.data.frame(dd3, AllMEuros_cv=apply(dd3, 1, FUN=function(x) sqrt(var(x, na.rm=TRUE))/mean(x, na.rm=TRUE)))
 
-  all_indic <- cbind.data.frame( AllMLitres=dd[,"AllMLitres"], AllMLitres_cv=dd[,"AllMLitres_cv"],
-                                 AllmTons=dd2[,"AllmTons"] , AllmTons_cv=dd2[,"AllmTons_cv"],
+  dd4 <- round(tapply(AllAggResultsPel$effort_mins/60, list(AllAggResultsPel$LE_MET, AllAggResultsPel$Year ), sum)/1e3,2) # '000 hours
+  dd4  <- cbind.data.frame(dd4, AllkHours =apply(dd4, 1, mean, na.rm=TRUE))
+  dd4   <- cbind.data.frame(dd4, AllkHours_cv=apply(dd4, 1, FUN=function(x) sqrt(var(x, na.rm=TRUE))/mean(x, na.rm=TRUE)))
+
+   all_indic <- cbind.data.frame( AllkHours =dd4[,"AllkHours"], AllkHours_cv=dd4[,"AllkHours_cv"],
+                                 AllMLitres=dd[,"AllMLitres"], AllMLitres_cv=dd[,"AllMLitres_cv"],
+                                 AllkTons=dd2[,"AllkTons"] , AllmTons_cv=dd2[,"AllkTons_cv"],
                                  AllMEuros=dd3[,"AllMEuros"], AllMEuros_cv=dd3[,"AllMEuros_cv"])
   rownames(all_indic) <- rownames(dd)
+  library(doBy)
   all_indic <- orderBy(~ - AllMLitres, all_indic)
-
-  top5 <- rownames(all_indic[1:5,])
-  write.table(round(all_indic[1:5,],2), "clipboard", sep="\t", row.names=TRUE, col.names=TRUE)
-
+  
   top7 <- rownames(all_indic[1:7,])
   write.table(round(all_indic[1:7,],2), "clipboard", sep="\t", row.names=TRUE, col.names=TRUE)
 
@@ -194,17 +209,24 @@ library(doBy)
   dd   <- cbind.data.frame(dd, AllMLitres_cv=apply(dd, 1, FUN=function(x) sqrt(var(x, na.rm=TRUE))/mean(x, na.rm=TRUE)))
 
   dd2 <- round(tapply(eflalo$LE_KG_SPECS, list(eflalo$LE_MET, eflalo$Year ), sum))/1e6 # '000 tons
-  dd2  <- cbind.data.frame(dd2, AllmTons=apply(dd2, 1, mean, na.rm=TRUE))
-  dd2   <- cbind.data.frame(dd2, AllmTons_cv=apply(dd2, 1, FUN=function(x) sqrt(var(x, na.rm=TRUE))/mean(x, na.rm=TRUE)))
+  dd2  <- cbind.data.frame(dd2, AllkTons=apply(dd2, 1, mean, na.rm=TRUE))
+  dd2   <- cbind.data.frame(dd2, AllkTons_cv=apply(dd2, 1, FUN=function(x) sqrt(var(x, na.rm=TRUE))/mean(x, na.rm=TRUE)))
 
   dd3 <- round(tapply(eflalo$LE_EURO_SPECS, list(eflalo$LE_MET, eflalo$Year ), sum)/1e6,2) # millions
   dd3  <- cbind.data.frame(dd3, AllMEuros=apply(dd3, 1, mean, na.rm=TRUE))
   dd3   <- cbind.data.frame(dd3, AllMEuros_cv=apply(dd3, 1, FUN=function(x) sqrt(var(x, na.rm=TRUE))/mean(x, na.rm=TRUE)))
 
-  all_indic <- cbind.data.frame( AllMLitres=dd[,"AllMLitres"], AllMLitres_cv=dd[,"AllMLitres_cv"],
-                                 AllmTons=dd2[,"AllmTons"] , AllmTons_cv=dd2[,"AllmTons_cv"],
+  dd4 <- round(tapply(eflalo$LE_EFF, list(eflalo$LE_MET, eflalo$Year ), sum)/1e3,2) # thousands hours
+  dd4  <- cbind.data.frame(dd4, AllkHours=apply(dd4, 1, mean, na.rm=TRUE))
+  dd4   <- cbind.data.frame(dd4, AllkHours_cv=apply(dd4, 1, FUN=function(x) sqrt(var(x, na.rm=TRUE))/mean(x, na.rm=TRUE)))
+
+
+   all_indic <- cbind.data.frame( AllkHours =dd4[,"AllkHours"], AllkHours_cv=dd4[,"AllkHours_cv"],
+                                 AllMLitres=dd[,"AllMLitres"], AllMLitres_cv=dd[,"AllMLitres_cv"],
+                                 AllkTons=dd2[,"AllkTons"] , AllmTons_cv=dd2[,"AllkTons_cv"],
                                  AllMEuros=dd3[,"AllMEuros"], AllMEuros_cv=dd3[,"AllMEuros_cv"])
   rownames(all_indic) <- rownames(dd)
+  library(doBy)
   all_indic <- orderBy(~ - AllMLitres, all_indic)
 
   top5 <- rownames(all_indic[1:5,])
