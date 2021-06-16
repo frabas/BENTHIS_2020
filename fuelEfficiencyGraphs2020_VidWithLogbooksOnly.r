@@ -34,13 +34,15 @@ years <- 2005:2019
 if(FALSE){
 
 
-eflalo_small_vids <- NULL
+eflalo_res <- NULL
 
 
 for (a_year in years)    {  # on WINDOWS system...
 
 dir.create(file.path(outPath))
 dir.create(file.path(outPath, a_year))
+
+cat(paste("Year", a_year, "\n"))
 
 library(vmstools)
 
@@ -53,9 +55,7 @@ library(vmstools)
     }
 
 
-  # keep all vessels with < 12m in length (i.e. most of them without VMS)
-  eflalo <- eflalo[as.numeric(as.character(eflalo$VE_LEN)) <= 11.99,]
-
+  
 
 
   # marginal sums
@@ -101,16 +101,21 @@ library(vmstools)
 
   eflalo <- cbind.data.frame(eflalo, Year=a_year)
 
-  if (a_year==years[1]) {  eflalo_small_vids <- eflalo }
+  if (a_year==years[1]) {  eflalo_res <- eflalo }
 
-  cols <- unique(colnames(eflalo)[colnames(eflalo) %in% colnames(eflalo_small_vids)],
-     colnames(eflalo_small_vids)[ colnames(eflalo_small_vids)  %in% colnames(eflalo)])
+  cols <- unique(colnames(eflalo)[colnames(eflalo) %in% colnames(eflalo_res)],
+     colnames(eflalo_res)[ colnames(eflalo_res)  %in% colnames(eflalo)])
 
  if (a_year>years[1]) {
-  eflalo_small_vids <- rbind.data.frame(eflalo_small_vids[,cols], eflalo[,cols])
+  eflalo_res <- rbind.data.frame(eflalo_res[,cols], eflalo[,cols])
   }
  } # end y
  
+ # keep all vessels with < 12m in length (i.e. most of them without VMS)
+  eflalo <- eflalo_res 
+  eflalo_small_vids <- eflalo_res[as.numeric(as.character(eflalo$VE_LEN)) <= 11.99,]
+
+ save(eflalo, file=file.path(dataPath ,paste("eflalo_ally_",years[1],"-",years[length(years)],".RData", sep='')))
  save(eflalo_small_vids, file=file.path(dataPath ,paste("eflalo_small_vids_ally_",years[1],"-",years[length(years)],".RData", sep='')))
 
 } # end FALSE
@@ -119,8 +124,10 @@ library(vmstools)
   ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
   ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
 
-  load(file=file.path(dataPath ,paste("eflalo_small_vids_ally_",years[1],"-",years[length(years)],".RData", sep='')))
-  eflalo <- eflalo_small_vids
+  #load(file=file.path(dataPath ,paste("eflalo_small_vids_ally_",years[1],"-",years[length(years)],".RData", sep='')))
+  #eflalo <- eflalo_small_vids
+  load(file=file.path(dataPath ,paste("eflalo_ally_",years[1],"-",years[length(years)],".RData", sep='')))
+  eflalo <- eflalo
 
   spp <- c("COD", "CSH","DAB","ELE","FLE","HAD","HER","HKE","HOM","LEM","MAC","MON","MUS","NEP","NOP","PLE","POK","PRA", "SAN","SOL","SPR","TUR","WHB","WIT","WHG","OTH")
   color_species <- c("#E69F00","hotpink","#56B4E9","#F0E442", "green", "#0072B2", "mediumorchid4", "#CC79A7",
@@ -144,7 +151,50 @@ library(vmstools)
   fao_areas  <- fao_areas[ grepl("27", fao_areas$F_AREA) & fao_areas$F_SUBAREA %in% c("27.3", "27.4", "27.2") & fao_areas$F_LEVEL!="MAJOR",] # caution with the MAJOR overidding the over()
 
   
-  eflalo$VesselSize <-  cut(eflalo$VE_LEN, breaks=c(0,11.99,17.99,23.99,39.99,100), right=TRUE)
+  eflalo$VesselSize <-  cut(eflalo$VE_LEN, breaks=c(0,11.99,17.99,23.99,39.99,100), right=FALSE) # ideally, should have been right=TRUE...
+
+  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
+  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
+  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
+
+    eflalo <- eflalo[!is.na(eflalo$VesselSize),]
+
+
+     ## PLOT TIME SERIES OF TRIP EFFORT AND NB OF VESSELS
+  
+     dd <-  eflalo[,c("VE_REF", "VesselSize", "LE_MET", "LE_EFF", "Year")]
+     dd <- aggregate(eflalo$LE_EFF, list(dd$VE_REF, dd$VesselSize, dd$LE_MET, dd$Year), sum, na.rm=TRUE)
+     colnames(dd) <- c("VE_REF", "VesselSize", "LE_MET", "Year", "trip_effort_hours")
+
+  
+
+    # a trick to combine both info on the same plot i.e. use a secondary y axis
+    library(ggplot2)
+    #some_color_vessel_size <- c("(0,12]"="#999999", "(12,18]"="#FFDB6D",  "(18,24]"="#FC4E07",  "(24,40]"="#52854C",  "(40,100]"="#293352")
+   # some_color_vessel_size2 <- c("(0,12]"="#999999", "(12,18]"="#ffc207",  "(18,24]"="#c93e05",  "(24,40]"="#416a3c",  "(40,100]"="#293d52")
+    some_color_vessel_size <- c("[0,12)"="#999999", "[12,18)"="#FFDB6D",  "[18,24)"="#FC4E07",  "[24,40)"="#52854C",  "[40,100)"="#293352")
+    some_color_vessel_size2 <- c("[0,12)"="#999999", "[12,18)"="#ffc207",  "[18,24)"="#c93e05",  "[24,40)"="#416a3c",  "[40,100)"="#293d52")
+      dd <- dd[!duplicated(data.frame(dd$VE_REF, dd$Year)),]
+      dd$nbvessel <- 5e3 
+    p3 <-   ggplot() + geom_bar(data=eflalo, aes(x=as.character(Year), y=LE_EFF, group=VesselSize, fill=VesselSize), size=1.5, position="stack",  stat = "summary", fun = "sum") +
+       geom_line(data=dd, aes(x=as.character(Year), y=nbvessel, group=VesselSize, color=VesselSize),size=1.5, stat = "summary", fun = "sum") +   
+        scale_y_continuous(name = "Trip effort hours", sec.axis = sec_axis(~./5e3, name = "Nb Vessels") )+
+       theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  + 
+       labs(x = "Year")     + 
+       scale_color_manual(values=some_color_vessel_size, name="VesselSize") +  
+       scale_fill_manual(values=some_color_vessel_size2) +
+       guides(fill =guide_legend(ncol=1)) 
+    print(p3)
+
+    # lgbkonly
+  a_width <- 3000; a_height <- 2000
+ namefile <- paste0("barplot_and_ts_effort_nb_vessels_", years[1], "-", years[length(years)], "_lgbkonly.tif")
+ tiff(filename=file.path(getwd(), "outputs2020_lgbkonly", "output_plots",  namefile),   width = a_width, height = a_height,
+                                   units = "px", pointsize = 12,  res=600, compression = c("lzw"))
+print(p3)
+dev.off()
+
+
 
   
   ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##

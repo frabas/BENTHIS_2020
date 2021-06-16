@@ -494,3 +494,106 @@ if(.Platform$OS.type == "unix") {
     
 
 
+    ##-----------------------------------
+  ## GET SOME EFFORT TIME SERIES
+  ##-----------------------------------
+
+  # Gear codes to keep ()
+  gears2keep            <- c("PTM","OTM", "PS")
+  towedGears            <- c("PTM","OTM")
+  seineGears            <- c("PS")
+ 
+ aggEffortAlly <- NULL
+ for (a_year in years){
+    cat(paste(a_year, "\n"))
+    cat(paste("Effort", "\n"))
+
+    rm(tacsatSweptArea)  ; gc()
+    load(file=file.path(outPath, a_year, "interpolated", "plus",
+                                                paste("tacsatSweptAreaPlus_", a_year, ".RData", sep="")))
+ 
+     # compute effort in nmin
+     tacsatSweptArea$effort_mins <- c(0,as.numeric(diff(tacsatSweptArea$SI_DATIM), units='mins'))
+     idx <- which( tacsatSweptArea$effort_mins & tacsatSweptArea$LE_GEAR %in% towedGears > 15) # if interval > 15 min 
+     tacsatSweptArea[ idx, "effort_mins"] <- NA  # exclude change of haul
+     idx <- which( tacsatSweptArea$effort_mins & tacsatSweptArea$LE_GEAR %in% seineGears > 75) # if interval > 75 min 
+     tacsatSweptArea[ idx, "effort_mins"] <- NA  # exclude change of haul
+     idx <- which( tacsatSweptArea$effort_mins <0) #   
+     tacsatSweptArea[ idx, "effort_mins"] <- NA  # exclude change of vessel id
+     
+     # vessel size
+     #12-18, 18-24, 24-40, o40
+     tacsatSweptArea$VesselSize <- cut(tacsatSweptArea$VE_LEN, breaks=c(0,11.99,17.99,23.99,39.99,100), right=FALSE)
+     #tacsatSweptArea$VesselSize <- cut(tacsatSweptArea$VE_LEN, breaks=c(0,11.99,14.99,23.99,39.99,100), right=FALSE)
+
+     dd <-  tacsatSweptArea[,c("VE_REF", "VesselSize", "LE_MET_init", "effort_mins")]
+     dd <- aggregate(tacsatSweptArea$effort_mins, list(dd$VE_REF, dd$VesselSize, dd$LE_MET_init), sum, na.rm=TRUE)
+     colnames(dd) <- c("VE_REF", "VesselSize", "LE_MET", "effective_effort_mins")
+
+     aggEffortAlly <- rbind.data.frame(aggEffortAlly, cbind.data.frame(dd, Year=a_year))
+     }
+     aggEffortAlly <- aggEffortAlly[aggEffortAlly$VesselSize!="[0,12)",] # clean up
+    
+     save(aggEffortAlly,file=file.path(outPath,  paste("AggregatedEffortAlly_PelagicFishing.RData", sep=""))) 
+    
+   
+   
+   
+   
+     ###----------------------
+     ## do a ggplot 
+     load(file=file.path(outPath,  paste("AggregatedEffortAlly_PelagicFishing.RData"))) # aggEffortAlly
+    
+    
+    library(ggplot2)
+    some_color_vessel_size <- c("[12,18)"="#FFDB6D",  "[18,24)"="#FC4E07",  "[24,40)"="#52854C",  "[40,100)"="#293352")
+
+     p <-  ggplot() + geom_bar(data=aggEffortAlly, aes(x=as.character(Year), y=effective_effort_mins/60, group=VesselSize, fill=VesselSize), size=1.5, position="stack",  stat = "summary", fun = "sum") +
+       #facet_wrap(. ~ LE_MET, scales = "free_y")  + 
+       theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  + 
+       labs(y = "", x = "Year")     + 
+       #   geom_point(aes(color=VesselSize), size=3)   + 
+       scale_fill_manual(values=some_color_vessel_size) +
+       guides(fill =guide_legend(ncol=1)) 
+     print(p)
+
+    library(ggplot2)
+    some_color_vessel_size <- c("[12,18)"="#FFDB6D",  "[18,24)"="#FC4E07",  "[24,40)"="#52854C",  "[40,100)"="#293352")
+    dd <- aggEffortAlly[!duplicated(data.frame(aggEffortAlly$VE_REF, aggEffortAlly$Year)),]
+    dd$nbvessel <- 1 
+    a_ylab <- "Nb Vessels"
+    p2 <- ggplot() +
+     geom_line(data=dd, aes(x=as.character(Year), y=nbvessel, group=VesselSize, color=VesselSize),size=1.5, stat = "summary", fun = "sum") +   
+       #facet_wrap(. ~ LE_MET, scales = "free_y")  + 
+       theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  + 
+       labs(y = a_ylab, x = "Year")     + 
+       #   geom_point(aes(color=VesselSize), size=3)   + 
+       scale_color_manual(values=some_color_vessel_size, name="VesselSize") +  
+       guides(fill =guide_legend(ncol=1)) 
+ print(p2)
+
+
+ # a trick to combine both info on the same plot i.e. use a secondary y axis
+    some_color_vessel_size <- c("[12,18)"="#FFDB6D",  "[18,24)"="#FC4E07",  "[24,40)"="#52854C",  "[40,100)"="#293352")
+    some_color_vessel_size2 <- c("[12,18)"="#ffc207",  "[18,24)"="#FC4E07",  "[24,40)"="#52854C",  "[40,100)"="#293352")
+      dd <- aggEffortAlly[!duplicated(data.frame(aggEffortAlly$VE_REF, aggEffortAlly$Year)),]
+      dd$nbvessel <- 2e4 
+    p3 <-   ggplot() + geom_bar(data=aggEffortAlly, aes(x=as.character(Year), y=effective_effort_mins/60, group=VesselSize, fill=VesselSize), size=1.5, position="stack",  stat = "summary", fun = "sum") +
+       geom_line(data=dd, aes(x=as.character(Year), y=nbvessel, group=VesselSize, color=VesselSize),size=1.5, stat = "summary", fun = "sum") +   
+        scale_y_continuous(name = "Effective effort hours", sec.axis = sec_axis(~./2e4, name = "Nb Vessels") )+
+       theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  + 
+       labs(x = "Year")     + 
+       scale_color_manual(values=some_color_vessel_size, name="VesselSize") +  
+       scale_fill_manual(values=some_color_vessel_size2) +
+       guides(fill =guide_legend(ncol=1)) 
+    print(p3)
+
+
+# pel
+a_width <- 3000; a_height <- 2000
+ namefile <- paste0("barplot_and_ts_effort_nb_vessels_", years[1], "-", years[length(years)], "_PEL.tif")
+ tiff(filename=file.path(getwd(), "outputs2020_pel", "output_plots",  namefile),   width = a_width, height = a_height,
+                                   units = "px", pointsize = 12,  res=600, compression = c("lzw"))
+print(p3)
+dev.off()
+

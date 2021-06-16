@@ -1088,11 +1088,12 @@ dev.off()
  #load(file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndVsizeAndRatiosBottContact.RData", sep="")))  # aggResultPerMetAlly
  load(file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndRatiosBottContact.RData", sep="")))  # aggResultPerMetAlly
 
+ library(ggplot2)
 
  ### SUMMARIZE LANDINGS AND CPUF ON THE SAME GRAPH.......
- variables <- c("KKGallsp", "LE_KG_LITRE_FUEL", "CPUFallsp",  "VPUFallsp", "FPUCallsp", "FPUVallsp")
- prefixes  <- c("LE_KG_","LE_KG_",   "LE_CPUF_",  "LE_VPUF_", "LE_KG_", "LE_KG_")
- the_names <- c("(a)","(b)", "(c)", "(d)", "(e)", "(f)")
+ variables <- c("KKGallsp", "LE_KG_LITRE_FUEL", "CPUFallsp",  "VPUFallsp", "FPUCallsp", "FPUVallsp", "VPUFSWAallsp")
+ prefixes  <- c("LE_KG_","LE_KG_",   "LE_CPUF_",  "LE_VPUF_", "LE_KG_", "LE_KG_", "LE_VPUF_")
+ the_names <- c("(a)","(b)", "(c)", "(d)", "(e)", "(f)", "(g)")
 
  count <- 0
  the_agg <- NULL
@@ -1150,12 +1151,8 @@ dev.off()
  a_unit <- 1
 
 # DEM
- namefile <- paste0("ts_fuel_efficiency", a_variable, "_", years[1], "-", years[length(years)],  a_comment, "_DEM_areaplot_land_and_FPUE.tif")
- tiff(filename=file.path(getwd(), "outputs2020", "output_plots",  namefile),   width = a_width, height = a_height,
-                                   units = "px", pointsize = 12,  res=600, compression = c("lzw"))
- the_agg_plot <- as.data.frame(the_agg[grep("LargeMesh",the_agg$LE_MET),])
-
- # a visual fix adding all combi--
+  the_agg_plot <- as.data.frame(the_agg[grep("LargeMesh",the_agg$LE_MET),])
+  # a visual fix adding all combi--
  dd <- expand.grid(LE_MET=levels(factor(the_agg_plot$LE_MET)), Stock=levels(factor(the_agg_plot$Stock)), year=levels(factor(the_agg_plot$year)))
  dd$value <- 0
  dd[,"Total"] <- 0
@@ -1217,12 +1214,30 @@ dev.off()
    scale_fill_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=8))  +
     xlab("")
  #print(p6)
+ 
 
+ ### ADD-ON for bottom fishing: revenue per swept area
+  the_agg_plot7 <- as.data.frame(the_agg_plot[grep("(g)",the_agg_plot$LE_MET, fixed=TRUE),])
+  the_agg_plot7$LE_MET <- gsub("\\(g)","", the_agg_plot7$LE_MET)
+ p7 <- ggplot(the_agg_plot7, aes(x=as.character(year), y=value/a_unit, group=Stock)) +
+     facet_wrap(. ~ LE_MET, scales = "free_y", ncol=1)  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +   
+  geom_area(aes(fill=Stock))  +     labs(y = "Euro catch per km-sq", x = "Year")   +
+   scale_fill_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=8))  +
+    xlab("")
+ #print(p7)
+
+ # for paper:
+ namefile <- paste0("ts_fuel_efficiency", a_variable, "_", years[1], "-", years[length(years)],  a_comment, "_DEM_areaplot_land_and_FPUE.tif")
+ tiff(filename=file.path(getwd(), "outputs2020", "output_plots",  namefile),   width = a_width, height = a_height,
+                                   units = "px", pointsize = 12,  res=600, compression = c("lzw"))
  library(ggpubr)
  ggarrange(p1, p4, p5, ncol=3, common.legend = TRUE, legend="bottom")
 
 dev.off()
 
+
+
+ 
  ##!!!!!!!!!!!!!!!!!!!!!!!!!##
  ##!!!!!!!!!!!!!!!!!!!!!!!!!##
  ##!!!!!!!!!!!!!!!!!!!!!!!!!##
@@ -1236,11 +1251,7 @@ dev.off()
  a_width <- 6200 ; a_height <- 12500
  library(ggplot2)
 
-# PEL
- namefile <- paste0("ts_fuel_efficiency", a_variable, "_", years[1], "-", years[length(years)],  a_comment, "_PEL_areaplot_land_and_FPUE.tif")
- tiff(filename=file.path(getwd(), "outputs2020", "output_plots",  namefile),   width = a_width, height = a_height,
-                                   units = "px", pointsize = 12,  res=600, compression = c("lzw"))
- the_agg_plot <- as.data.frame(the_agg[grep("SmallMesh",the_agg$LE_MET),])
+  the_agg_plot <- as.data.frame(the_agg[grep("SmallMesh",the_agg$LE_MET),])
 
  # a visual fix adding all combi--
  dd <- expand.grid(LE_MET=levels(factor(the_agg_plot$LE_MET)), Stock=levels(factor(the_agg_plot$Stock)), year=levels(factor(the_agg_plot$year)))
@@ -1298,8 +1309,12 @@ dev.off()
   geom_area(aes(fill=Stock))  +     labs(y = "Litre per euro catch", x = "Year")   +
    scale_fill_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=8))  +
     xlab("")
- #print(p4)
+ #print(p6)
 
+# PEL: for paper:
+ namefile <- paste0("ts_fuel_efficiency", a_variable, "_", years[1], "-", years[length(years)],  a_comment, "_PEL_areaplot_land_and_FPUE.tif")
+ tiff(filename=file.path(getwd(), "outputs2020", "output_plots",  namefile),   width = a_width, height = a_height,
+                                   units = "px", pointsize = 12,  res=600, compression = c("lzw"))
  library(ggpubr)
  ggarrange(p1, p4, p5, ncol=3, common.legend = TRUE, legend="bottom")
 
@@ -1379,8 +1394,6 @@ dev.off()
  collecting_table <- NULL
  collecting_table2019 <- NULL
  
- tiff(filename=file.path(getwd(), "outputs2020", "output_plots",  namefile),   width = a_width, height = a_height,
-                                   units = "px", pointsize = 12,  res=600, compression = c("lzw"))
  the_agg_plot1 <- as.data.frame(the_agg_plot[grep("(a)",the_agg_plot$LE_MET, fixed=TRUE),])
  the_agg_plot1$LE_MET <- gsub("\\(a)","", the_agg_plot1$LE_MET)
  the_agg_plot1$LE_MET <- factor(the_agg_plot1$LE_MET, level=fleet_segments_ordered) # reorder
@@ -1437,10 +1450,14 @@ dev.off()
         # theme(axis.text.x=element_blank()) 
          theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5, size=8))
 
+ # for paper:
+ tiff(filename=file.path(getwd(), "outputs2020", "output_plots",  namefile),   width = a_width, height = a_height,
+                                   units = "px", pointsize = 12,  res=600, compression = c("lzw"))
+
   library(ggpubr)
   ggarrange(p1, p2, p4, p5, ncol=1, heights=c(1,1,1,2),common.legend = TRUE, legend="bottom")
-
 dev.off()
+
 
 # export underlying data
   a_func_mean <- function (x) mean(x[x!=0 & !is.na(x)])
@@ -1458,6 +1475,28 @@ dev.off()
   collecting_table2019 <- rbind.data.frame(collecting_table2019, cbind.data.frame(type="BottomFishing_LargeMesh", seg=levels(the_agg_plot4[the_agg_plot4$year==2019,]$LE_MET), var="VPUF (euro per litre)", average=tapply(the_agg_plot4[the_agg_plot4$year==2019,]$Total, the_agg_plot4[the_agg_plot4$year==2019,]$LE_MET, a_func_mean), cv=tapply(the_agg_plot4[the_agg_plot4$year==2019,]$Total, the_agg_plot4[the_agg_plot4$year==2019,]$LE_MET, a_func_cv)))
   collecting_table2019 <- rbind.data.frame(collecting_table2019, cbind.data.frame(type="BottomFishing_LargeMesh", seg=levels(the_agg_plot5[the_agg_plot5$year==2019,]$LE_MET), var="Litre per kg catch", average=tapply(the_agg_plot5[the_agg_plot5$year==2019,]$Total, the_agg_plot5[the_agg_plot5$year==2019,]$LE_MET, a_func_mean), cv=tapply(the_agg_plot5[the_agg_plot5$year==2019,]$Total, the_agg_plot5[the_agg_plot5$year==2019,]$LE_MET, a_func_cv)))
   collecting_table2019 <- rbind.data.frame(collecting_table2019, cbind.data.frame(type="BottomFishing_LargeMesh", seg=levels(the_agg_plot6[the_agg_plot6$year==2019,]$LE_MET), var="Litre per euro catch", average=tapply(the_agg_plot6[the_agg_plot6$year==2019,]$Total, the_agg_plot6[the_agg_plot6$year==2019,]$LE_MET, a_func_mean), cv=tapply(the_agg_plot6[the_agg_plot6$year==2019,]$Total, the_agg_plot6[the_agg_plot6$year==2019,]$LE_MET, a_func_cv))) 
+
+
+ ## ADD-ON revenue per swept area for bottom fishing
+   the_agg_plot7 <- as.data.frame(the_agg_plot[grep("(g)",the_agg_plot$LE_MET, fixed=TRUE),])
+  the_agg_plot7$LE_MET <- gsub("\\(g)","", the_agg_plot7$LE_MET)
+    the_agg_plot7 <- the_agg_plot7[!the_agg_plot7$LE_MET=="OTHER_0_0_0 ",] # remove outlier
+  the_agg_plot7$LE_MET <- factor(the_agg_plot7$LE_MET, level=fleet_segments_ordered) # reorder
+  p7 <- ggplot(data=the_agg_plot7, aes(x=LE_MET, y=value/a_unit, fill=Stock)) + #  geom_bar(stat="identity", position=position_dodge())
+  geom_bar(stat = "summary", fun = "mean") + 
+   labs(y = "Euro catch per km-sq", x= "Fleet-segments") +
+       scale_fill_manual(values=some_color_species, name="Species") + theme_minimal() + guides(fill =guide_legend(ncol=7))  + 
+        # theme(axis.text.x=element_blank()) 
+         theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5, size=8))
+print(p7)
+
+ # for paper:
+ tiff(filename=file.path(getwd(), "outputs2020", "output_plots",  "Euro_catch_per_km-sq"),   width = a_width, height = 1625,
+                                   units = "px", pointsize = 12,  res=600, compression = c("lzw"))
+
+  library(ggpubr)
+  ggarrange(p7, ncol=1, heights=c(1),common.legend = TRUE, legend="bottom")
+dev.off()
 
 
 ##!!!!!!!!!!!!!!!!!!!!!!##
