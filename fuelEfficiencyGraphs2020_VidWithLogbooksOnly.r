@@ -153,6 +153,30 @@ library(vmstools)
   
   eflalo$VesselSize <-  cut(eflalo$VE_LEN, breaks=c(0,11.99,17.99,23.99,39.99,100), right=FALSE) # ideally, should have been right=TRUE...
 
+   
+  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
+  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
+  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
+  # fuel comsumption
+  
+
+  # from there decrease the maximal fuel cons by a conversion factor assuming the engine is not switch on all the time:
+  #1.	All trawling and Flyshooting (OTB, OTM, TBB, DRB, SSC, etc.): Engine load/conversion factor of 90% for the duration of the trip (Assumed as an average across shorter or longer periods of steaming, trawling, setting or hauling) 
+  #2.	All passive gears (GNS, Pots, lines, etc.): Engine load/conversion factor of 50% for the duration of the trip (Assumed as an average across shorter or longer periods of steaming, setting or hauling)
+  #3.	Danish seiners (SDN): Engine load/conversion factor of 67% for the duration of the trip (Assumed as an average across shorter or longer periods of steaming, setting or hauling)
+  # TO DO:
+  eflalo$convfactor <- 1
+  convfactor <- c("OTB"=0.9,"GN"=0.5,"SSC"=0.67,"GTR"=0.5,"PTM"=0.9,"DRB"=0.9,"MIS"=0.5,"GNS"=0.5,"FPN"=0.5,"LL"=0.5,"UNK"=0.5,"SDN"=0.67,"LHP"=0.5,"LLS"=0.5,
+                      "GND"=0.5,"PTB"=0.9,"OTM"=0.9,"LLD"=0.5,"FYK"=0.5,"FPO"=0.5,"LH"=0.5,"OTT"=0.9,"TBB"=0.9,"FIX"=0.5,"LX"=0.5,"DRH"=0.5,"OFG"=0.5,"ZZZ"=0.5,
+                      "GTN"=0.5,"DRC"=0.5,"LTL"=0.5,"TBN"=0.9,"AHB"=0.5,"BMS"=0.5,"DRO"=0.5,"KLM"=0.5,"BRJ"=0.5)
+  eflalo$convfactor <- convfactor[as.character(eflalo$LE_GEAR)]       
+        
+  
+  table.fuelcons.per.engine       <-  read.table(file= file.path(dataPath, "IBM_datainput_engine_consumption.txt"), header=TRUE,sep="")
+  linear.model                    <-  lm(calc_cons_L_per_hr_max_rpm~ kW2, data=table.fuelcons.per.engine)  # conso = a*Kw +b   # to guess its fuel consumption at maximal speed
+  eflalo$LE_KG_LITRE_FUEL         <-  predict(linear.model, newdata=data.frame(kW2=as.numeric(as.character(eflalo$VE_KW)))) * eflalo$LE_EFF * eflalo$convfactor # Liter per hour * effort this trip in hour
+
+  
   ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
   ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
   ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
@@ -162,9 +186,9 @@ library(vmstools)
 
      ## PLOT TIME SERIES OF TRIP EFFORT AND NB OF VESSELS
   
-     dd <-  eflalo[,c("VE_REF", "VesselSize", "LE_MET", "LE_EFF", "Year")]
-     dd <- aggregate(eflalo$LE_EFF, list(dd$VE_REF, dd$VesselSize, dd$LE_MET, dd$Year), sum, na.rm=TRUE)
-     colnames(dd) <- c("VE_REF", "VesselSize", "LE_MET", "Year", "trip_effort_hours")
+     dd <-  eflalo[,c("VE_REF", "VesselSize", "LE_MET", "LE_EFF", "LE_KG_LITRE_FUEL", "Year")]
+     dd <- aggregate(eflalo[,c("LE_EFF","LE_KG_LITRE_FUEL")], list(dd$VE_REF, dd$VesselSize, dd$LE_MET, dd$Year), sum, na.rm=TRUE)
+     colnames(dd) <- c("VE_REF", "VesselSize", "LE_MET", "Year", "trip_effort_hours", "litre_fuel")
 
   
 
@@ -172,13 +196,14 @@ library(vmstools)
     library(ggplot2)
     #some_color_vessel_size <- c("(0,12]"="#999999", "(12,18]"="#FFDB6D",  "(18,24]"="#FC4E07",  "(24,40]"="#52854C",  "(40,100]"="#293352")
    # some_color_vessel_size2 <- c("(0,12]"="#999999", "(12,18]"="#ffc207",  "(18,24]"="#c93e05",  "(24,40]"="#416a3c",  "(40,100]"="#293d52")
-    some_color_vessel_size <- c("[0,12)"="#999999", "[12,18)"="#FFDB6D",  "[18,24)"="#FC4E07",  "[24,40)"="#52854C",  "[40,100)"="#293352")
-    some_color_vessel_size2 <- c("[0,12)"="#999999", "[12,18)"="#ffc207",  "[18,24)"="#c93e05",  "[24,40)"="#416a3c",  "[40,100)"="#293d52")
+    some_color_vessel_size <- c("[0,12)"="#999999", "[12,18)"="#FFDB6D",  "[18,24)"="#c93e05",  "[24,40)"="#52854C",  "[40,100)"="#293352")
+    some_color_vessel_size2 <- c("[0,12)"="#999999", "[12,18)"="#ffc207",  "[18,24)"="#FC4E07",  "[24,40)"="#416a3c",  "[40,100)"="#293d52")
       dd <- dd[!duplicated(data.frame(dd$VE_REF, dd$Year)),]
       dd$nbvessel <- 5e3 
     p3 <-   ggplot() + geom_bar(data=eflalo, aes(x=as.character(Year), y=LE_EFF, group=VesselSize, fill=VesselSize), size=1.5, position="stack",  stat = "summary", fun = "sum") +
        geom_line(data=dd, aes(x=as.character(Year), y=nbvessel, group=VesselSize, color=VesselSize),size=1.5, stat = "summary", fun = "sum") +   
-        scale_y_continuous(name = "Trip effort hours", sec.axis = sec_axis(~./5e3, name = "Nb Vessels") )+
+       geom_line(data=dd, aes(x=as.character(Year), y=litre_fuel/100, group=1),size=1, color=1, linetype = "dashed", stat = "summary", fun = "sum") +   
+        scale_y_continuous(name = "Trip effort hours, or fuel use (thousands litre)", sec.axis = sec_axis(~./5e3, name = "Nb Vessels") )+
        theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  + 
        labs(x = "Year")     + 
        scale_color_manual(values=some_color_vessel_size, name="VesselSize") +  
@@ -187,7 +212,7 @@ library(vmstools)
     print(p3)
 
     # lgbkonly
-  a_width <- 3000; a_height <- 2000
+  a_width <- 3000; a_height <- 2300
  namefile <- paste0("barplot_and_ts_effort_nb_vessels_", years[1], "-", years[length(years)], "_lgbkonly.tif")
  tiff(filename=file.path(getwd(), "outputs2020_lgbkonly", "output_plots",  namefile),   width = a_width, height = a_height,
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
@@ -196,7 +221,16 @@ dev.off()
 
 
 
+
+  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
+  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
+  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
+
+
+   eflalo <- eflalo[eflalo$VesselSize=="[0,12)",]
   
+    eflalo <- eflalo[!is.na(eflalo$VesselSize),]
+
   ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
   ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
   ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
@@ -314,29 +348,8 @@ dev.off()
 
 
   
-  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
-  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
-  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
-  # fuel comsumption
-  
+ 
 
-  # from there decrease the maximal fuel cons by a conversion factor assuming the engine is not switch on all the time:
-  #1.	All trawling and Flyshooting (OTB, OTM, TBB, DRB, SSC, etc.): Engine load/conversion factor of 90% for the duration of the trip (Assumed as an average across shorter or longer periods of steaming, trawling, setting or hauling) 
-  #2.	All passive gears (GNS, Pots, lines, etc.): Engine load/conversion factor of 50% for the duration of the trip (Assumed as an average across shorter or longer periods of steaming, setting or hauling)
-  #3.	Danish seiners (SDN): Engine load/conversion factor of 67% for the duration of the trip (Assumed as an average across shorter or longer periods of steaming, setting or hauling)
-  # TO DO:
-  eflalo$convfactor <- 1
-  convfactor <- c("OTB"=0.9,"GN"=0.5,"SSC"=0.67,"GTR"=0.5,"PTM"=0.9,"DRB"=0.9,"MIS"=0.5,"GNS"=0.5,"FPN"=0.5,"LL"=0.5,"UNK"=0.5,"SDN"=0.67,"LHP"=0.5,"LLS"=0.5,
-                      "GND"=0.5,"PTB"=0.9,"OTM"=0.9,"LLD"=0.5,"FYK"=0.5,"FPO"=0.5,"LH"=0.5,"OTT"=0.9,"TBB"=0.9,"FIX"=0.5,"LX"=0.5,"DRH"=0.5,"OFG"=0.5,"ZZZ"=0.5,
-                      "GTN"=0.5,"DRC"=0.5,"LTL"=0.5,"TBN"=0.9,"AHB"=0.5,"BMS"=0.5,"DRO"=0.5,"KLM"=0.5,"BRJ"=0.5)
-  eflalo$convfactor <- convfactor[as.character(eflalo$LE_GEAR)]       
-        
-  
-  table.fuelcons.per.engine       <-  read.table(file= file.path(dataPath, "IBM_datainput_engine_consumption.txt"), header=TRUE,sep="")
-  linear.model                    <-  lm(calc_cons_L_per_hr_max_rpm~ kW2, data=table.fuelcons.per.engine)  # conso = a*Kw +b   # to guess its fuel consumption at maximal speed
-  eflalo$LE_KG_LITRE_FUEL         <-  predict(linear.model, newdata=data.frame(kW2=as.numeric(as.character(eflalo$VE_KW)))) * eflalo$LE_EFF * eflalo$convfactor # Liter per hour * effort this trip in hour
-
-  
 
   ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
   ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
