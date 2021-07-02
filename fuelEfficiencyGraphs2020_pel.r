@@ -435,11 +435,11 @@
 
     # then do some estimates, caution, after the aggregation for those ones 
     # litre per kilo catch
-    aggResultPerMet$FPUCallsp <- aggResultPerMet$LE_KG_LITRE_FUEL/(aggResultPerMet$KKGallsp*100) 
+    aggResultPerMet$FPUCallsp <- aggResultPerMet$LE_KG_LITRE_FUEL/(aggResultPerMet$KKGallsp*1000) 
     aggResultPerMet$FPUCallsp [is.infinite(aggResultPerMet$FPUCallsp)] <- 0
 
     # litre per euro catch
-    aggResultPerMet$FPUVallsp <-  aggResultPerMet$LE_KG_LITRE_FUEL/(aggResultPerMet$KEUROallsp*100)
+    aggResultPerMet$FPUVallsp <-  aggResultPerMet$LE_KG_LITRE_FUEL/(aggResultPerMet$KEUROallsp*1000)
     aggResultPerMet$FPUVallsp [is.infinite(aggResultPerMet$FPUVallsp)] <- 0
 
    assign(paste0("aggResultPerMet_", y), aggResultPerMet)
@@ -951,7 +951,7 @@ spp <- colnames(aggResultPerMetAlly) [grep("LE_EURO_", colnames(aggResultPerMetA
 
  ### SUMMARIZE LANDINGS AND CPUF ON THE SAME GRAPH.......
  variables <- c("KEUROallsp","KKGallsp", "LE_KG_LITRE_FUEL", "CPUFallsp",  "VPUFallsp", "FPUCallsp", "FPUVallsp", "mpriceallsp")
- prefixes  <- c("LE_EURO","LE_KG_","LE_KG_",   "LE_CPUF_",  "LE_VPUF_", "LE_KG_", "LE_KG_",  "LE_MPRICE_")
+ prefixes  <- c("LE_EURO_","LE_KG_","LE_KG_",   "LE_CPUF_",  "LE_VPUF_", "LE_KG_", "LE_KG_",  "LE_MPRICE_")
  the_names <- c("(z)","(a)","(b)", "(c)", "(d)", "(e)", "(f)",  "(h)")
 
  count <- 0
@@ -1308,7 +1308,7 @@ dev.off()
   a_func_cv <- function(x) {sqrt(var(x[x!=0 & !is.na(x)]))/mean(x[x!=0 & !is.na(x)])}
   collecting_table <- rbind.data.frame(collecting_table, cbind.data.frame(type="PelagicFishing_SmallMesh", seg=levels(the_agg_plot0$LE_MET), var="Value (KEuros)", average=tapply(the_agg_plot0$Total, the_agg_plot0$LE_MET, a_func_mean), cv=tapply(the_agg_plot0$Total, the_agg_plot0$LE_MET, a_func_cv) ))
   collecting_table <- rbind.data.frame(collecting_table, cbind.data.frame(type="PelagicFishing_SmallMesh", seg=levels(the_agg_plot1$LE_MET), var="Landings (tons)", average=tapply(the_agg_plot1$Total, the_agg_plot1$LE_MET, a_func_mean), cv=tapply(the_agg_plot1$Total, the_agg_plot1$LE_MET, a_func_cv) ))
-  collecting_table <- rbind.data.frame(collecting_table, cbind.data.frame(type="PelagicFishing_SmallMesh", seg=levels(the_agg_plot2$LE_MET), var="Fuel (thousand litres)", average=tapply(the_agg_plot2$Total, the_agg_plot2$LE_MET, a_func_mean), cv=tapply(the_agg_plot2$Total, the_agg_plot2$LE_MET, a_func_cv)))
+  collecting_table <- rbind.data.frame(collecting_table, cbind.data.frame(type="PelagicFishing_SmallMesh", seg=levels(the_agg_plot2$LE_MET), var="Fuel (litres)", average=tapply(the_agg_plot2$Total, the_agg_plot2$LE_MET, a_func_mean), cv=tapply(the_agg_plot2$Total, the_agg_plot2$LE_MET, a_func_cv)))
   collecting_table <- rbind.data.frame(collecting_table, cbind.data.frame(type="PelagicFishing_SmallMesh", seg=levels(the_agg_plot3$LE_MET), var="CPUF (kg per litre)", average=tapply(the_agg_plot3$Total, the_agg_plot3$LE_MET, a_func_mean), cv=tapply(the_agg_plot3$Total, the_agg_plot3$LE_MET, a_func_cv)))
   collecting_table <- rbind.data.frame(collecting_table, cbind.data.frame(type="PelagicFishing_SmallMesh", seg=levels(the_agg_plot4$LE_MET), var="VPUF (euro per litre)", average=tapply(the_agg_plot4$Total, the_agg_plot4$LE_MET, a_func_mean), cv=tapply(the_agg_plot4$Total, the_agg_plot4$LE_MET, a_func_cv)))
   collecting_table <- rbind.data.frame(collecting_table, cbind.data.frame(type="PelagicFishing_SmallMesh", seg=levels(the_agg_plot5$LE_MET), var="Litre per kg catch", average=tapply(the_agg_plot5$Total, the_agg_plot5$LE_MET, a_func_mean), cv=tapply(the_agg_plot5$Total, the_agg_plot5$LE_MET, a_func_cv)))
@@ -1327,7 +1327,7 @@ write.table(collecting_table,
 
   collecting_table2019 <- rbind.data.frame(collecting_table2019, cbind.data.frame(type="PelagicFishing_SmallMesh", seg=levels(the_agg_plot1[the_agg_plot0$year==2019,]$LE_MET), var="Value (KEuros)", average=tapply(the_agg_plot0[the_agg_plot0$year==2019,]$Total, the_agg_plot0[the_agg_plot0$year==2019,]$LE_MET, a_func_mean), cv=tapply(the_agg_plot0[the_agg_plot0$year==2019,]$Total, the_agg_plot0[the_agg_plot0$year==2019,]$LE_MET, a_func_cv) ))
   collecting_table2019 <- rbind.data.frame(collecting_table2019, cbind.data.frame(type="PelagicFishing_SmallMesh", seg=levels(the_agg_plot1[the_agg_plot1$year==2019,]$LE_MET), var="Landings (tons)", average=tapply(the_agg_plot1[the_agg_plot1$year==2019,]$Total, the_agg_plot1[the_agg_plot1$year==2019,]$LE_MET, a_func_mean), cv=tapply(the_agg_plot1[the_agg_plot1$year==2019,]$Total, the_agg_plot1[the_agg_plot1$year==2019,]$LE_MET, a_func_cv) ))
-  collecting_table2019 <- rbind.data.frame(collecting_table2019, cbind.data.frame(type="PelagicFishing_SmallMesh", seg=levels(the_agg_plot2[the_agg_plot2$year==2019,]$LE_MET), var="Fuel (thousand litres)", average=tapply(the_agg_plot2[the_agg_plot2$year==2019,]$Total, the_agg_plot2[the_agg_plot2$year==2019,]$LE_MET, a_func_mean), cv=tapply(the_agg_plot2[the_agg_plot2$year==2019,]$Total, the_agg_plot2[the_agg_plot2$year==2019,]$LE_MET, a_func_cv)))
+  collecting_table2019 <- rbind.data.frame(collecting_table2019, cbind.data.frame(type="PelagicFishing_SmallMesh", seg=levels(the_agg_plot2[the_agg_plot2$year==2019,]$LE_MET), var="Fuel (litres)", average=tapply(the_agg_plot2[the_agg_plot2$year==2019,]$Total, the_agg_plot2[the_agg_plot2$year==2019,]$LE_MET, a_func_mean), cv=tapply(the_agg_plot2[the_agg_plot2$year==2019,]$Total, the_agg_plot2[the_agg_plot2$year==2019,]$LE_MET, a_func_cv)))
   collecting_table2019 <- rbind.data.frame(collecting_table2019, cbind.data.frame(type="PelagicFishing_SmallMesh", seg=levels(the_agg_plot3[the_agg_plot3$year==2019,]$LE_MET), var="CPUF (kg per litre)", average=tapply(the_agg_plot3[the_agg_plot3$year==2019,]$Total, the_agg_plot3[the_agg_plot3$year==2019,]$LE_MET, a_func_mean), cv=tapply(the_agg_plot3[the_agg_plot3$year==2019,]$Total, the_agg_plot3[the_agg_plot3$year==2019,]$LE_MET, a_func_cv)))
   collecting_table2019 <- rbind.data.frame(collecting_table2019, cbind.data.frame(type="PelagicFishing_SmallMesh", seg=levels(the_agg_plot4[the_agg_plot4$year==2019,]$LE_MET), var="VPUF (euro per litre)", average=tapply(the_agg_plot4[the_agg_plot4$year==2019,]$Total, the_agg_plot4[the_agg_plot4$year==2019,]$LE_MET, a_func_mean), cv=tapply(the_agg_plot4[the_agg_plot4$year==2019,]$Total, the_agg_plot4[the_agg_plot4$year==2019,]$LE_MET, a_func_cv)))
   collecting_table2019 <- rbind.data.frame(collecting_table2019, cbind.data.frame(type="PelagicFishing_SmallMesh", seg=levels(the_agg_plot5[the_agg_plot5$year==2019,]$LE_MET), var="Litre per kg catch", average=tapply(the_agg_plot5[the_agg_plot5$year==2019,]$Total, the_agg_plot5[the_agg_plot5$year==2019,]$LE_MET, a_func_mean), cv=tapply(the_agg_plot5[the_agg_plot5$year==2019,]$Total, the_agg_plot5[the_agg_plot5$year==2019,]$LE_MET, a_func_cv)))

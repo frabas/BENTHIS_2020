@@ -477,11 +477,11 @@
 
     # then do some estimates, caution, after the aggregation for those ones 
      # litre per kilo catch
-    aggResultPerMet$FPUCallsp <- aggResultPerMet$LE_KG_LITRE_FUEL/(aggResultPerMet$KKGallsp*100) 
+    aggResultPerMet$FPUCallsp <- aggResultPerMet$LE_KG_LITRE_FUEL/(aggResultPerMet$KKGallsp*1000) 
     aggResultPerMet$FPUCallsp [is.infinite(aggResultPerMet$FPUCallsp)] <- 0
 
     # litre per euro catch
-    aggResultPerMet$FPUVallsp <-  aggResultPerMet$LE_KG_LITRE_FUEL/(aggResultPerMet$KEUROallsp*100)
+    aggResultPerMet$FPUVallsp <-  aggResultPerMet$LE_KG_LITRE_FUEL/(aggResultPerMet$KEUROallsp*1000)
     aggResultPerMet$FPUVallsp [is.infinite(aggResultPerMet$FPUVallsp)] <- 0
 
 
@@ -1096,6 +1096,8 @@ dev.off()
  #load(file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndVsizeAndRatiosBottContact.RData", sep="")))  # aggResultPerMetAlly
  load(file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndRatiosBottContact.RData", sep="")))  # aggResultPerMetAlly
 
+ head(aggResultPerMetAlly[aggResultPerMetAlly$LE_MET=="SmallMesh_27.3_OTB_CRU_32-69_0_0",])
+
  library(ggplot2)
  
  # compare prices e.g seine vs. trawls for cod
@@ -1142,7 +1144,9 @@ dev.off()
      long <- long[complete.cases(long),]
 
      long$LE_MET <- paste(long$LE_MET, the_names[count])
-     
+    
+     head(long[long$LE_MET=="SmallMesh_27.3_OTB_CRU_32-69_0_0 (b)",])
+  
      if(y==years[1]){
      agg <- cbind.data.frame(as.data.frame(long), year=y)
      }
@@ -1456,6 +1460,7 @@ the_agg_plot1 <- as.data.frame(the_agg_plot[grep("(a)",the_agg_plot$LE_MET, fixe
  the_agg_plot2 <- as.data.frame(the_agg_plot[grep("(b)",the_agg_plot$LE_MET, fixed=TRUE),])
  the_agg_plot2$LE_MET <- gsub("\\(b)","", the_agg_plot2$LE_MET)
  the_agg_plot2$LE_MET <- factor(the_agg_plot2$LE_MET, level=fleet_segments_ordered) # reorder
+ the_agg_plot2[the_agg_plot2$LE_MET=="27.3_OTB_CRU_32-69_0_0 ",]
   p2 <- ggplot(data=the_agg_plot2, aes(x=LE_MET, y=value/1e3, fill=Stock)) + #  geom_bar(stat="identity", position=position_dodge())
   geom_bar(stat = "summary", fun = a_func_mean) +  labs(y ="Fuel (thousands litre)", x= "") +
        scale_fill_manual(values=some_color_species, name="Species")  + theme_minimal() + theme(axis.text.x=element_blank()) + guides(fill =guide_legend(ncol=7))  
@@ -1542,7 +1547,7 @@ print(p8)
 # export underlying data
   collecting_table <- rbind.data.frame(collecting_table, cbind.data.frame(type="BottomFishing_LargeMesh", seg=levels(the_agg_plot0$LE_MET), var="Value (KEuros)", average=tapply(the_agg_plot0$Total, the_agg_plot0$LE_MET, a_func_mean), cv=tapply(the_agg_plot0$Total, the_agg_plot0$LE_MET, a_func_cv) ))
   collecting_table <- rbind.data.frame(collecting_table, cbind.data.frame(type="BottomFishing_LargeMesh", seg=levels(the_agg_plot1$LE_MET), var="Landings (tons)", average=tapply(the_agg_plot1$Total, the_agg_plot1$LE_MET, a_func_mean), cv=tapply(the_agg_plot1$Total, the_agg_plot1$LE_MET, a_func_cv) ))
-  collecting_table <- rbind.data.frame(collecting_table, cbind.data.frame(type="BottomFishing_LargeMesh", seg=levels(the_agg_plot2$LE_MET), var="Fuel (thousand litres)", average=tapply(the_agg_plot2$Total, the_agg_plot2$LE_MET, a_func_mean), cv=tapply(the_agg_plot2$Total, the_agg_plot2$LE_MET, a_func_cv)))
+  collecting_table <- rbind.data.frame(collecting_table, cbind.data.frame(type="BottomFishing_LargeMesh", seg=levels(the_agg_plot2$LE_MET), var="Fuel (litres)", average=tapply(the_agg_plot2$Total, the_agg_plot2$LE_MET, a_func_mean), cv=tapply(the_agg_plot2$Total, the_agg_plot2$LE_MET, a_func_cv)))
   collecting_table <- rbind.data.frame(collecting_table, cbind.data.frame(type="BottomFishing_LargeMesh", seg=levels(the_agg_plot3$LE_MET), var="CPUF (kg per litre)", average=tapply(the_agg_plot3$Total, the_agg_plot3$LE_MET, a_func_mean), cv=tapply(the_agg_plot3$Total, the_agg_plot3$LE_MET, a_func_cv)))
   collecting_table <- rbind.data.frame(collecting_table, cbind.data.frame(type="BottomFishing_LargeMesh", seg=levels(the_agg_plot4$LE_MET), var="VPUF (euro per litre)", average=tapply(the_agg_plot4$Total, the_agg_plot4$LE_MET, a_func_mean), cv=tapply(the_agg_plot4$Total, the_agg_plot4$LE_MET, a_func_cv)))
   collecting_table <- rbind.data.frame(collecting_table, cbind.data.frame(type="BottomFishing_LargeMesh", seg=levels(the_agg_plot5$LE_MET), var="Litre per kg catch", average=tapply(the_agg_plot5$Total, the_agg_plot5$LE_MET, a_func_mean), cv=tapply(the_agg_plot5$Total, the_agg_plot5$LE_MET, a_func_cv)))
@@ -1550,9 +1555,9 @@ print(p8)
   collecting_table <- rbind.data.frame(collecting_table, cbind.data.frame(type="BottomFishing_LargeMesh", seg=levels(the_agg_plot7$LE_MET), var="Euro catch per km-sq", average=tapply(the_agg_plot7$Total, the_agg_plot7$LE_MET, a_func_mean), cv=tapply(the_agg_plot7$Total, the_agg_plot7$LE_MET, a_func_cv))) 
   collecting_table <- rbind.data.frame(collecting_table, cbind.data.frame(type="BottomFishing_LargeMesh", seg=levels(the_agg_plot8$LE_MET), var="Euro catch per kg", average=tapply(the_agg_plot8$Total, the_agg_plot8$LE_MET, a_func_mean), cv=tapply(the_agg_plot8$Total, the_agg_plot8$LE_MET, a_func_cv))) 
 
-  collecting_table2019 <- rbind.data.frame(collecting_table2019, cbind.data.frame(type="BottomFishing_LargeMesh", seg=levels(the_agg_plot1[the_agg_plot0$year==2019,]$LE_MET), var="Value (KEuros)", average=tapply(the_agg_plot0[the_agg_plot0$year==2019,]$Total, the_agg_plot0[the_agg_plot0$year==2019,]$LE_MET, a_func_mean), cv=tapply(the_agg_plot0[the_agg_plot0$year==2019,]$Total, the_agg_plot0[the_agg_plot0$year==2019,]$LE_MET, a_func_cv) ))
+  collecting_table2019 <- rbind.data.frame(collecting_table2019, cbind.data.frame(type="BottomFishing_LargeMesh", seg=levels(the_agg_plot0[the_agg_plot0$year==2019,]$LE_MET), var="Value (KEuros)", average=tapply(the_agg_plot0[the_agg_plot0$year==2019,]$Total, the_agg_plot0[the_agg_plot0$year==2019,]$LE_MET, a_func_mean), cv=tapply(the_agg_plot0[the_agg_plot0$year==2019,]$Total, the_agg_plot0[the_agg_plot0$year==2019,]$LE_MET, a_func_cv) ))
   collecting_table2019 <- rbind.data.frame(collecting_table2019, cbind.data.frame(type="BottomFishing_LargeMesh", seg=levels(the_agg_plot1[the_agg_plot1$year==2019,]$LE_MET), var="Landings (tons)", average=tapply(the_agg_plot1[the_agg_plot1$year==2019,]$Total, the_agg_plot1[the_agg_plot1$year==2019,]$LE_MET, a_func_mean), cv=tapply(the_agg_plot1[the_agg_plot1$year==2019,]$Total, the_agg_plot1[the_agg_plot1$year==2019,]$LE_MET, a_func_cv) ))
-  collecting_table2019 <- rbind.data.frame(collecting_table2019, cbind.data.frame(type="BottomFishing_LargeMesh", seg=levels(the_agg_plot2[the_agg_plot2$year==2019,]$LE_MET), var="Fuel (thousand litres)", average=tapply(the_agg_plot2[the_agg_plot2$year==2019,]$Total, the_agg_plot2[the_agg_plot2$year==2019,]$LE_MET, a_func_mean), cv=tapply(the_agg_plot2[the_agg_plot2$year==2019,]$Total, the_agg_plot2[the_agg_plot2$year==2019,]$LE_MET, a_func_cv)))
+  collecting_table2019 <- rbind.data.frame(collecting_table2019, cbind.data.frame(type="BottomFishing_LargeMesh", seg=levels(the_agg_plot2[the_agg_plot2$year==2019,]$LE_MET), var="Fuel (litres)", average=tapply(the_agg_plot2[the_agg_plot2$year==2019,]$Total, the_agg_plot2[the_agg_plot2$year==2019,]$LE_MET, a_func_mean), cv=tapply(the_agg_plot2[the_agg_plot2$year==2019,]$Total, the_agg_plot2[the_agg_plot2$year==2019,]$LE_MET, a_func_cv)))
   collecting_table2019 <- rbind.data.frame(collecting_table2019, cbind.data.frame(type="BottomFishing_LargeMesh", seg=levels(the_agg_plot3[the_agg_plot3$year==2019,]$LE_MET), var="CPUF (kg per litre)", average=tapply(the_agg_plot3[the_agg_plot3$year==2019,]$Total, the_agg_plot3[the_agg_plot3$year==2019,]$LE_MET, a_func_mean), cv=tapply(the_agg_plot3[the_agg_plot3$year==2019,]$Total, the_agg_plot3[the_agg_plot3$year==2019,]$LE_MET, a_func_cv)))
   collecting_table2019 <- rbind.data.frame(collecting_table2019, cbind.data.frame(type="BottomFishing_LargeMesh", seg=levels(the_agg_plot4[the_agg_plot4$year==2019,]$LE_MET), var="VPUF (euro per litre)", average=tapply(the_agg_plot4[the_agg_plot4$year==2019,]$Total, the_agg_plot4[the_agg_plot4$year==2019,]$LE_MET, a_func_mean), cv=tapply(the_agg_plot4[the_agg_plot4$year==2019,]$Total, the_agg_plot4[the_agg_plot4$year==2019,]$LE_MET, a_func_cv)))
   collecting_table2019 <- rbind.data.frame(collecting_table2019, cbind.data.frame(type="BottomFishing_LargeMesh", seg=levels(the_agg_plot5[the_agg_plot5$year==2019,]$LE_MET), var="Litre per kg catch", average=tapply(the_agg_plot5[the_agg_plot5$year==2019,]$Total, the_agg_plot5[the_agg_plot5$year==2019,]$LE_MET, a_func_mean), cv=tapply(the_agg_plot5[the_agg_plot5$year==2019,]$Total, the_agg_plot5[the_agg_plot5$year==2019,]$LE_MET, a_func_cv)))
@@ -1713,7 +1718,7 @@ dev.off()
   a_func_cv <- function(x) {sqrt(var(x[x!=0 & !is.na(x)]))/mean(x[x!=0 & !is.na(x)])}
   collecting_table <- rbind.data.frame(collecting_table, cbind.data.frame(type="BottomFishing_SmallOrNoMesh", seg=levels(the_agg_plot0$LE_MET), var="Value (KEuros)", average=tapply(the_agg_plot0$Total, the_agg_plot0$LE_MET, a_func_mean), cv=tapply(the_agg_plot0$Total, the_agg_plot0$LE_MET, a_func_cv) ))
   collecting_table <- rbind.data.frame(collecting_table, cbind.data.frame(type="BottomFishing_SmallOrNoMesh", seg=levels(the_agg_plot1$LE_MET), var="Landings (tons)", average=tapply(the_agg_plot1$Total, the_agg_plot1$LE_MET, a_func_mean), cv=tapply(the_agg_plot1$Total, the_agg_plot1$LE_MET, a_func_cv) ))
-  collecting_table <- rbind.data.frame(collecting_table, cbind.data.frame(type="BottomFishing_SmallOrNoMesh", seg=levels(the_agg_plot2$LE_MET), var="Fuel (thousand litres)", average=tapply(the_agg_plot2$Total, the_agg_plot2$LE_MET, a_func_mean), cv=tapply(the_agg_plot2$Total, the_agg_plot2$LE_MET, a_func_cv)))
+  collecting_table <- rbind.data.frame(collecting_table, cbind.data.frame(type="BottomFishing_SmallOrNoMesh", seg=levels(the_agg_plot2$LE_MET), var="Fuel (litres)", average=tapply(the_agg_plot2$Total, the_agg_plot2$LE_MET, a_func_mean), cv=tapply(the_agg_plot2$Total, the_agg_plot2$LE_MET, a_func_cv)))
   collecting_table <- rbind.data.frame(collecting_table, cbind.data.frame(type="BottomFishing_SmallOrNoMesh", seg=levels(the_agg_plot3$LE_MET), var="CPUF (kg per litre)", average=tapply(the_agg_plot3$Total, the_agg_plot3$LE_MET, a_func_mean), cv=tapply(the_agg_plot3$Total, the_agg_plot3$LE_MET, a_func_cv)))
   collecting_table <- rbind.data.frame(collecting_table, cbind.data.frame(type="BottomFishing_SmallOrNoMesh", seg=levels(the_agg_plot4$LE_MET), var="VPUF (euro per litre)", average=tapply(the_agg_plot4$Total, the_agg_plot4$LE_MET, a_func_mean), cv=tapply(the_agg_plot4$Total, the_agg_plot4$LE_MET, a_func_cv)))
   collecting_table <- rbind.data.frame(collecting_table, cbind.data.frame(type="BottomFishing_SmallOrNoMesh", seg=levels(the_agg_plot5$LE_MET), var="Litre per kg catch", average=tapply(the_agg_plot5$Total, the_agg_plot5$LE_MET, a_func_mean), cv=tapply(the_agg_plot5$Total, the_agg_plot5$LE_MET, a_func_cv)))
@@ -1730,14 +1735,14 @@ write.table(collecting_table,
             
 
 
-  collecting_table2019 <- rbind.data.frame(collecting_table2019, cbind.data.frame(type="BottomFishing_SmallOrNoMesh", seg=levels(the_agg_plot0[the_agg_plot0$year==2019,]$LE_MET), var="Value (KEuros)", average=tapply(the_agg_plot0[the_agg_plot0$year==2019,]$Total, the_agg_plot0[the_agg_plot0$year==2019,]$LE_MET, a_func_mean), cv=tapply(the_agg_plot0[the_agg_plot0$year==2019,]$Total, the_agg_plot1[the_agg_plot0$year==2019,]$LE_MET, a_func_cv) ))
+  collecting_table2019 <- rbind.data.frame(collecting_table2019, cbind.data.frame(type="BottomFishing_SmallOrNoMesh", seg=levels(the_agg_plot0[the_agg_plot0$year==2019,]$LE_MET), var="Value (KEuros)", average=tapply(the_agg_plot0[the_agg_plot0$year==2019,]$Total, the_agg_plot0[the_agg_plot0$year==2019,]$LE_MET, a_func_mean), cv=tapply(the_agg_plot0[the_agg_plot0$year==2019,]$Total, the_agg_plot0[the_agg_plot0$year==2019,]$LE_MET, a_func_cv) ))
   collecting_table2019 <- rbind.data.frame(collecting_table2019, cbind.data.frame(type="BottomFishing_SmallOrNoMesh", seg=levels(the_agg_plot1[the_agg_plot1$year==2019,]$LE_MET), var="Landings (tons)", average=tapply(the_agg_plot1[the_agg_plot1$year==2019,]$Total, the_agg_plot1[the_agg_plot1$year==2019,]$LE_MET, a_func_mean), cv=tapply(the_agg_plot1[the_agg_plot1$year==2019,]$Total, the_agg_plot1[the_agg_plot1$year==2019,]$LE_MET, a_func_cv) ))
-  collecting_table2019 <- rbind.data.frame(collecting_table2019, cbind.data.frame(type="BottomFishing_SmallOrNoMesh", seg=levels(the_agg_plot2[the_agg_plot2$year==2019,]$LE_MET), var="Fuel (thousand litres)", average=tapply(the_agg_plot2[the_agg_plot2$year==2019,]$Total, the_agg_plot2[the_agg_plot2$year==2019,]$LE_MET, a_func_mean), cv=tapply(the_agg_plot2[the_agg_plot2$year==2019,]$Total, the_agg_plot2[the_agg_plot2$year==2019,]$LE_MET, a_func_cv)))
+  collecting_table2019 <- rbind.data.frame(collecting_table2019, cbind.data.frame(type="BottomFishing_SmallOrNoMesh", seg=levels(the_agg_plot2[the_agg_plot2$year==2019,]$LE_MET), var="Fuel (litres)", average=tapply(the_agg_plot2[the_agg_plot2$year==2019,]$Total, the_agg_plot2[the_agg_plot2$year==2019,]$LE_MET, a_func_mean), cv=tapply(the_agg_plot2[the_agg_plot2$year==2019,]$Total, the_agg_plot2[the_agg_plot2$year==2019,]$LE_MET, a_func_cv)))
   collecting_table2019 <- rbind.data.frame(collecting_table2019, cbind.data.frame(type="BottomFishing_SmallOrNoMesh", seg=levels(the_agg_plot3[the_agg_plot3$year==2019,]$LE_MET), var="CPUF (kg per litre)", average=tapply(the_agg_plot3[the_agg_plot3$year==2019,]$Total, the_agg_plot3[the_agg_plot3$year==2019,]$LE_MET, a_func_mean), cv=tapply(the_agg_plot3[the_agg_plot3$year==2019,]$Total, the_agg_plot3[the_agg_plot3$year==2019,]$LE_MET, a_func_cv)))
   collecting_table2019 <- rbind.data.frame(collecting_table2019, cbind.data.frame(type="BottomFishing_SmallOrNoMesh", seg=levels(the_agg_plot4[the_agg_plot4$year==2019,]$LE_MET), var="VPUF (euro per litre)", average=tapply(the_agg_plot4[the_agg_plot4$year==2019,]$Total, the_agg_plot4[the_agg_plot4$year==2019,]$LE_MET, a_func_mean), cv=tapply(the_agg_plot4[the_agg_plot4$year==2019,]$Total, the_agg_plot4[the_agg_plot4$year==2019,]$LE_MET, a_func_cv)))
   collecting_table2019 <- rbind.data.frame(collecting_table2019, cbind.data.frame(type="BottomFishing_SmallOrNoMesh", seg=levels(the_agg_plot5[the_agg_plot5$year==2019,]$LE_MET), var="Litre per kg catch", average=tapply(the_agg_plot5[the_agg_plot5$year==2019,]$Total, the_agg_plot5[the_agg_plot5$year==2019,]$LE_MET, a_func_mean), cv=tapply(the_agg_plot5[the_agg_plot5$year==2019,]$Total, the_agg_plot5[the_agg_plot5$year==2019,]$LE_MET, a_func_cv)))
   collecting_table2019 <- rbind.data.frame(collecting_table2019, cbind.data.frame(type="BottomFishing_SmallOrNoMesh", seg=levels(the_agg_plot6[the_agg_plot6$year==2019,]$LE_MET), var="Litre per euro catch", average=tapply(the_agg_plot6[the_agg_plot6$year==2019,]$Total, the_agg_plot6[the_agg_plot6$year==2019,]$LE_MET, a_func_mean), cv=tapply(the_agg_plot6[the_agg_plot6$year==2019,]$Total, the_agg_plot6[the_agg_plot6$year==2019,]$LE_MET, a_func_cv))) 
-  collecting_table2019 <- rbind.data.frame(collecting_table2019, cbind.data.frame(type="BottomFishing_SmallOrNoMesh", seg=levels(the_agg_plot7[the_agg_plot7$year==2019,]$LE_MET), var="Euro catch per kg", average=tapply(the_agg_plot7[the_agg_plot7$year==2019,]$Total, the_agg_plot7[the_agg_plot7$year==2019,]$LE_MET, a_func_mean), cv=tapply(the_agg_plot7[the_agg_plot7$year==2019,]$Total, the_agg_plot7[the_agg_plot7$year==2019,]$LE_MET, a_func_cv))) 
+  collecting_table2019 <- rbind.data.frame(collecting_table2019, cbind.data.frame(type="BottomFishing_SmallOrNoMesh", seg=levels(the_agg_plot8[the_agg_plot8$year==2019,]$LE_MET), var="Euro catch per kg", average=tapply(the_agg_plot8[the_agg_plot8$year==2019,]$Total, the_agg_plot8[the_agg_plot8$year==2019,]$LE_MET, a_func_mean), cv=tapply(the_agg_plot8[the_agg_plot8$year==2019,]$Total, the_agg_plot8[the_agg_plot8$year==2019,]$LE_MET, a_func_cv))) 
 
   collecting_table2019[,4] <- round(collecting_table2019[,4],4)
   collecting_table2019[,5] <- round(collecting_table2019[,5],4)
