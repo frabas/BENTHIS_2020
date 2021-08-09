@@ -512,6 +512,38 @@ dev.off()
 
    if(per_metier_level6 && per_vessel_size){
       load(file=file.path(getwd(), "outputs2020_lgbkonly", paste("aggResultPerMetAllyMet6AndVsizeAndRatiosSmallVids",years[1],"-",years[length(years)],".RData", sep="")))  # aggResultPerMetAlly
+  
+  
+      # add a fuel efficiency metric
+      aggResultPerMetAlly$LPUE <- aggResultPerMetAlly$LE_KG_LITRE_FUEL / (aggResultPerMetAlly$LE_EFF)
+      aggResultPerMetAlly$LE_MESH_GROUP <- NA
+      aggResultPerMetAlly[grepl("LargeMesh",aggResultPerMetAlly$LE_MET), "LE_MESH_GROUP"] <- "LargeMesh" 
+      aggResultPerMetAlly[grepl("SmallMesh",aggResultPerMetAlly$LE_MET), "LE_MESH_GROUP"] <- "SmallMesh" 
+      aggResultPerMetAlly$LE_MET <- gsub("LargeMesh_", "", aggResultPerMetAlly$LE_MET)
+      aggResultPerMetAlly$LE_MET <- gsub("SmallMesh_", "", aggResultPerMetAlly$LE_MET)
+  
+      ### plot LPUE
+      library(ggplot2)
+      dd <- aggResultPerMetAlly[,c("Year", "LPUE", "LE_MET", "LE_MESH_GROUP")]
+      dd <-  dd[!(grepl("OTHER",aggResultPerMetAlly$LE_MET) | grepl("NA",aggResultPerMetAlly$LE_MET)),]
+      dd <-  dd[dd$LE_MET %in%names(table(dd$LE_MET))[table(dd$LE_MET)==length(years)] ,] # keep complete ts only
+      a_lpue_plot <- ggplot(dd, aes(x=as.character(Year), y=as.numeric(LPUE), group=as.character(LE_MET))) +     
+                             geom_line(aes(color=LE_MET), size=1.5) + 
+         facet_wrap(. ~ LE_MESH_GROUP, scales = "free_y", ncol=1)  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +   
+         labs(y = "Fuel efficiency (Litre fuel per hour)", x = "Year")   +
+         scale_colour_manual(values=some_color_seg, name="Fleet-segment") +   guides(fill =guide_legend(ncol=1))  +
+          xlab("")
+      print(a_lpue_plot)
+      # for paper:
+      a_width <- 6000;  a_height <- 4000
+      namefile <- paste0("ts_LPUE_", years[1], "-", years[length(years)],  "_PEL_DEM.tif")
+      tiff(filename=file.path(getwd(), "outputs2020_lgbkonly", "output_plots",  namefile),   width = a_width, height = a_height,
+                                   units = "px", pointsize = 12,  res=600, compression = c("lzw"))
+      library(ggpubr)
+      ggarrange(a_lpue_plot, ncol=1, common.legend = TRUE, legend="right")
+
+      dev.off()
+
    }
    if(per_metier_level6 && !per_vessel_size){
       load(file=file.path(getwd(), "outputs2020_lgbkonly", paste("aggResultPerMetAllyMet6AndRatiosSmallVids",years[1],"-",years[length(years)],".RData", sep="")))  # aggResultPerMetAlly
@@ -1597,12 +1629,13 @@ dev.off()
    the_agg_plot5 <- as.data.frame(the_agg_plot[grep("(e)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot5$LE_MET <- gsub("\\(e)","", the_agg_plot5$LE_MET)
   the_agg_plot5$LE_MET <- factor(the_agg_plot5$LE_MET, level=fleet_segments_ordered) # reorder
+  #the_agg_plot5 <- the_agg_plot5[the_agg_plot5$value<3,]  # debug for other
   p5 <- ggplot(data=the_agg_plot5, aes(x=LE_MET, y=value/a_unit, fill=Stock)) + #  geom_bar(stat="identity", position=position_dodge())
   geom_bar(stat = "summary", fun = "mean") +  labs(y = "Litre per kg catch", x= "Fleet-segments") +
        scale_fill_manual(values=some_color_species, name="Species")  + theme_minimal() + guides(fill =guide_legend(ncol=7)) +
-        theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5, size=8)) +
+        theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5, size=8)) #+
         #theme(axis.text.x=element_blank()) + 
-         ylim(c(0,10))  # caution: this removes some points!...
+         #ylim(c(0,10))  # caution: this removes some points!...
   #print(p5)
  
    the_agg_plot6 <- as.data.frame(the_agg_plot[grep("(f)",the_agg_plot$LE_MET, fixed=TRUE),])
