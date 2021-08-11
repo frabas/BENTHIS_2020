@@ -186,11 +186,13 @@ library(vmstools)
 
      ## PLOT TIME SERIES OF TRIP EFFORT AND NB OF VESSELS
   
-     dd <-  eflalo[,c("VE_REF", "VesselSize", "LE_MET", "LE_EFF", "LE_KG_LITRE_FUEL", "Year")]
-     dd <- aggregate(eflalo[,c("LE_EFF","LE_KG_LITRE_FUEL")], list(dd$VE_REF, dd$VesselSize, dd$LE_MET, dd$Year), sum, na.rm=TRUE)
-     colnames(dd) <- c("VE_REF", "VesselSize", "LE_MET", "Year", "trip_effort_hours", "litre_fuel")
+     # marginal sum of euros
+     eflalo$toteuros <- apply(eflalo[,grep("EURO", names(eflalo))], 1, sum, na.rm=TRUE)
+    
+     dd <-  eflalo[,c("VE_REF", "VesselSize", "LE_MET", "LE_EFF", "toteuros", "LE_KG_LITRE_FUEL", "Year")]
+     dd <- aggregate(dd[,c("LE_EFF", "toteuros", "LE_KG_LITRE_FUEL")], list(dd$VE_REF, dd$VesselSize, dd$LE_MET, dd$Year), sum, na.rm=TRUE)
+     colnames(dd) <- c("VE_REF", "VesselSize", "LE_MET", "Year", "trip_effort_hours", "toteuros", "litre_fuel")
 
-  
 
     # a trick to combine both info on the same plot i.e. use a secondary y axis
     library(ggplot2)
@@ -203,7 +205,8 @@ library(vmstools)
     p3 <-   ggplot() + geom_bar(data=eflalo, aes(x=as.character(Year), y=LE_EFF, group=VesselSize, fill=VesselSize), size=1.5, position="stack",  stat = "summary", fun = "sum") +
        geom_line(data=dd, aes(x=as.character(Year), y=nbvessel, group=VesselSize, color=VesselSize),size=1.5, stat = "summary", fun = "sum") +   
        geom_line(data=dd, aes(x=as.character(Year), y=litre_fuel/100, group=1),size=1, color=1, linetype = "dashed", stat = "summary", fun = "sum") +   
-        scale_y_continuous(name = "Trip effort hours, or fuel use (thousands litre)", sec.axis = sec_axis(~./5e3, name = "Nb Vessels") )+
+       geom_line(data=dd, aes(x=as.character(Year), y=toteuros/100, group=1),size=1,  color=2, linetype = "dashed", stat = "summary", fun = "sum") +   
+       scale_y_continuous(name = "Trip effort hours; fuel use (thousands litre); keuros", sec.axis = sec_axis(~./5e3, name = "Nb Vessels") )+
        theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  + 
        labs(x = "Year")     + 
        scale_color_manual(values=some_color_vessel_size, name="VesselSize") +  
@@ -211,8 +214,9 @@ library(vmstools)
        guides(fill =guide_legend(ncol=1)) 
     print(p3)
 
-    # lgbkonly
-  a_width <- 3000; a_height <- 2300
+# lgbkonly
+  #a_width <- 3000; a_height <- 2300 
+  a_width <- 5500; a_height <- 2500    
  namefile <- paste0("barplot_and_ts_effort_nb_vessels_", years[1], "-", years[length(years)], "_lgbkonly.tif")
  tiff(filename=file.path(getwd(), "outputs2020_lgbkonly", "output_plots",  namefile),   width = a_width, height = a_height,
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
