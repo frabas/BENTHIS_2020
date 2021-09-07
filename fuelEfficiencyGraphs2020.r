@@ -377,8 +377,10 @@ some_color_seg <-  c("#7FC97F", "#BEAED4", "#FDC086", "#FFFF99", "#386CB0", "#F0
     #range(aggResult$effort_mins)
           
           
-    # debug
+    # debug divide by 0 or almost 0
     aggResult <- aggResult[aggResult$LE_KG_LITRE >0,]
+    aggResult[, paste0('LE_KG_', spp)]  [aggResult[, paste0('LE_KG_', spp)] <0.1] <- 0 
+    aggResult[, paste0('LE_EURO_', spp)]  [aggResult[, paste0('LE_EURO_', spp)] <1] <- 0 
 
     aggResult$KKGallsp <- apply (aggResult[, paste0('LE_KG_', spp)], 1, sum, na.rm=TRUE) /1e3 # in tons
     aggResult$KEUROallsp <- apply (aggResult[, paste0('LE_EURO_', spp)], 1, sum, na.rm=TRUE) / 1e3 # in thousands euros
@@ -415,7 +417,13 @@ some_color_seg <-  c("#7FC97F", "#BEAED4", "#FDC086", "#FFFF99", "#386CB0", "#F0
     aggResult <- cbind.data.frame (aggResult, dd)
     aggResult$mpriceallsp <- apply (aggResult[, paste0('LE_MPRICE_', spp)], 1, mean, na.rm=TRUE)
 
-   
+    # check
+    #aggResult[aggResult$LE_MET=="SmallMesh_27.3_OTB_CRU_32-69_0_0",]
+    #bb <- which(aggResult[aggResult$LE_MET=="SmallMesh_27.3_OTB_CRU_32-69_0_0","LE_MPRICE_PLE"]>10)
+    # vv <- aggResult[aggResult$LE_MET=="SmallMesh_27.3_OTB_CRU_32-69_0_0",]
+    #vv[bb,]
+
+
     idx_cols <- grepl("LE_VPUF_", names(aggResult))    
     dd <- apply (aggResult[,idx_cols], 1, function (x) {
                idx <- which.max(as.numeric(x))[1]
@@ -1156,10 +1164,10 @@ dev.off()
                           "WIT"="red", "WHG"="yellow", "OTH"="blue")
  #load(file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndVsizeAndRatiosBottContact.RData", sep="")))  # aggResultPerMetAlly
  #load(file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndRatiosBottContact.RData", sep="")))  # aggResultPerMetAlly
- load(file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndVsizeAndRatiosBottContactAndGNS.RData", sep="")))  # aggResultPerMetAlly
+ load(file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndRatiosBottContactAndGNS.RData", sep="")))  # aggResultPerMetAlly
  
  head(aggResultPerMetAlly[aggResultPerMetAlly$LE_MET=="SmallMesh_27.3_OTB_CRU_32-69_0_0",])
-
+                                                                     
  library(ggplot2)
  
  # compare prices e.g seine vs. trawls for cod
@@ -1463,7 +1471,7 @@ dev.off()
                           "WIT"="red", "WHG"="yellow", "OTH"="blue")
  #load(file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndVsizeAndRatiosBottContact.RData", sep="")))  # aggResultPerMetAlly
  #load(file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndRatiosBottContact.RData", sep="")))  # aggResultPerMetAlly
- load(file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndVsizeAndRatiosBottContactAndGNS.RData", sep="")))  # aggResultPerMetAlly
+ load(file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndRatiosBottContactAndGNS.RData", sep="")))  # aggResultPerMetAlly
 
 ## DEM
  a_width <- 3200 ; a_height <- 6500
