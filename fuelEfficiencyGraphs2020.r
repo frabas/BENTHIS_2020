@@ -90,11 +90,17 @@ some_color_seg <-  c("#7FC97F", "#BEAED4", "#FDC086", "#FFFF99", "#386CB0", "#F0
  if(per_metier_level6 && !per_vessel_size){
    res <- NULL
    for (y in years){
-      load(file.path(getwd(), "outputs2020", paste0("AggregatedSweptAreaPlusMet6_",y,".RData") ))  # aggResult
+      load(file.path(getwd(), "outputs2020", paste0("AggregatedSweptAreaPlusMet6_",y,".RData") ))  # aggResult for towed gears (trawl and dredge) & seines 
+      aggResult1 <- aggResult
+      load(file.path(getwd(), "outputs2020_gns", paste0("AggregatedSweptAreaPlusMet6_",y,".RData") ))  # aggResult for GNS
+      aggResult2 <- aggResult
+      aggResult <- rbind.data.frame(aggResult1, aggResult2)
+    
       aggResult$LE_MET_init <- factor(aggResult$LE_MET_init)
       levels(aggResult$LE_MET_init) <- gsub("MCD", "CRU", levels(aggResult$LE_MET_init)) # immediate correction to avoid useless historical renaming MCD->CRU
       levels(aggResult$LE_MET_init) <- gsub("OTB_CRU_90-119_0_0", "OTB_DEF_90-119_0_0", levels(aggResult$LE_MET_init)) # immediate correction to avoid an artifical split
-
+    
+     
       # debug
       aggResult <- aggResult[aggResult$LE_KG_LITRE >0,]
       
@@ -117,7 +123,7 @@ some_color_seg <-  c("#7FC97F", "#BEAED4", "#FDC086", "#FFFF99", "#386CB0", "#F0
       aggResult$target <- aggResult$LE_MET # init
       code <- sapply(strsplit(levels(aggResult$target), split="_"), function(x) x[3])
       levels(aggResult$target) <- code
-      levels(aggResult$target)[levels(aggResult$target) %in% c(">=105","100-119","90-119",">=120","90-104")] <- "LargeMesh"
+      levels(aggResult$target)[levels(aggResult$target) %in% c(">=105","100-119","90-119",">=120","90-104", "110-156", "120-219", ">=220")] <- "LargeMesh"
       levels(aggResult$target)[!levels(aggResult$target) %in% "LargeMesh"] <- "SmallMesh"
     
       dd <- tapply(aggResult$effort_mins, paste0(aggResult$target, "_", aggResult$F_SUBAREA, "_", aggResult$LE_MET_init), sum)
@@ -132,8 +138,11 @@ some_color_seg <-  c("#7FC97F", "#BEAED4", "#FDC086", "#FFFF99", "#386CB0", "#F0
    dem <- res[grep("LargeMesh",res[,1]),]
    dem <- aggregate(dem$dd, list(dem[,1]), sum)
    dem <- orderBy(~ -x, dem)
-   oth_mets_dem <- as.character(dem[cumsum(dem[,2])/sum(dem[,2])>.9,1]) # 75% in effort in dem
+   oth_mets_dem <- as.character(dem[cumsum(dem[,2])/sum(dem[,2])>.95,1]) # 75% in effort in dem
  
+   # but keep two exeption anyway to get some representation for SSC and GNS 
+   #LargeMesh_27.3_SSC_DEF_>=120_0_0 
+   oth_mets_dem <- oth_mets_dem[!oth_mets_dem %in% c('LargeMesh_27.3_SSC_DEF_>=120_0_0')]
  
  # met to keep
  oth_mets <- c(oth_mets_dem, oth_mets_pel, "27.3_No_Matrix6_[12,18)","27.4_No_Matrix6", "27.3_No_Matrix6","27.4_No_Matrix6", paste0("NA","_") )
@@ -174,7 +183,7 @@ some_color_seg <-  c("#7FC97F", "#BEAED4", "#FDC086", "#FFFF99", "#386CB0", "#F0
       aggResult$target <- aggResult$LE_MET # init
       code <- sapply(strsplit(levels(aggResult$target), split="_"), function(x) x[3])
       levels(aggResult$target) <- code
-      levels(aggResult$target)[levels(aggResult$target) %in% c(">=105","100-119","90-119",">=120","90-104")] <- "LargeMesh"
+      levels(aggResult$target)[levels(aggResult$target) %in% c(">=105","100-119","90-119",">=120","90-104", "110-156", "120-219", ">=220")] <- "LargeMesh"
       levels(aggResult$target)[!levels(aggResult$target) %in% "LargeMesh"] <- "SmallMesh"
     
       dd <- tapply(aggResult$effort_mins, paste0(aggResult$target, "_", aggResult$F_SUBAREA, "_", aggResult$LE_MET_init, "_", aggResult$VesselSize), sum)
@@ -238,7 +247,7 @@ some_color_seg <-  c("#7FC97F", "#BEAED4", "#FDC086", "#FFFF99", "#386CB0", "#F0
       aggResult$target <- aggResult$LE_MET # init
       code <- sapply(strsplit(levels(aggResult$target), split="_"), function(x) x[3])
       levels(aggResult$target) <- code
-      levels(aggResult$target)[levels(aggResult$target) %in% c(">=105","90-119",">=120")] <- "LargeMesh"
+      levels(aggResult$target)[levels(aggResult$target) %in% c(">=105","100-119","90-119",">=120","90-104", "110-156", "120-219", ">=220")] <- "LargeMesh"
       levels(aggResult$target)[!levels(aggResult$target) %in% "LargeMesh"] <- "SmallMesh"
       aggResult$LE_MET <- paste0(aggResult$target,"_",aggResult$LE_MET)
 
@@ -246,6 +255,12 @@ some_color_seg <-  c("#7FC97F", "#BEAED4", "#FDC086", "#FFFF99", "#386CB0", "#F0
    
      if(per_metier_level6 && !per_vessel_size) {
        load(file.path(getwd(), "outputs2020", paste0("AggregatedSweptAreaPlusMet6_",y,".RData") ))  # aggResult
+       aggResult1 <- aggResult
+       load(file.path(getwd(), "outputs2020_gns", paste0("AggregatedSweptAreaPlusMet6_",y,".RData") ))  # aggResult for GNS
+       aggResult2 <- aggResult
+       aggResult <- rbind.data.frame(aggResult1, aggResult2)
+ 
+       
        aggResult$LE_MET_init <- factor(aggResult$LE_MET_init)
        levels(aggResult$LE_MET_init) <- gsub("MCD", "CRU", levels(aggResult$LE_MET_init)) # immediate correction to avoid useless historical renaming MCD->CRU
        levels(aggResult$LE_MET_init) <- gsub("OTB_CRU_90-119_0_0", "OTB_DEF_90-119_0_0", levels(aggResult$LE_MET_init)) # immediate correction to avoid an artifical split
@@ -276,7 +291,7 @@ some_color_seg <-  c("#7FC97F", "#BEAED4", "#FDC086", "#FFFF99", "#386CB0", "#F0
       aggResult$target <- aggResult$LE_MET # init
       code <- sapply(strsplit(levels(aggResult$target), split="_"), function(x) x[3])
       levels(aggResult$target) <- code
-      levels(aggResult$target)[levels(aggResult$target) %in% c(">=105","100-119","90-119",">=120","90-104")] <- "LargeMesh"
+      levels(aggResult$target)[levels(aggResult$target) %in% c(">=105","100-119","90-119",">=120","90-104", "110-156", "120-219", ">=220")] <- "LargeMesh"
       levels(aggResult$target)[!levels(aggResult$target) %in% "LargeMesh"] <- "SmallMesh"
   
       aggResult$LE_MET <- factor(paste0(aggResult$target, "_", aggResult$F_SUBAREA,"_", aggResult$LE_MET))
@@ -333,7 +348,7 @@ some_color_seg <-  c("#7FC97F", "#BEAED4", "#FDC086", "#FFFF99", "#386CB0", "#F0
       aggResult$target <- aggResult$LE_MET # init
       code <- sapply(strsplit(levels(aggResult$target), split="_"), function(x) x[3])
       levels(aggResult$target) <- code
-      levels(aggResult$target)[levels(aggResult$target) %in% c(">=105","100-119","90-119",">=120","90-104")] <- "LargeMesh"
+      levels(aggResult$target)[levels(aggResult$target) %in% c(">=105","100-119","90-119",">=120","90-104", "110-156")] <- "LargeMesh"
       levels(aggResult$target)[!levels(aggResult$target) %in% "LargeMesh"] <- "SmallMesh"
   
       aggResult$LE_MET <- factor(paste0(aggResult$target, "_", aggResult$F_SUBAREA,"_", aggResult$LE_MET, "_", aggResult$VesselSize))
@@ -517,12 +532,12 @@ some_color_seg <-  c("#7FC97F", "#BEAED4", "#FDC086", "#FFFF99", "#386CB0", "#F0
      aggResultPerMetAlly <- rbind.data.frame(aggResultPerMetAlly, dd)
   }   
   #save(aggResultPerMetAlly, file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndVsizeAndRatiosBottContact.RData", sep=""))) 
-  #save(aggResultPerMetAlly, file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndRatiosBottContact.RData", sep=""))) 
+  #save(aggResultPerMetAlly, file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndRatiosBottContactAndGNS.RData", sep=""))) 
 
 
   #-----------------
   #-----------------
-  load(file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndVsizeAndRatiosBottContact.RData", sep="")))  # aggResultPerMetAlly
+  load(file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndVsizeAndRatiosBottContactAndGNS.RData", sep="")))  # aggResultPerMetAlly
   
   # add a fuel efficiency metric
   aggResultPerMetAlly$LPUE <- aggResultPerMetAlly$LE_KG_LITRE_FUEL / (aggResultPerMetAlly$effort_mins/60)
@@ -546,7 +561,7 @@ some_color_seg <-  c("#7FC97F", "#BEAED4", "#FDC086", "#FFFF99", "#386CB0", "#F0
   print(a_lpue_plot)
   # for paper:
   a_width <- 6000;  a_height <- 4000
-  namefile <- paste0("ts_LPUE_", years[1], "-", years[length(years)],  "_DEM_PEL.tif")
+  namefile <- paste0("ts_LPUE_", years[1], "-", years[length(years)],  "_DEM_PEL_rev.tif")
   tiff(filename=file.path(getwd(), "outputs2020", "output_plots",  namefile),   width = a_width, height = a_height,
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
   library(ggpubr)
@@ -559,7 +574,7 @@ some_color_seg <-  c("#7FC97F", "#BEAED4", "#FDC086", "#FFFF99", "#386CB0", "#F0
   
   #-----------------
   #-----------------
-  load(file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndRatiosBottContact.RData", sep="")))  # aggResultPerMetAlly
+  load(file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndRatiosBottContactAndGNS.RData", sep="")))  # aggResultPerMetAlly
   spp <- c("COD", "CSH","DAB","ELE","FLE","HAD","HER","HKE","HOM","LEM","MAC","MON","MUS","NEP","NOP","PLE","POK","PRA", "SAN","SOL","SPR","TUR","WHB","WIT","WHG","OTH")
  
   unique(aggResultPerMetAlly$LE_MET) 
@@ -638,9 +653,6 @@ some_color_seg <-  c("#7FC97F", "#BEAED4", "#FDC086", "#FFFF99", "#386CB0", "#F0
   # dem
   library(ggplot2)
   a_width <- 2000;  a_height <- 5500
-  namefile <- paste0("barplot_fuel_efficiency_bottcontact_per_species-2005-2019.tif")
-  tiff(filename=file.path(getwd(), "outputs2020", "output_plots",  namefile),   width = a_width, height = a_height,
-                                   units = "px", pointsize = 12,  res=600, compression = c("lzw"))
     library(data.table)
     long1 <- melt(setDT(sum_y_kg[,c("Year", paste0("LE_KG_", spp))]), id.vars = c("Year"), variable.name = "Var")
     long1$value   <- long1$value  /1e6 # thousand tons
@@ -663,7 +675,12 @@ some_color_seg <-  c("#7FC97F", "#BEAED4", "#FDC086", "#FFFF99", "#386CB0", "#F0
             facet_wrap(~VarType, scales="free", ncol=1, labeller=as_labeller(var_names),  strip.position = "left") +  
             labs(y = "", x = "Species") + 
            theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5, size=8), strip.background = element_blank(),strip.placement = "outside")
-  print(p)
+
+
+  namefile <- paste0("barplot_fuel_efficiency_bottcontact_per_species-2005-2019_rev.tif")
+  tiff(filename=file.path(getwd(), "outputs2020", "output_plots",  namefile),   width = a_width, height = a_height,
+                                   units = "px", pointsize = 12,  res=600, compression = c("lzw"))
+    print(p)
   
   dev.off()
   #write.table(a_summary, "clipboard", sep="\t", row.names=TRUE, col.names=TRUE)
@@ -745,7 +762,7 @@ some_color_seg <-  c("#7FC97F", "#BEAED4", "#FDC086", "#FFFF99", "#386CB0", "#F0
    a_comment <- "" ; if(per_metier_level6) a_comment <- "_met6";  if(per_vessel_size) a_comment <- paste0(a_comment,"_vsize") ; if(per_region) a_comment <- paste0(a_comment,"_region")
 
  # dem
- namefile <- paste0("barplot_fuel_efficiency", a_variable, "_", years[1], "-", years[length(years)], a_comment, "_DEM.tif")
+ namefile <- paste0("barplot_fuel_efficiency", a_variable, "_", years[1], "-", years[length(years)], a_comment, "_DEM_rev.tif")
  tiff(filename=file.path(getwd(), "outputs2020", "output_plots",  namefile),   width = a_width, height = a_height,
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
   the_agg <- agg[grep("LargeMesh",agg$LE_MET),]
@@ -757,7 +774,7 @@ some_color_seg <-  c("#7FC97F", "#BEAED4", "#FDC086", "#FFFF99", "#386CB0", "#F0
 dev.off()
 
  # pel
- namefile <- paste0("barplot_fuel_efficiency", a_variable, "_", years[1], "-", years[length(years)], a_comment, "_PEL.tif")
+ namefile <- paste0("barplot_fuel_efficiency", a_variable, "_", years[1], "-", years[length(years)], a_comment, "_PEL_rev.tif")
  tiff(filename=file.path(getwd(), "outputs2020", "output_plots",  namefile),   width = a_width, height = a_height,
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
   the_agg <- agg[grep("SmallMesh",agg$LE_MET),]
@@ -1138,8 +1155,9 @@ dev.off()
                          "POK"="#6495ED", "PRA"="#CDC8B1", "SAN"="#00FFFF", "SOL"="#8B0000", "SPR"="#008B8B", "TUR"="#A9A9A9", "WHB"="#76a5c4",
                           "WIT"="red", "WHG"="yellow", "OTH"="blue")
  #load(file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndVsizeAndRatiosBottContact.RData", sep="")))  # aggResultPerMetAlly
- load(file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndRatiosBottContact.RData", sep="")))  # aggResultPerMetAlly
-
+ #load(file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndRatiosBottContact.RData", sep="")))  # aggResultPerMetAlly
+ load(file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndVsizeAndRatiosBottContactAndGNS.RData", sep="")))  # aggResultPerMetAlly
+ 
  head(aggResultPerMetAlly[aggResultPerMetAlly$LE_MET=="SmallMesh_27.3_OTB_CRU_32-69_0_0",])
 
  library(ggplot2)
@@ -1303,7 +1321,7 @@ dev.off()
  #print(p8)
 
  # for paper:
- namefile <- paste0("ts_fuel_efficiency", a_variable, "_", years[1], "-", years[length(years)],  a_comment, "_DEM_areaplot_land_and_FPUE.tif")
+ namefile <- paste0("ts_fuel_efficiency_", years[1], "-", years[length(years)],  a_comment, "_DEM_areaplot_land_and_FPUE_rev.tif")
  tiff(filename=file.path(getwd(), "outputs2020", "output_plots",  namefile),   width = a_width, height = a_height,
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
  library(ggpubr)
@@ -1444,7 +1462,8 @@ dev.off()
                          "POK"="#6495ED", "PRA"="#CDC8B1", "SAN"="#00FFFF", "SOL"="#8B0000", "SPR"="#008B8B", "TUR"="#A9A9A9", "WHB"="#76a5c4",
                           "WIT"="red", "WHG"="yellow", "OTH"="blue")
  #load(file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndVsizeAndRatiosBottContact.RData", sep="")))  # aggResultPerMetAlly
- load(file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndRatiosBottContact.RData", sep="")))  # aggResultPerMetAlly
+ #load(file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndRatiosBottContact.RData", sep="")))  # aggResultPerMetAlly
+ load(file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndVsizeAndRatiosBottContactAndGNS.RData", sep="")))  # aggResultPerMetAlly
 
 ## DEM
  a_width <- 3200 ; a_height <- 6500
@@ -1468,18 +1487,19 @@ dev.off()
 
  the_agg_plot$LE_MET <- gsub("LargeMesh_", "", the_agg_plot$LE_MET)
 
-# find order of met
-  dd <- as.data.frame(the_agg_plot[grep("(a)",the_agg_plot$LE_MET, fixed=TRUE),])
-  dd$LE_MET <- gsub("\\(a)","", dd$LE_MET)
-  dd <- aggregate(dd$Total, by=list(dd$LE_MET), mean)
-  dd <- orderBy(~ -x,dd)
-  fleet_segments_ordered <- as.character(dd[,1])
-
  a_func_mean <- function (x) mean(x[x!=0 & !is.na(x)])
   a_func_cv <- function(x) {sqrt(var(x[x!=0 & !is.na(x)]))/mean(x[x!=0 & !is.na(x)])}
  
+# find order of met
+  dd <- as.data.frame(the_agg_plot[grep("(a)",the_agg_plot$LE_MET, fixed=TRUE),])
+  dd$LE_MET <- gsub("\\(a)","", dd$LE_MET)
+  dd <- aggregate(dd$Total, by=list(dd$LE_MET), a_func_mean)
+  dd <- orderBy(~ -x,dd)
+  fleet_segments_ordered <- as.character(dd[,1])
+
+ 
  #------------
- namefile <- paste0("barplot_mean_fuel_efficiency_", years[1], "-", years[length(years)],  a_comment, "_DEM_plot_land_and_FPUC_and_FPUV.tif")
+ namefile <- paste0("barplot_mean_fuel_efficiency_", years[1], "-", years[length(years)],  a_comment, "_DEM_plot_land_and_FPUC_and_FPUV_rev.tif")
  #namefile <- paste0("barplot_mean_fuel_efficiency", a_variable, "_", years[1], "-", years[length(years)],  a_comment, "_DEM_plot_land_and_CPUF_and_VPUF.tif")
 
  collecting_table <- NULL
@@ -1613,7 +1633,7 @@ print(p8)
 
 
  # for paper:
- tiff(filename=file.path(getwd(), "outputs2020", "output_plots",  "Euro_catch_per_km-sq_or_per_kg.tiff"),   width = a_width, height = 5000,
+ tiff(filename=file.path(getwd(), "outputs2020", "output_plots",  "Euro_catch_per_km-sq_or_per_kg_rev.tiff"),   width = a_width, height = 5000,
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
 
   library(ggpubr)
@@ -1644,7 +1664,7 @@ dev.off()
   # find order of met
   dd <- as.data.frame(the_agg_plot[grep("(a)",the_agg_plot$LE_MET, fixed=TRUE),])
   dd$LE_MET <- gsub("\\(a)","", dd$LE_MET)
-  dd <- aggregate(dd$Total, by=list(dd$LE_MET), mean)
+  dd <- aggregate(dd$Total, by=list(dd$LE_MET), a_func_mean)
   dd <- orderBy(~ -x,dd)
   fleet_segments_ordered <- as.character(dd[,1])
 
@@ -1768,7 +1788,7 @@ dev.off()
   collecting_table <- rbind.data.frame(collecting_table, cbind.data.frame(type="BottomFishing_SmallOrNoMesh", seg=levels(the_agg_plot4$LE_MET), var="VPUF (euro per litre)", average=tapply(the_agg_plot4$Total, the_agg_plot4$LE_MET, a_func_mean), cv=tapply(the_agg_plot4$Total, the_agg_plot4$LE_MET, a_func_cv)))
   collecting_table <- rbind.data.frame(collecting_table, cbind.data.frame(type="BottomFishing_SmallOrNoMesh", seg=levels(the_agg_plot5$LE_MET), var="Litre per kg catch", average=tapply(the_agg_plot5$Total, the_agg_plot5$LE_MET, a_func_mean), cv=tapply(the_agg_plot5$Total, the_agg_plot5$LE_MET, a_func_cv)))
   collecting_table <- rbind.data.frame(collecting_table, cbind.data.frame(type="BottomFishing_SmallOrNoMesh", seg=levels(the_agg_plot6$LE_MET), var="Litre per euro catch", average=tapply(the_agg_plot6$Total, the_agg_plot6$LE_MET, a_func_mean), cv=tapply(the_agg_plot6$Total, the_agg_plot6$LE_MET, a_func_cv))) 
-  collecting_table <- rbind.data.frame(collecting_table, cbind.data.frame(type="BottomFishing_SmallOrNoMesh", seg=levels(the_agg_plot7$LE_MET), var="Euro catch per kg", average=tapply(the_agg_plot7$Total, the_agg_plot7$LE_MET, a_func_mean), cv=tapply(the_agg_plot7$Total, the_agg_plot7$LE_MET, a_func_cv))) 
+  collecting_table <- rbind.data.frame(collecting_table, cbind.data.frame(type="BottomFishing_SmallOrNoMesh", seg=levels(the_agg_plot8$LE_MET), var="Euro catch per kg", average=tapply(the_agg_plot8$Total, the_agg_plot8$LE_MET, a_func_mean), cv=tapply(the_agg_plot8$Total, the_agg_plot8$LE_MET, a_func_cv))) 
 
   collecting_table[,4] <- round(collecting_table[,4],4)
   collecting_table[,5] <- round(collecting_table[,5],4)
