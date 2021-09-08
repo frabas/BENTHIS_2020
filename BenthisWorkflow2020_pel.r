@@ -526,6 +526,8 @@ load(file=file.path(outPath,a_year,"tacsatMerged.RData"))
   tacsatps <- tacsatp[tacsatp$SI_STATE=="s",] 
   steaming_cons_per_VE_REF_FT_REF       <-     tapply(tacsatps$LITRE_FUEL, paste0(tacsatps$VE_REF,"_",tacsatps$FT_REF), sum)
 
+  save(steaming_cons_per_VE_REF_FT_REF, file=file.path(outPath,a_year,"steaming_cons_per_VE_REF_FT_REF.RData"))    # save steaming_cons_per_VE_REF_FT_REF  
+
 
   #-----------------------------------------------------------------------------
   # Interpolation (of fishing sequences only)
@@ -698,8 +700,22 @@ cat(paste("All interpolations done", "\n"))
 # Create one swept area dataset
 #-----------------------------------------------------------------------------
 
-#for(a_year in c(2005:2013)) {
-#print(a_year)
+for(a_year in c(2005:2019)) {
+print(a_year)
+outPath   <- file.path("D:","FBA","BENTHIS_2020", "outputs2020")  
+dataPath  <- "D:/FBA/BENTHIS_2020/EflaloAndTacsat/"
+load(file=file.path(outPath,a_year,"tacsatActivity.RData"))
+gears2keep            <- c("PTM","OTM", "PS")
+towedGears            <- c("PTM","OTM")
+seineGears            <- c("PS")
+VMS_ping_rate_in_hour <- 1
+# for computing fuel use
+table.fuelcons.per.engine       <-  read.table(file= file.path(dataPath, "IBM_datainput_engine_consumption.txt"), header=TRUE,sep="")
+linear.model                    <-  lm(calc_cons_L_per_hr_max_rpm~ kW2, data=table.fuelcons.per.engine)  # conso = a*Kw +b   # to guess its fuel consumption at maximal speed
+fuel_per_h                      <- function (a,x) a*(x^3)  # cubic law
+
+load(file=file.path(outPath,a_year,"steaming_cons_per_VE_REF_FT_REF.RData"))    # get steaming_cons_per_VE_REF_FT_REF  
+
 
 fls <- dir(file.path(outPath, a_year,"interpolated"))
 fls <- fls[grep("tacsatSweptArea_", fls)]
@@ -712,8 +728,39 @@ for(iFile in fls){
   count <- count+1
   load(file.path(outPath,a_year,"interpolated",iFile))
 
-
+   nbpoints <- 12 # caution: chek this for your case.
   
+   a_vessel <- sapply(strsplit(gsub(".RData","",iFile), split="_"), function(x)x[2])
+   a_gear   <- sapply(strsplit(gsub(".RData","",iFile), split="_"), function(x)x[3])
+   a_max_vessel_speed   <- quantile(as.numeric(as.character(tacsatp[tacsatp$VE_REF==a_vessel, 'SI_SP'])), 0.95) # we assume the towing is done at maximal load
+
+   if(a_gear%in% c(towedGears)){
+   #for towed gears and SSC: assume full load when dragging the trawl
+      # fuel use
+        max_consumed            <-  predict(linear.model, newdata=data.frame(kW2=as.numeric(as.character(tacsatp[tacsatp$VE_REF==a_vessel, 'VE_KW'][1]))))
+        a                       <- max_consumed/ (a_max_vessel_speed^3) # scaling factor
+        full_load_factor <- 0.9 # they fish at 90% full load
+        tacsatIntGearVEREF$LITRE_FUEL_FISHING      <- (fuel_per_h(as.numeric(as.character(a)), as.numeric(as.character(a_max_vessel_speed))) * full_load_factor) /nbpoints 
+        tacsatIntGearVEREF$VE_REF_FT_REF           <-  paste0(tacsatIntGearVEREF$VE_REF,"_",tacsatIntGearVEREF$FT_REF) 
+        nb_fishing_pts_per_VE_REF_FT_REF           <-  table(tacsatIntGearVEREF$VE_REF_FT_REF) # for dispatching evenly on fishing pts
+        tacsatIntGearVEREF$FUEL_LITRE_STEAMING     <- steaming_cons_per_VE_REF_FT_REF[tacsatIntGearVEREF$VE_REF_FT_REF]  /  table(tacsatIntGearVEREF$VE_REF_FT_REF)[tacsatIntGearVEREF$VE_REF_FT_REF]  
+        tacsatIntGearVEREF$LE_KG_LITRE_FUEL       <- tacsatIntGearVEREF$LITRE_FUEL_FISHING + tacsatIntGearVEREF$FUEL_LITRE_STEAMING 
+        tacsatIntGearVEREF <- tacsatIntGearVEREF[, !colnames(tacsatIntGearVEREF) %in% c("VE_REF_FT_REF", "max_vessel_speed", "max_consumed", "a", "FUEL_LITRE_STEAMING")] # cleaning
+    }
+     if(a_gear%in% "PS"){
+     #for seiners PS gears: actual speed is enough and a good proxy  
+     # fuel use
+        max_consumed            <-  predict(linear.model, newdata=data.frame(kW2=as.numeric(as.character(tacsatp[tacsatp$VE_REF==a_vessel, 'VE_KW'][1]))))
+        a                       <- max_consumed/ (a_max_vessel_speed^3) # scaling factor
+        tacsatIntGearVEREF$LITRE_FUEL_FISHING      <- fuel_per_h(as.numeric(as.character(a)), (as.numeric(as.character(tacsatIntGearVEREF$SI_SP))))* VMS_ping_rate_in_hour*1.0
+        tacsatIntGearVEREF$VE_REF_FT_REF           <-  paste0(tacsatIntGearVEREF$VE_REF,"_",tacsatIntGearVEREF$FT_REF) 
+        nb_fishing_pts_per_VE_REF_FT_REF           <-  table(tacsatIntGearVEREF$VE_REF_FT_REF) # for dispatching evenly on fishing pts
+        tacsatIntGearVEREF$FUEL_LITRE_STEAMING     <- steaming_cons_per_VE_REF_FT_REF[tacsatIntGearVEREF$VE_REF_FT_REF]  /  table(tacsatIntGearVEREF$VE_REF_FT_REF)[tacsatIntGearVEREF$VE_REF_FT_REF]  
+        tacsatIntGearVEREF$LE_KG_LITRE_FUEL        <- tacsatIntGearVEREF$LITRE_FUEL_FISHING + tacsatIntGearVEREF$FUEL_LITRE_STEAMING 
+        tacsatIntGearVEREF <- tacsatIntGearVEREF[, !colnames(tacsatIntGearVEREF) %in% c("VE_REF_FT_REF", "max_vessel_speed", "max_consumed", "a", "FUEL_LITRE_STEAMING")] # cleaning
+   }  
+
+
   #- Make selection for gears where you already have gear width and which not
   ctry <- "XXX"
   if(ctry=="NLD"){
@@ -746,7 +793,7 @@ nrow(tacsatSweptArea[is.na(tacsatSweptArea$SWEPT_AREA_KM2),])
 # save
 save(tacsatSweptArea, file=file.path(outPath,a_year, paste("tacsatSweptArea.RData", sep="")),compress=T)
 
-##} # end FALSE
+} # end FALSE
 
 
 
