@@ -141,7 +141,7 @@ if(.Platform$OS.type == "unix") {
 
    }   # end a_year
 
-
+} # end FALSE
  
   ##-----------------------------------
   ## COMPUTE SWEPT AREA
@@ -308,13 +308,13 @@ if(.Platform$OS.type == "unix") {
       a_vessel <- sapply(strsplit(gsub(".RData","",iFile), split="_"), function(x)x[2])
       a_gear   <- sapply(strsplit(gsub(".RData","",iFile), split="_"), function(x)x[3])
       a_max_vessel_speed   <- quantile(as.numeric(as.character(tacsatp[tacsatp$VE_REF==a_vessel, 'SI_SP'])), 0.95) # we assume the towing is done at maximal load
-  
+      max_consumed            <-  predict(linear.model, newdata=data.frame(kW2=as.numeric(as.character(tacsatp[tacsatp$VE_REF==a_vessel, 'VE_KW'][1]))))
+      a                       <- max_consumed/ (a_max_vessel_speed^3) # scaling factor
+      
 
       if(a_gear%in% c(towedGears,"SSC")){
          #for towed gears and SSC: assume full load when dragging the trawl
          # fuel use
-        max_consumed            <-  predict(linear.model, newdata=data.frame(kW2=as.numeric(as.character(tacsatp[tacsatp$VE_REF==a_vessel, 'VE_KW'][1]))))
-        a                       <- max_consumed/ (a_max_vessel_speed^3) # scaling factor
         full_load_factor <- 0.9 # they fish at 90% full load
         tacsatIntGearVEREF$LITRE_FUEL_FISHING      <- (fuel_per_h(as.numeric(as.character(a)), as.numeric(as.character(a_max_vessel_speed))) * full_load_factor) /nbpoints 
         tacsatIntGearVEREF$VE_REF_FT_REF           <-  paste0(tacsatIntGearVEREF$VE_REF,"_",tacsatIntGearVEREF$FT_REF) 
@@ -326,8 +326,6 @@ if(.Platform$OS.type == "unix") {
       if(a_gear%in% "SDN"){
          #for seiners SDN gears: actual speed is enough and a good proxy  
          # fuel use
-        max_consumed            <-  predict(linear.model, newdata=data.frame(kW2=as.numeric(as.character(tacsatp[tacsatp$VE_REF==a_vessel, 'VE_KW'][1]))))
-        a                       <- max_consumed/ (a_max_vessel_speed^3) # scaling factor
         tacsatIntGearVEREF$LITRE_FUEL_FISHING      <- fuel_per_h(as.numeric(as.character(a)), (as.numeric(as.character(tacsatIntGearVEREF$SI_SP))))* VMS_ping_rate_in_hour*1.0
         tacsatIntGearVEREF$VE_REF_FT_REF           <-  paste0(tacsatIntGearVEREF$VE_REF,"_",tacsatIntGearVEREF$FT_REF) 
         nb_fishing_pts_per_VE_REF_FT_REF           <-  table(tacsatIntGearVEREF$VE_REF_FT_REF) # for dispatching evenly on fishing pts
@@ -367,7 +365,7 @@ if(.Platform$OS.type == "unix") {
    } # end year
 
 
- } # end FALSE
+ #} # end FALSE
 
 
 

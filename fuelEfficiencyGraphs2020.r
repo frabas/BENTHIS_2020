@@ -1139,6 +1139,20 @@ dev.off()
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
  ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
@@ -1426,7 +1440,7 @@ dev.off()
 
 
 # PEL: for paper:
- namefile <- paste0("ts_fuel_efficiency", a_variable, "_", years[1], "-", years[length(years)],  a_comment, "_PEL_areaplot_land_and_FPUE.tif")
+ namefile <- paste0("ts_fuel_efficiency_", "mean_fuel_efficiency", "_", years[1], "-", years[length(years)],  a_comment, "_PEL_areaplot_land_and_FPUE.tif")
  tiff(filename=file.path(getwd(), "outputs2020", "output_plots",  namefile),   width = a_width, height = a_height,
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
  library(ggpubr)

@@ -740,19 +740,19 @@ cat(paste("All interpolations done", "\n"))
 # Create one swept area dataset
 #-----------------------------------------------------------------------------
 
-for(a_year in c(2005:2019)) {
-print(a_year)
-outPath   <- file.path("D:","FBA","BENTHIS_2020", "outputs2020")  
-dataPath  <- "D:/FBA/BENTHIS_2020/EflaloAndTacsat/"
-load(file=file.path(outPath,a_year,"tacsatActivity.RData"))
-gears2keep            <- c("TBB","OTT","OTB","SSC","SDN","PTB","DRB")
-towedGears            <- c("TBB","OTT","OTB","PTB","DRB")
-seineGears            <- c("SSC","SDN")
-VMS_ping_rate_in_hour <- 1
-# for computing fuel use
-table.fuelcons.per.engine       <-  read.table(file= file.path(dataPath, "IBM_datainput_engine_consumption.txt"), header=TRUE,sep="")
-linear.model                    <-  lm(calc_cons_L_per_hr_max_rpm~ kW2, data=table.fuelcons.per.engine)  # conso = a*Kw +b   # to guess its fuel consumption at maximal speed
-fuel_per_h                      <- function (a,x) a*(x^3)  # cubic law
+#for(a_year in c(2005:2019)) {
+#print(a_year)
+#outPath   <- file.path("D:","FBA","BENTHIS_2020", "outputs2020")  
+#dataPath  <- "D:/FBA/BENTHIS_2020/EflaloAndTacsat/"
+#load(file=file.path(outPath,a_year,"tacsatActivity.RData"))
+#gears2keep            <- c("TBB","OTT","OTB","SSC","SDN","PTB","DRB")
+#towedGears            <- c("TBB","OTT","OTB","PTB","DRB")
+#seineGears            <- c("SSC","SDN")
+#VMS_ping_rate_in_hour <- 1
+## for computing fuel use
+#table.fuelcons.per.engine       <-  read.table(file= file.path(dataPath, "IBM_datainput_engine_consumption.txt"), header=TRUE,sep="")
+#linear.model                    <-  lm(calc_cons_L_per_hr_max_rpm~ kW2, data=table.fuelcons.per.engine)  # conso = a*Kw +b   # to guess its fuel consumption at maximal speed
+#fuel_per_h                      <- function (a,x) a*(x^3)  # cubic law
 
 load(file=file.path(outPath,a_year,"steaming_cons_per_VE_REF_FT_REF.RData"))    # get steaming_cons_per_VE_REF_FT_REF  
 
@@ -834,7 +834,7 @@ nrow(tacsatSweptArea[is.na(tacsatSweptArea$SWEPT_AREA_KM2),])
 # save
 save(tacsatSweptArea, file=file.path(outPath,a_year, paste("tacsatSweptArea.RData", sep="")),compress=T)
 
-} # end FALSE
+#} # end FALSE
 
 
 
