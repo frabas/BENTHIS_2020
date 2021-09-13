@@ -567,7 +567,7 @@ load(file=file.path(outPath,a_year,"tacsatMerged.RData"))
     tacsatp$SI_STATE[idx[which(tacsatp$SI_SP[idx] >  7.5)]] <- 's'
   }
   save(tacsatp,     file=file.path(outPath,a_year,"tacsatActivity.RData"))
-
+ 
   # Labelling each haul (caution: to do before discarding the steaming points...)
   tacsatp   <- labellingHauls(tacsatp)
 
@@ -585,7 +585,9 @@ load(file=file.path(outPath,a_year,"tacsatMerged.RData"))
   steaming_cons_per_VE_REF_FT_REF       <-     tapply(tacsatps$LITRE_FUEL, paste0(tacsatps$VE_REF,"_",tacsatps$FT_REF), sum)
  
   save(steaming_cons_per_VE_REF_FT_REF, file=file.path(outPath,a_year,"steaming_cons_per_VE_REF_FT_REF.RData"))    # save steaming_cons_per_VE_REF_FT_REF  
-    
+  
+  
+      
   #-----------------------------------------------------------------------------
   # Interpolation (of fishing sequences only)
   #-----------------------------------------------------------------------------

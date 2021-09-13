@@ -156,7 +156,12 @@ some_color_seg <-  c("#7FC97F", "#BEAED4", "#FDC086", "#FFFF99", "#386CB0", "#F0
  if(per_metier_level6 && per_vessel_size){
    res <- NULL
    for (y in years){
-      load(file.path(getwd(),  "outputs2020", paste0("AggregatedSweptAreaPlusMet6AndVsize_",y,".RData") ))  # aggResult
+       load(file.path(getwd(), "outputs2020", paste0("AggregatedSweptAreaPlusMet6AndVsize_",y,".RData") ))  # aggResult for towed gears (trawl and dredge) & seines 
+      aggResult1 <- aggResult
+      load(file.path(getwd(), "outputs2020_gns", paste0("AggregatedSweptAreaPlusMet6AndVsize_",y,".RData") ))  # aggResult for GNS
+      aggResult2 <- aggResult
+      aggResult <- rbind.data.frame(aggResult1, aggResult2)
+    
       aggResult$LE_MET_init <- factor(aggResult$LE_MET_init)
       levels(aggResult$LE_MET_init) <- gsub("MCD", "CRU", levels(aggResult$LE_MET_init)) # immediate correction to avoid useless historical renaming MCD->CRU
       levels(aggResult$LE_MET_init) <- gsub("OTB_CRU_90-119_0_0", "OTB_DEF_90-119_0_0", levels(aggResult$LE_MET_init)) # immediate correction to avoid an artifical split
@@ -200,6 +205,11 @@ some_color_seg <-  c("#7FC97F", "#BEAED4", "#FDC086", "#FFFF99", "#386CB0", "#F0
    dem <- orderBy(~ -x, dem)
    oth_mets_dem <- as.character(dem[cumsum(dem[,2])/sum(dem[,2])>.75,1]) # 75% in effort in dem
  
+  
+   # but keep two exeption anyway to get some representation for SSC and GNS 
+   #LargeMesh_27.3_SSC_DEF_>=120_0_0 
+   oth_mets_dem <- oth_mets_dem[!oth_mets_dem %in% c('LargeMesh_27.4_SSC_DEF_>=120_0_0_[24,40)', 'LargeMesh_27.4_SSC_DEF_>=120_0_0_[18,24)', 'LargeMesh_27.3_PTB_DEF_>=105_1_110_[12,18)')]
+
  
  # met to keep
  oth_mets <- c(oth_mets_dem, oth_mets_pel, "27.3_No_Matrix6_[12,18)","27.4_No_Matrix6_[12,18)", "27.3_No_Matrix6_[18,24)","27.4_No_Matrix6_[18,24)", paste0("NA","_",levels(aggResult$VesselSize)) )
@@ -317,7 +327,12 @@ some_color_seg <-  c("#7FC97F", "#BEAED4", "#FDC086", "#FFFF99", "#386CB0", "#F0
   }
 
      if(per_metier_level6 && per_vessel_size) {
-       load(file.path(getwd(), "outputs2020", paste0("AggregatedSweptAreaPlusMet6AndVsize_",y,".RData") ))  # aggResult
+       load(file.path(getwd(), "outputs2020", paste0("AggregatedSweptAreaPlusMet6AndVsize_",y,".RData") ))  # aggResult for towed gears (trawl and dredge) & seines 
+       aggResult1 <- aggResult
+       load(file.path(getwd(), "outputs2020_gns", paste0("AggregatedSweptAreaPlusMet6AndVsize_",y,".RData") ))  # aggResult for GNS
+       aggResult2 <- aggResult
+       aggResult <- rbind.data.frame(aggResult1, aggResult2)
+      
        aggResult$LE_MET_init <- factor(aggResult$LE_MET_init)
        levels(aggResult$LE_MET_init) <- gsub("MCD", "CRU", levels(aggResult$LE_MET_init)) # immediate correction to avoid useless historical renaming MCD->CRU
        levels(aggResult$LE_MET_init) <- gsub("OTB_CRU_90-119_0_0", "OTB_DEF_90-119_0_0", levels(aggResult$LE_MET_init)) # immediate correction to avoid an artifical split

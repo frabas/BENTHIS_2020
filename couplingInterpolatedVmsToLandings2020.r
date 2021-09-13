@@ -143,6 +143,7 @@ if(.Platform$OS.type == "unix") {
 
 } # end FALSE
  
+ if(TRUE){  # do not re-run...this takes ages!
   ##-----------------------------------
   ## COMPUTE SWEPT AREA
   ##-----------------------------------
@@ -260,7 +261,7 @@ if(.Platform$OS.type == "unix") {
            'SOL', 'SPR', 'TUR', 'WHB', 'WIT', 'WHG',
             'OTH')
 
-   cols2keep <- c("VE_REF", "VE_LEN", "VE_KW", "SI_LATI","SI_LONG","SI_DATE","LE_GEAR","LE_MET","LE_MET_init","SWEPT_AREA_KM2","SWEPT_AREA_KM2_LOWER","SWEPT_AREA_KM2_UPPER", "GEAR_WIDTH", "SI_DATIM", "SI_FT") 
+   cols2keep <- c("VE_REF", "VE_LEN", "VE_KW", "SI_LATI","SI_LONG","SI_DATE","LE_GEAR","LE_MET","LE_MET_init","SWEPT_AREA_KM2","SWEPT_AREA_KM2_LOWER","SWEPT_AREA_KM2_UPPER", "GEAR_WIDTH", "SI_DATIM", "SI_FT", "FT_REF") 
 
    for (a_year in years){
     cat(paste(a_year, "\n"))
@@ -365,7 +366,7 @@ if(.Platform$OS.type == "unix") {
    } # end year
 
 
- #} # end FALSE
+ } # end FALSE
 
 
 
@@ -399,6 +400,19 @@ if(.Platform$OS.type == "unix") {
      tacsatSweptArea[ idx, "effort_mins"] <- NA  # exclude change of haul
      idx <- which( tacsatSweptArea$effort_mins <0) #   
      tacsatSweptArea[ idx, "effort_mins"] <- NA  # exclude change of vessel id
+     
+     # retrieve the harbour dep from FT_REF (Harb 5 letters in LOCODE)
+     load(file=file.path(outPath, a_year, "cleanEflalo.RData"))  # get tacsatp
+     tacsatSweptArea$VE_REF_FT_REF <- paste0(tacsatSweptArea$VE_REF,"_",tacsatSweptArea$FT_REF)
+     eflalo$VE_REF_FT_REF <- paste0(eflalo$VE_REF,"_",eflalo$FT_REF) 
+     dd <- eflalo [!duplicated(eflalo$VE_REF_FT_REF),]
+     dd <- dd[,c("VE_REF_FT_REF","FT_DHAR")]
+     rownames(dd) <- dd$VE_REF_FT_REF
+     tacsatSweptArea$FT_DHAR <- dd[tacsatSweptArea$VE_REF_FT_REF, "FT_DHAR"]
+     
+     # check
+     #levels(factor(tacsatSweptArea$FT_DHAR)) [!levels(factor(tacsatSweptArea$FT_DHAR)) %in% levels(vss$Port)] 
+     
      
      # vessel size
      #12-18, 18-24, 24-40, o40
@@ -446,6 +460,35 @@ if(.Platform$OS.type == "unix") {
     return(as.call(lstquote))
    }
    
+      # aggregate per VE_REF etc. (useful for DISPLACE North Sea)
+    library(data.table)
+    nm <- names(tacsatSweptArea)
+    idx.col.euro   <- grep('LE_EURO_', nm)
+    idx.col.kg     <- grep('LE_KG_', nm)
+    idx.col.swpt     <- grep('SWEPT_AREA_KM2', nm)
+    idx.col.effectiveeffort     <- grep('effort_mins', nm)
+    idx.col <- c(idx.col.euro, idx.col.kg, idx.col.swpt, idx.col.effectiveeffort)
+    DT  <- data.table(tacsatSweptArea) # library data.table for fast grouping replacing aggregate()
+    # AGGREGATE PER SPECIES -----> SUM (IF WEIGHT) OR MEAN (IF CPUE)
+    eq1  <- c.listquote( paste ("sum(",nm[idx.col],",na.rm=TRUE)",sep="") )
+    tacsatSweptArea.agg <- DT[,eval(eq1),by=list( VE_REF, FT_DHAR, LE_MET, VE_LEN, VE_KW)]
+    tacsatSweptArea.agg <- data.frame( tacsatSweptArea.agg)
+    colnames(tacsatSweptArea.agg) <- c("VE_REF", "FT_DHAR", "LE_MET", "VE_LEN", "VE_KW", nm[idx.col.euro], nm[idx.col.kg], nm[idx.col.swpt], nm[idx.col.effectiveeffort])
+   
+     aggResult<- tacsatSweptArea.agg
+    
+     #- Add midpoint of gridcell to dataset
+     #aggResult <- cbind(tacsatSweptArea.agg,CELL_LONG=coordinates(grd)[tacsatSweptArea.agg$grID,1],
+     #                   CELL_LATI=coordinates(grd)[tacsatSweptArea.agg$grID,2])
+
+     #- Remove records that are not in the study area 
+     #aggResult       <- subset(aggResult,is.na(grID)==F)
+
+     save(aggResult,file=file.path(outPath,  paste("AggregatedSweptAreaPlusPerVidPerMet6PerHarb_", a_year, ".RData", sep=""))) 
+
+ 
+  if(FALSE){  
+
     # aggregate per LE_MET
     library(data.table)
     nm <- names(tacsatSweptArea)
@@ -525,10 +568,12 @@ if(.Platform$OS.type == "unix") {
      save(aggResult,file=file.path(outPath,  paste("AggregatedSweptAreaPlusMet6AndVsize_", a_year, ".RData", sep=""))) 
   # DO the plot ordering cell from large revenue to lower revenue  and plot cumsum
   
+    }   # end FALSE
     
    } # end year
     
     
+  if(FALSE){  
 
   ##-----------------------------------
   ## GET SOME EFFORT TIME SERIES
@@ -570,10 +615,10 @@ if(.Platform$OS.type == "unix") {
 
      aggEffortAndFuelAlly <- rbind.data.frame(aggEffortAndFuelAlly, cbind.data.frame(dd, Year=a_year))
      }
-     aggEffortAndFuelAlly0-15m <- aggEffortAndFuelAlly[aggEffortAndFuelAlly$VesselSize=="[0,15)",] # clean up
+     aggEffortAndFuelAlly0_15m <- aggEffortAndFuelAlly[aggEffortAndFuelAlly$VesselSize=="[0,15)",] # clean up
      aggEffortAndFuelAlly <- aggEffortAndFuelAlly[aggEffortAndFuelAlly$VesselSize!="[0,15)",] # clean up
     
-     save(aggEffortAndFuelAlly0-15m,file=file.path(outPath,  paste("AggregatedEffortAndFuelAlly_BottomFishing0-15m.RData", sep=""))) 
+     save(aggEffortAndFuelAlly0_15m,file=file.path(outPath,  paste("AggregatedEffortAndFuelAlly_BottomFishing0_15m.RData", sep=""))) 
      save(aggEffortAndFuelAlly,file=file.path(outPath,  paste("AggregatedEffortAndFuelAlly_BottomFishing.RData", sep=""))) 
     
    
@@ -673,4 +718,6 @@ a_width <- 5500; a_height <- 2500
 print(p4)
 dev.off()
 
-       
+ 
+ 
+ } # end FALSE      
