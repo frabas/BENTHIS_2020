@@ -1204,14 +1204,16 @@ dev.off()
      dd$met_desc3 <- NA # init 
      dd[grepl("27.3",dd$LE_MET), "met_desc1"] <- "BS"
      dd[grepl("27.4",dd$LE_MET), "met_desc1"] <- "NS"
-     dd[grepl("OTB",dd$LE_MET), "met_desc2"] <- "dem.trawl for"
-     dd[grepl("PTB",dd$LE_MET), "met_desc2"] <- "paired trawl for"
-     dd[grepl("OTB",dd$LE_MET), "met_desc2"] <- "dem.trawl for"
-     dd[grepl("SDN",dd$LE_MET), "met_desc2"] <- "dem.seine for"
-     dd[grepl("SSC",dd$LE_MET), "met_desc2"] <- "scot.seine for"
-     dd[grepl("GNS",dd$LE_MET), "met_desc2"] <- "gillnet for"
-     dd[grepl("DRB",dd$LE_MET), "met_desc2"] <- "dredge for"
-     dd[grepl("TBB",dd$LE_MET), "met_desc2"] <- "beam.trawl for"
+     dd[grepl("OTB",dd$LE_MET), "met_desc2"] <- "dem.trawl for\n"
+     dd[grepl("PTB",dd$LE_MET), "met_desc2"] <- "paired trawl for\n"
+     dd[grepl("OTB",dd$LE_MET), "met_desc2"] <- "dem.trawl for\n"
+     dd[grepl("SDN",dd$LE_MET), "met_desc2"] <- "dem.seine for\n"
+     dd[grepl("SSC",dd$LE_MET), "met_desc2"] <- "scot.seine for\n"
+     dd[grepl("PS_",dd$LE_MET), "met_desc2"] <- "purse seine for\n"
+     dd[grepl("GNS",dd$LE_MET), "met_desc2"] <- "gillnet for\n"
+     dd[grepl("DRB",dd$LE_MET), "met_desc2"] <- "dredge for\n"
+     dd[grepl("TBB",dd$LE_MET), "met_desc2"] <- "beam.trawl for\n"
+     dd[grepl("TM",dd$LE_MET), "met_desc2"] <- "midw.trawl for\n"
      dd[grepl("OTHER",dd$LE_MET), "met_desc2"] <- "misc."
      dd[grepl(">=120_0_0",dd$LE_MET), "met_desc3"] <- "fish (>120mm)"   
      dd[grepl(">=105_1_120",dd$LE_MET), "met_desc3"] <- "fish (105-120mm)"   
@@ -1225,6 +1227,8 @@ dev.off()
      dd[grepl("120-219_0",dd$LE_MET), "met_desc3"] <- "fish (120-219mm)"   
      dd[grepl("<16_0_0",dd$LE_MET), "met_desc3"] <- "forage fish (<16mm)"   
      dd[grepl("SPF_16-31_0_0",dd$LE_MET), "met_desc3"] <- "pelagics (16-31mm)"   
+     dd[grepl("_PS_SPF_>0_0_0",dd$LE_MET), "met_desc3"] <- "pelagics"   
+     dd[grepl("SPF_32-69_0_0",dd$LE_MET), "met_desc3"] <- "pelagics (32-69mm)"   
      dd[grepl("DEF_16-31_0_0",dd$LE_MET), "met_desc3"] <- "d/pelagics (16-31mm)"   
      dd[grepl("CRU",dd$LE_MET), "met_desc3"] <- "crustaceans" 
      dd[grepl("MOL",dd$LE_MET), "met_desc3"] <- "molluscs" 
@@ -1328,51 +1332,51 @@ dev.off()
   
   the_agg_plot1 <- as.data.frame(the_agg_plot[grep("(a)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot1$LE_MET <- gsub("\\(a)","", the_agg_plot1$LE_MET)
- p1 <- ggplot(the_agg_plot1, aes(x=as.character(year), y=value/a_unit, group=Stock)) +
+ p1_area_bottomfishing_dem_land <- ggplot(the_agg_plot1, aes(x=as.character(year), y=value/a_unit, group=Stock)) +
      facet_wrap(. ~ met_desc, scales = "free_y", ncol=1)  +  theme_minimal() +
       theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +
   geom_area(aes(fill=Stock))  +     labs(y = "Landings (tons)", x = "Year")   +
-   scale_fill_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=8))  +
+   scale_fill_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=1, position="right"))  +
     xlab("")
- #print(p1)
+ #print(p1_bottomfishing_dem_land)
 
   the_agg_plot3 <- as.data.frame(the_agg_plot[grep("(c)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot3$LE_MET <- gsub("\\(c)","", the_agg_plot3$LE_MET)
- p3 <- ggplot(the_agg_plot3, aes(x=as.character(year), y=value/a_unit, group=Stock)) +
+ p3_area_bottomfishing_dem_cpuf <- ggplot(the_agg_plot3, aes(x=as.character(year), y=value/a_unit, group=Stock)) +
      facet_wrap(. ~ met_desc, scales = "free_y", ncol=1)  +  theme_minimal() + 
      theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +  
   geom_area(aes(fill=Stock))  +     labs(y = "CPUF (kg per litre)", x = "Year")   +
-   scale_fill_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=8))  +
+   scale_fill_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=1, position="right"))  +
     xlab("")
  #print(p3)
  
   the_agg_plot4 <- as.data.frame(the_agg_plot[grep("(d)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot4$LE_MET <- gsub("\\(d)","", the_agg_plot4$LE_MET)
- p4 <- ggplot(the_agg_plot4, aes(x=as.character(year), y=value/a_unit, group=Stock)) +
+ p4_area_bottomfishing_dem_vpuf <- ggplot(the_agg_plot4, aes(x=as.character(year), y=value/a_unit, group=Stock)) +
      facet_wrap(. ~ met_desc, scales = "free_y", ncol=1)  +  theme_minimal() + 
      theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +   
   geom_area(aes(fill=Stock))  +     labs(y = "VPUF (euro per litre)", x = "Year")   +
-   scale_fill_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=8))  +
+   scale_fill_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=1, position="right"))  +
     xlab("")
  #print(p4)
 
  
   the_agg_plot5 <- as.data.frame(the_agg_plot[grep("(e)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot5$LE_MET <- gsub("\\(e)","", the_agg_plot5$LE_MET)
- p5 <- ggplot(the_agg_plot5, aes(x=as.character(year), y=value/a_unit, group=Stock)) +
+ p5_area_bottomfishing_dem_fpuc <- ggplot(the_agg_plot5, aes(x=as.character(year), y=value/a_unit, group=Stock)) +
      facet_wrap(. ~ met_desc, scales = "free_y", ncol=1)  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +   
   geom_area(aes(fill=Stock))  +     labs(y = "Litre per kg catch", x = "Year")   +
-   scale_fill_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=8))  +
+   scale_fill_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=1, position="right"))  +
     xlab("")
  #print(p5)
 
  
   the_agg_plot6 <- as.data.frame(the_agg_plot[grep("(f)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot6$LE_MET <- gsub("\\(f)","", the_agg_plot6$LE_MET)
- p6 <- ggplot(the_agg_plot6, aes(x=as.character(year), y=value/a_unit, group=Stock)) +
+ p6_area_bottomfishing_dem_fpuv <- ggplot(the_agg_plot6, aes(x=as.character(year), y=value/a_unit, group=Stock)) +
      facet_wrap(. ~ met_desc, scales = "free_y", ncol=1)  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +   
   geom_area(aes(fill=Stock))  +     labs(y = "Litre per euro catch", x = "Year")   +
-   scale_fill_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=8))  +
+   scale_fill_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=1, position="right"))  +
     xlab("")
  #print(p6)
  
@@ -1380,10 +1384,10 @@ dev.off()
  ### ADD-ON for bottom fishing: revenue per swept area
   the_agg_plot7 <- as.data.frame(the_agg_plot[grep("(g)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot7$LE_MET <- gsub("\\(g)","", the_agg_plot7$LE_MET)
- p7 <- ggplot(the_agg_plot7, aes(x=as.character(year), y=value/a_unit, group=Stock)) +
+ p7_area_bottomfishing_dem_vswpa <- ggplot(the_agg_plot7, aes(x=as.character(year), y=value/a_unit, group=Stock)) +
      facet_wrap(. ~ met_desc, scales = "free_y", ncol=1)  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +   
   geom_area(aes(fill=Stock))  +     labs(y = "Euro catch per km-sq", x = "Year")   +
-   scale_fill_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=8))  +
+   scale_fill_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=1, position="right"))  +
     xlab("")
  #print(p7)
 
@@ -1391,10 +1395,10 @@ dev.off()
  ### ADD-ON mean price
   the_agg_plot8 <- as.data.frame(the_agg_plot[grep("(h)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot8$LE_MET <- gsub("\\(h)","", the_agg_plot8$LE_MET)
- p8 <- ggplot(the_agg_plot8, aes(x=as.character(year), y=value/a_unit, group=Stock)) +
+ p8_area_bottomfishing_dem_price <- ggplot(the_agg_plot8, aes(x=as.character(year), y=value/a_unit, group=Stock)) +
      facet_wrap(. ~ met_desc, scales = "free_y", ncol=1)  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +   
   geom_area(aes(fill=Stock))  +     labs(y = "Euro catch per kg", x = "Year")   +
-   scale_fill_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=8))  +
+   scale_fill_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=1, position="right"))  +
     xlab("")
  #print(p8)
 
@@ -1403,7 +1407,7 @@ dev.off()
  tiff(filename=file.path(getwd(), "outputs2020", "output_plots",  namefile),   width = a_width, height = a_height,
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
  library(ggpubr)
- ggarrange(p1, p4, p5, ncol=3, common.legend = TRUE, legend="bottom")
+ ggarrange(p1_area_bottomfishing_dem_land, p4_area_bottomfishing_dem_vpuf, p5_area_bottomfishing_dem_fpuc, ncol=3, common.legend = TRUE, legend="right")
 
 dev.off()
 
@@ -1444,56 +1448,56 @@ dev.off()
   
   the_agg_plot1 <- as.data.frame(the_agg_plot[grep("(a)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot1$LE_MET <- gsub("\\(a)","", the_agg_plot1$LE_MET)
- p1 <- ggplot(the_agg_plot1, aes(x=as.character(year), y=value/a_unit, group=Stock)) +
+ p1_area_bottomfishing_pel_land <- ggplot(the_agg_plot1, aes(x=as.character(year), y=value/a_unit, group=Stock)) +
      facet_wrap(. ~ met_desc, scales = "free_y", ncol=1)  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +   
   geom_area(aes(fill=Stock))  +     labs(y = "Landings (tons)", x = "Year")   +
-   scale_fill_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=8))  +
+   scale_fill_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=1))  +
     xlab("")
  #print(p1)
 
   the_agg_plot3 <- as.data.frame(the_agg_plot[grep("(c)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot3$LE_MET <- gsub("\\(c)","", the_agg_plot3$LE_MET)
- p3 <- ggplot(the_agg_plot3, aes(x=as.character(year), y=value/a_unit, group=Stock)) +
+ p3_area_bottomfishing_dem_cpuf <- ggplot(the_agg_plot3, aes(x=as.character(year), y=value/a_unit, group=Stock)) +
      facet_wrap(. ~ met_desc, scales = "free_y", ncol=1)  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +   
   geom_area(aes(fill=Stock))  +     labs(y = "CPUF (kg per litre)", x = "Year")   +
-   scale_fill_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=8))  +
+   scale_fill_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=1))  +
     xlab("")
  #print(p3)
 
   the_agg_plot4 <- as.data.frame(the_agg_plot[grep("(d)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot4$LE_MET <- gsub("\\(d)","", the_agg_plot4$LE_MET)
- p4 <- ggplot(the_agg_plot4, aes(x=as.character(year), y=value/a_unit, group=Stock)) +
+ p4_area_bottomfishing_pel_vpuf <- ggplot(the_agg_plot4, aes(x=as.character(year), y=value/a_unit, group=Stock)) +
      facet_wrap(. ~ met_desc, scales = "free_y", ncol=1)  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +  
   geom_area(aes(fill=Stock))  +     labs(y = "VPUF (euro per litre)", x = "Year")   +
-   scale_fill_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=8))  +
+   scale_fill_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=1))  +
     xlab("")
  #print(p4)
 
   the_agg_plot5 <- as.data.frame(the_agg_plot[grep("(e)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot5$LE_MET <- gsub("\\(e)","", the_agg_plot5$LE_MET)
- p5 <- ggplot(the_agg_plot5, aes(x=as.character(year), y=value/a_unit, group=Stock)) +
+ p5_area_bottomfishing_pel_fpuc <- ggplot(the_agg_plot5, aes(x=as.character(year), y=value/a_unit, group=Stock)) +
      facet_wrap(. ~ met_desc, scales = "free_y", ncol=1)  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +  
   geom_area(aes(fill=Stock))  +     labs(y = "Litre per kg catch", x = "Year")   +
-   scale_fill_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=8))  +
+   scale_fill_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=1))  +
     xlab("")
  #print(p5)
 
    the_agg_plot6 <- as.data.frame(the_agg_plot[grep("(f)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot6$LE_MET <- gsub("\\(f)","", the_agg_plot6$LE_MET)
- p6 <- ggplot(the_agg_plot6, aes(x=as.character(year), y=value/a_unit, group=Stock)) +
+ p6_area_bottomfishing_pel_fpuv <- ggplot(the_agg_plot6, aes(x=as.character(year), y=value/a_unit, group=Stock)) +
      facet_wrap(. ~ met_desc, scales = "free_y", ncol=1)  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +  
   geom_area(aes(fill=Stock))  +     labs(y = "Litre per euro catch", x = "Year")   +
-   scale_fill_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=8))  +
+   scale_fill_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=1))  +
     xlab("")
  #print(p6)
  
   ### ADD-ON mean price
   the_agg_plot8 <- as.data.frame(the_agg_plot[grep("(h)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot8$LE_MET <- gsub("\\(h)","", the_agg_plot8$LE_MET)
- p8 <- ggplot(the_agg_plot8, aes(x=as.character(year), y=value/a_unit, group=Stock)) +
+ p8_area_bottomfishing_pel_price <- ggplot(the_agg_plot8, aes(x=as.character(year), y=value/a_unit, group=Stock)) +
      facet_wrap(. ~ met_desc, scales = "free_y", ncol=1)  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +   
   geom_area(aes(fill=Stock))  +     labs(y = "Euro catch per kg", x = "Year")   +
-   scale_fill_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=8))  +
+   scale_fill_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=1))  +
     xlab("")
  #print(p8)
 
@@ -1504,7 +1508,7 @@ dev.off()
  tiff(filename=file.path(getwd(), "outputs2020", "output_plots",  namefile),   width = a_width, height = a_height,
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
  library(ggpubr)
- ggarrange(p1, p4, p5, ncol=3, common.legend = TRUE, legend="bottom")
+ ggarrange(p1_area_bottomfishing_pel_land, p4_area_bottomfishing_pel_vpuf, p5_area_bottomfishing_pel_fpuc, ncol=3, common.legend = TRUE, legend="right")
 
 dev.off()
 
@@ -1548,7 +1552,6 @@ dev.off()
  load(file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndRatiosBottContactAndGNS.RData", sep="")))  # aggResultPerMetAlly
 
 ## DEM
- a_width <- 3200 ; a_height <- 6500
  library(ggplot2)
  a_comment <- ""
  a_unit <- 1
@@ -1596,37 +1599,37 @@ collecting_table <- NULL
  the_agg_plot0$LE_MET <- gsub("\\(z)","", the_agg_plot0$LE_MET)
  the_agg_plot0$LE_MET <- factor(the_agg_plot0$LE_MET, level=fleet_segments_ordered) # reorder
  the_agg_plot0$met_desc <- factor(the_agg_plot0$met_desc, level=fleet_segments_ordered2) # reorder)
-  p0 <- ggplot(data=the_agg_plot0, aes(x=met_desc, y=value/a_unit, fill=Stock)) + #  geom_bar(stat="identity", position=position_dodge())
+  p0_barplot_bottomfishing_dem_value <- ggplot(data=the_agg_plot0, aes(x=met_desc, y=value/a_unit, fill=Stock)) + #  geom_bar(stat="identity", position=position_dodge())
   geom_bar(stat = "summary", fun = a_func_mean) +  labs(y = "Value (KEuros)", x= "") +
-       scale_fill_manual(values=some_color_species, name="Species") + theme_minimal() + theme(axis.text.x=element_blank()) + guides(fill =guide_legend(ncol=7))  
+       scale_fill_manual(values=some_color_species, name="Species") + theme_minimal() + theme(axis.text.x=element_blank()) + guides(fill =guide_legend(ncol=1, position="right"))  
   #print(p0)
 
 the_agg_plot1 <- as.data.frame(the_agg_plot[grep("(a)",the_agg_plot$LE_MET, fixed=TRUE),])
  the_agg_plot1$LE_MET <- gsub("\\(a)","", the_agg_plot1$LE_MET)
  the_agg_plot1$LE_MET <- factor(the_agg_plot1$LE_MET, level=fleet_segments_ordered) # reorder
  the_agg_plot1$met_desc <- factor(the_agg_plot1$met_desc, level=fleet_segments_ordered2) # reorder)
-  p1 <- ggplot(data=the_agg_plot1, aes(x=met_desc, y=value/1000, fill=Stock)) + #  geom_bar(stat="identity", position=position_dodge())
+  p1_barplot_bottomfishing_dem_land <- ggplot(data=the_agg_plot1, aes(x=met_desc, y=value/1000, fill=Stock)) + #  geom_bar(stat="identity", position=position_dodge())
   geom_bar(stat = "summary", fun = a_func_mean) +  labs(y = "Landings (*1000 tons)", x= "") +
-       scale_fill_manual(values=some_color_species, name="Species") + theme_minimal() + theme(axis.text.x=element_blank()) + guides(fill =guide_legend(ncol=7))  
+       scale_fill_manual(values=some_color_species, name="Species") + theme_minimal() + theme(axis.text.x=element_blank()) + guides(fill =guide_legend(ncol=1, position="right"))  
   #print(p1)
 
  the_agg_plot2 <- as.data.frame(the_agg_plot[grep("(b)",the_agg_plot$LE_MET, fixed=TRUE),])
  the_agg_plot2$LE_MET <- gsub("\\(b)","", the_agg_plot2$LE_MET)
  the_agg_plot2$LE_MET <- factor(the_agg_plot2$LE_MET, level=fleet_segments_ordered) # reorder
  the_agg_plot2$met_desc <- factor(the_agg_plot2$met_desc, level=fleet_segments_ordered2) # reorder)
- p2 <- ggplot(data=the_agg_plot2, aes(x=met_desc, y=value/1e6, fill=Stock)) + #  geom_bar(stat="identity", position=position_dodge())
+ p2_barplot_bottomfishing_dem_fuel <- ggplot(data=the_agg_plot2, aes(x=met_desc, y=value/1e6, fill=Stock)) + #  geom_bar(stat="identity", position=position_dodge())
   geom_bar(stat = "summary", fun = a_func_mean) +  labs(y ="Fuel (millions litre)", x= "") +
-       scale_fill_manual(values=some_color_species, name="Species")  + theme_minimal() + theme(axis.text.x=element_blank()) + guides(fill =guide_legend(ncol=7))  
+       scale_fill_manual(values=some_color_species, name="Species")  + theme_minimal() + theme(axis.text.x=element_blank()) + guides(fill =guide_legend(ncol=1, position="right"))  
   #print(p2)
 
  the_agg_plot3 <- as.data.frame(the_agg_plot[grep("(c)",the_agg_plot$LE_MET, fixed=TRUE),])
  the_agg_plot3$LE_MET <- gsub("\\(c)","", the_agg_plot3$LE_MET)
  the_agg_plot3$LE_MET <- factor(the_agg_plot3$LE_MET, level=fleet_segments_ordered) # reorder
  the_agg_plot3$met_desc <- factor(the_agg_plot3$met_desc, level=fleet_segments_ordered2) # reorder)
- p3 <- ggplot(data=the_agg_plot3, aes(x=met_desc, y=value/a_unit, fill=Stock)) + #  geom_bar(stat="identity", position=position_dodge())
+ p3_barplot_bottomfishing_dem_cpuf <- ggplot(data=the_agg_plot3, aes(x=met_desc, y=value/a_unit, fill=Stock)) + #  geom_bar(stat="identity", position=position_dodge())
   geom_bar(stat = "summary", fun = a_func_mean) +
     labs(y ="CPUF (kg per litre)", x= "") +
-       scale_fill_manual(values=some_color_species, name="Species")  + theme_minimal() + theme(axis.text.x=element_blank()) + guides(fill =guide_legend(ncol=7))  
+       scale_fill_manual(values=some_color_species, name="Species")  + theme_minimal() + theme(axis.text.x=element_blank()) + guides(fill =guide_legend(ncol=1, position="right"))  
   #print(p3)
 
   the_agg_plot4 <- as.data.frame(the_agg_plot[grep("(d)",the_agg_plot$LE_MET, fixed=TRUE),])
@@ -1634,10 +1637,10 @@ the_agg_plot1 <- as.data.frame(the_agg_plot[grep("(a)",the_agg_plot$LE_MET, fixe
   the_agg_plot4$LE_MET <- factor(the_agg_plot4$LE_MET, level=fleet_segments_ordered) # reorder
   the_agg_plot4 <- the_agg_plot4[the_agg_plot4$value<20,]  # debug for other
   the_agg_plot4$met_desc <- factor(the_agg_plot4$met_desc, level=fleet_segments_ordered2) # reorder)
-  p4 <- ggplot(data=the_agg_plot4, aes(x=met_desc, y=value/a_unit, fill=Stock)) + #  geom_bar(stat="identity", position=position_dodge())
+  p4_barplot_bottomfishing_dem_vpuf <- ggplot(data=the_agg_plot4, aes(x=met_desc, y=value/a_unit, fill=Stock)) + #  geom_bar(stat="identity", position=position_dodge())
   geom_bar(stat = "summary", fun = a_func_mean) + 
   labs(y = "VPUF (euro per litre)", x= "Fleet-segments") +
-       scale_fill_manual(values=some_color_species, name="Species") + theme_minimal() + guides(fill =guide_legend(ncol=7))  + 
+       scale_fill_manual(values=some_color_species, name="Species") + theme_minimal() + guides(fill =guide_legend(ncol=1, position="right"))  + 
          theme(axis.text.x=element_blank()) 
         # theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5, size=8))
   #print(p4)
@@ -1647,23 +1650,23 @@ the_agg_plot1 <- as.data.frame(the_agg_plot[grep("(a)",the_agg_plot$LE_MET, fixe
   the_agg_plot5$LE_MET <- factor(the_agg_plot5$LE_MET, level=fleet_segments_ordered) # reorder
   the_agg_plot5 <- the_agg_plot5[the_agg_plot5$value<1,]  # debug for other
   the_agg_plot5$met_desc <- factor(the_agg_plot5$met_desc, level=fleet_segments_ordered2) # reorder)
-  p5 <- ggplot(data=the_agg_plot5, aes(x=met_desc, y=value/a_unit, fill=Stock)) + #  geom_bar(stat="identity", position=position_dodge())
+  p5_barplot_bottomfishing_dem_fpuc <- ggplot(data=the_agg_plot5, aes(x=met_desc, y=value/a_unit, fill=Stock)) + #  geom_bar(stat="identity", position=position_dodge())
   geom_bar(stat = "summary", fun = a_func_mean) + 
    labs(y = "Litre per kg catch", x= "Fleet-segments") +
-       scale_fill_manual(values=some_color_species, name="Species") + theme_minimal() + guides(fill =guide_legend(ncol=7))  + 
+       scale_fill_manual(values=some_color_species, name="Species") + theme_minimal() + guides(fill =guide_legend(ncol=1, position="right"))  + 
         # theme(axis.text.x=element_blank()) 
-         theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5, size=8))
+         theme(axis.text.x=element_text(angle=60,hjust=1,vjust=1, size=10))
 
   the_agg_plot6 <- as.data.frame(the_agg_plot[grep("(f)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot6$LE_MET <- gsub("\\(f)","", the_agg_plot6$LE_MET)
   the_agg_plot6$LE_MET <- factor(the_agg_plot6$LE_MET, level=fleet_segments_ordered) # reorder
   the_agg_plot6$met_desc <- factor(the_agg_plot6$met_desc, level=fleet_segments_ordered2) # reorder)
-  p6 <- ggplot(data=the_agg_plot6, aes(x=met_desc, y=value/a_unit, fill=Stock)) + #  geom_bar(stat="identity", position=position_dodge())
+  p6_barplot_bottomfishing_dem_fpuv <- ggplot(data=the_agg_plot6, aes(x=met_desc, y=value/a_unit, fill=Stock)) + #  geom_bar(stat="identity", position=position_dodge())
   geom_bar(stat = "summary", fun = a_func_mean) + 
    labs(y = "Litre per euro catch", x= "Fleet-segments") +
-       scale_fill_manual(values=some_color_species, name="Species") + theme_minimal() + guides(fill =guide_legend(ncol=7))  + 
+       scale_fill_manual(values=some_color_species, name="Species") + theme_minimal() + guides(fill =guide_legend(ncol=1, position="right"))  + 
         # theme(axis.text.x=element_blank()) 
-         theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5, size=8))
+         theme(axis.text.x=element_text(angle=90,hjust=1,vjust=1, size=8))
 
 
           ## ADD-ON revenue per swept area for bottom fishing
@@ -1672,10 +1675,10 @@ the_agg_plot1 <- as.data.frame(the_agg_plot[grep("(a)",the_agg_plot$LE_MET, fixe
   the_agg_plot7 <- the_agg_plot7[!the_agg_plot7$LE_MET=="OTHER_0_0_0 ",] # remove outlier
   the_agg_plot7$LE_MET <- factor(the_agg_plot7$LE_MET, level=fleet_segments_ordered) # reorder
   the_agg_plot7$met_desc <- factor(the_agg_plot7$met_desc, level=fleet_segments_ordered2) # reorder)
-  p7 <- ggplot(data=the_agg_plot7, aes(x=met_desc, y=value/a_unit, fill=Stock)) + #  geom_bar(stat="identity", position=position_dodge())
+  p7_barplot_bottomfishing_dem_vswpa <- ggplot(data=the_agg_plot7, aes(x=met_desc, y=value/a_unit, fill=Stock)) + #  geom_bar(stat="identity", position=position_dodge())
   geom_bar(stat = "summary", fun = a_func_mean) + 
    labs(y = "Euro catch per km-sq", x= "Fleet-segments") +
-       scale_fill_manual(values=some_color_species, name="Species") + theme_minimal() + guides(fill =guide_legend(ncol=7))  + 
+       scale_fill_manual(values=some_color_species, name="Species") + theme_minimal() + guides(fill =guide_legend(ncol=1, position="right"))  + 
          theme(axis.text.x=element_blank()) 
         # theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5, size=8))
 print(p7)
@@ -1687,21 +1690,23 @@ print(p7)
     the_agg_plot8[the_agg_plot8$ value>100,"value"] <- 0 # remove outlier
   the_agg_plot8$LE_MET <- factor(the_agg_plot8$LE_MET, level=fleet_segments_ordered) # reorder
   the_agg_plot8$met_desc <- factor(the_agg_plot8$met_desc, level=fleet_segments_ordered2) # reorder)
-  p8 <- ggplot(data=the_agg_plot8, aes(x=met_desc, y=value/a_unit, fill=Stock)) + #  geom_bar(stat="identity", position=position_dodge())
+  p8_barplot_bottomfishing_dem_price <- ggplot(data=the_agg_plot8, aes(x=met_desc, y=value/a_unit, fill=Stock)) + #  geom_bar(stat="identity", position=position_dodge())
   geom_bar(stat = "summary", fun = a_func_mean) + 
    labs(y = "Euro catch per kg", x= "Fleet-segments") +
-       scale_fill_manual(values=some_color_species, name="Species") + theme_minimal() + guides(fill =guide_legend(ncol=7))  + 
+       scale_fill_manual(values=some_color_species, name="Species") + theme_minimal() + guides(fill =guide_legend(ncol=1, position="right"))  + 
         # theme(axis.text.x=element_blank()) 
-         theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5, size=8))
+         theme(axis.text.x=element_text(angle=60,hjust=1,vjust=0.5, size=12))
 print(p8)
 
  # for paper:
+ a_width <- 6000 ; a_height <- 5500
  namefile <- paste0("barplot_mean_fuel_efficiency_", years[1], "-", years[length(years)],  a_comment, "_DEM_plot_land_and_FPUC_and_FPUV_rev.tif")
  tiff(filename=file.path(getwd(), "outputs2020", "output_plots",  namefile),   width = a_width, height = a_height,
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
 
   library(ggpubr)
-  ggarrange(p1, p2, p4, p5, ncol=1, heights=c(1,1,1,2),common.legend = TRUE, legend="bottom")
+  ggarrange(p1_barplot_bottomfishing_dem_land, p2_barplot_bottomfishing_dem_fuel, p4_barplot_bottomfishing_dem_vpuf, p5_barplot_bottomfishing_dem_fpuc, ncol=1,
+                            heights=c(1,1,1,1.5),common.legend = TRUE, legend="right")
 dev.off()
 
 
@@ -1735,13 +1740,13 @@ dev.off()
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
 
   library(ggpubr)
-  ggarrange(p7, p8, ncol=1, heights=c(1),common.legend = TRUE, legend="bottom")
+  ggarrange(p7_barplot_bottomfishing_dem_vswpa, p8_barplot_bottomfishing_dem_price, ncol=1, heights=c(1),common.legend = TRUE, legend="bottom")
 dev.off()
 
 
 ##!!!!!!!!!!!!!!!!!!!!!!##
 ## PEL 
- a_width <- 3200 ; a_height <- 6500
+
  library(ggplot2)
 
  the_agg_plot <- as.data.frame(the_agg[grep("SmallMesh",the_agg$LE_MET),])
@@ -1782,9 +1787,9 @@ dev.off()
  the_agg_plot0$LE_MET <- gsub("\\(z)","", the_agg_plot0$LE_MET)
  the_agg_plot0$LE_MET <- factor(the_agg_plot0$LE_MET, level=fleet_segments_ordered) # reorder
  the_agg_plot0$met_desc <- factor(the_agg_plot0$met_desc, level=fleet_segments_ordered2) # reorder)
-  p0 <- ggplot(data=the_agg_plot0, aes(x=LE_MET, y=value/a_unit, fill=Stock)) + #  geom_bar(stat="identity", position=position_dodge())
+  p0_barplot_bottomfishing_pel_value <- ggplot(data=the_agg_plot0, aes(x=met_desc, y=value/a_unit, fill=Stock)) + #  geom_bar(stat="identity", position=position_dodge())
   geom_bar(stat = "summary", fun = a_func_mean) +  labs(y = "Value (KEuros)", x= "") +
-       scale_fill_manual(values=some_color_species, name="Species") + theme_minimal() + theme(axis.text.x=element_blank()) + guides(fill =guide_legend(ncol=7))  
+       scale_fill_manual(values=some_color_species, name="Species") + theme_minimal() + theme(axis.text.x=element_blank()) + guides(fill =guide_legend(ncol=1, position="right"))  
   #print(p0)
  
 
@@ -1792,38 +1797,38 @@ dev.off()
  the_agg_plot1$LE_MET <- gsub("\\(a)","", the_agg_plot1$LE_MET)
  the_agg_plot1$LE_MET <- factor(the_agg_plot1$LE_MET, level=fleet_segments_ordered) # reorder
  the_agg_plot1$met_desc <- factor(the_agg_plot1$met_desc, level=fleet_segments_ordered2) # reorder)
-  p1 <- ggplot(data=the_agg_plot1, aes(x=LE_MET, y=value/a_unit, fill=Stock)) + #  geom_bar(stat="identity", position=position_dodge())
+  p1_barplot_bottomfishing_pel_land <- ggplot(data=the_agg_plot1, aes(x=met_desc, y=value/a_unit, fill=Stock)) + #  geom_bar(stat="identity", position=position_dodge())
   geom_bar(stat = "summary", fun = a_func_mean) +  labs(y = "Landings (tons)", x= "") +
-       scale_fill_manual(values=some_color_species, name="Species") + theme_minimal() + theme(axis.text.x=element_blank()) + guides(fill =guide_legend(ncol=7))  
+       scale_fill_manual(values=some_color_species, name="Species") + theme_minimal() + theme(axis.text.x=element_blank()) + guides(fill =guide_legend(ncol=1, position="right"))  
   #print(p1)
  
  the_agg_plot2 <- as.data.frame(the_agg_plot[grep("(b)",the_agg_plot$LE_MET, fixed=TRUE),])
  the_agg_plot2$LE_MET <- gsub("\\(b)","", the_agg_plot2$LE_MET)
  the_agg_plot2$LE_MET <- factor(the_agg_plot2$LE_MET, level=fleet_segments_ordered) # reorder
  the_agg_plot2$met_desc <- factor(the_agg_plot2$met_desc, level=fleet_segments_ordered2) # reorder)
-  p2 <- ggplot(data=the_agg_plot2, aes(x=LE_MET, y=value/1e3, fill=Stock)) + #  geom_bar(stat="identity", position=position_dodge())
+  p2_barplot_bottomfishing_pel_fuel <- ggplot(data=the_agg_plot2, aes(x=met_desc, y=value/1e3, fill=Stock)) + #  geom_bar(stat="identity", position=position_dodge())
   geom_bar(stat = "summary", fun = a_func_mean) +  labs(y ="Fuel (thousands litre)", x= "") +
-       scale_fill_manual(values=some_color_species, name="Species")  + theme_minimal() + theme(axis.text.x=element_blank()) + guides(fill =guide_legend(ncol=7))  
+       scale_fill_manual(values=some_color_species, name="Species")  + theme_minimal() + theme(axis.text.x=element_blank()) + guides(fill =guide_legend(ncol=1, position="right"))  
   #print(p2)
  
  the_agg_plot3 <- as.data.frame(the_agg_plot[grep("(c)",the_agg_plot$LE_MET, fixed=TRUE),])
  the_agg_plot3$LE_MET <- gsub("\\(c)","", the_agg_plot3$LE_MET)
  the_agg_plot3$LE_MET <- factor(the_agg_plot3$LE_MET, level=fleet_segments_ordered) # reorder
  the_agg_plot3$met_desc <- factor(the_agg_plot3$met_desc, level=fleet_segments_ordered2) # reorder)
-  p3 <- ggplot(data=the_agg_plot3, aes(x=LE_MET, y=value/a_unit, fill=Stock)) + #  geom_bar(stat="identity", position=position_dodge())
+  p3_barplot_bottomfishing_pel_cpuf <- ggplot(data=the_agg_plot3, aes(x=met_desc, y=value/a_unit, fill=Stock)) + #  geom_bar(stat="identity", position=position_dodge())
   geom_bar(stat = "summary", fun = a_func_mean) +
     labs(y ="CPUF (kg per litre)", x= "") +
-       scale_fill_manual(values=some_color_species, name="Species")  + theme_minimal() + theme(axis.text.x=element_blank()) + guides(fill =guide_legend(ncol=7))  
+       scale_fill_manual(values=some_color_species, name="Species")  + theme_minimal() + theme(axis.text.x=element_blank()) + guides(fill =guide_legend(ncol=1, position="right"))  
   #print(p3)
  
   the_agg_plot4 <- as.data.frame(the_agg_plot[grep("(d)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot4$LE_MET <- gsub("\\(d)","", the_agg_plot4$LE_MET)
   the_agg_plot4$LE_MET <- factor(the_agg_plot4$LE_MET, level=fleet_segments_ordered) # reorder
   the_agg_plot4$met_desc <- factor(the_agg_plot4$met_desc, level=fleet_segments_ordered2) # reorder)
-  p4 <- ggplot(data=the_agg_plot4, aes(x=LE_MET, y=value/a_unit, fill=Stock)) + #  geom_bar(stat="identity", position=position_dodge())
+  p4_barplot_bottomfishing_pel_vpuf <- ggplot(data=the_agg_plot4, aes(x=met_desc, y=value/a_unit, fill=Stock)) + #  geom_bar(stat="identity", position=position_dodge())
   geom_bar(stat = "summary", fun = a_func_mean) + 
   labs(y = "VPUF (euro per litre)", x= "Fleet-segments") +
-       scale_fill_manual(values=some_color_species, name="Species") + theme_minimal() + guides(fill =guide_legend(ncol=7))  + 
+       scale_fill_manual(values=some_color_species, name="Species") + theme_minimal() + guides(fill =guide_legend(ncol=1, position="right"))  + 
          theme(axis.text.x=element_blank()) 
         # theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5, size=8))
   #print(p4)
@@ -1832,23 +1837,23 @@ dev.off()
   the_agg_plot5$LE_MET <- gsub("\\(e)","", the_agg_plot5$LE_MET)
   the_agg_plot5$LE_MET <- factor(the_agg_plot5$LE_MET, level=fleet_segments_ordered) # reorder
   the_agg_plot5$met_desc <- factor(the_agg_plot5$met_desc, level=fleet_segments_ordered2) # reorder)
-  p5 <- ggplot(data=the_agg_plot5, aes(x=LE_MET, y=value/a_unit, fill=Stock)) + #  geom_bar(stat="identity", position=position_dodge())
+  p5_barplot_bottomfishing_pel_fpuc <- ggplot(data=the_agg_plot5, aes(x=met_desc, y=value/a_unit, fill=Stock)) + #  geom_bar(stat="identity", position=position_dodge())
   geom_bar(stat = "summary", fun = a_func_mean) + 
    labs(y = "Litre per kg catch", x= "Fleet-segments") +
-       scale_fill_manual(values=some_color_species, name="Species") + theme_minimal() + guides(fill =guide_legend(ncol=7))  + 
+       scale_fill_manual(values=some_color_species, name="Species") + theme_minimal() + guides(fill =guide_legend(ncol=1, position="right"))  + 
         # theme(axis.text.x=element_blank()) 
-         theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5, size=8))
+         theme(axis.text.x=element_text(angle=60,hjust=1,vjust=1, size=12))
  
   the_agg_plot6 <- as.data.frame(the_agg_plot[grep("(f)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot6$LE_MET <- gsub("\\(f)","", the_agg_plot6$LE_MET)
   the_agg_plot6$LE_MET <- factor(the_agg_plot6$LE_MET, level=fleet_segments_ordered) # reorder
   the_agg_plot6$met_desc <- factor(the_agg_plot6$met_desc, level=fleet_segments_ordered2) # reorder)
-  p6 <- ggplot(data=the_agg_plot6, aes(x=LE_MET, y=value/a_unit, fill=Stock)) + #  geom_bar(stat="identity", position=position_dodge())
+  p6_barplot_bottomfishing_pel_fpuv <- ggplot(data=the_agg_plot6, aes(x=met_desc, y=value/a_unit, fill=Stock)) + #  geom_bar(stat="identity", position=position_dodge())
   geom_bar(stat = "summary", fun = a_func_mean) + 
    labs(y = "Litre per euro catch", x= "Fleet-segments") +
-       scale_fill_manual(values=some_color_species, name="Species") + theme_minimal() + guides(fill =guide_legend(ncol=7))  + 
+       scale_fill_manual(values=some_color_species, name="Species") + theme_minimal() + guides(fill =guide_legend(ncol=1, position="right"))  + 
         # theme(axis.text.x=element_blank()) 
-         theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5, size=8))
+         theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5, size=12))
  
  
  ### ADD-ON mean price
@@ -1861,21 +1866,23 @@ dev.off()
     the_agg_plot8[the_agg_plot8$Total>25,"value"] <- 0 # remove outlier
   the_agg_plot8$LE_MET <- factor(the_agg_plot8$LE_MET, level=fleet_segments_ordered) # reorder
   the_agg_plot8$met_desc <- factor(the_agg_plot8$met_desc, level=fleet_segments_ordered2) # reorder)
-  p8 <- ggplot(data=the_agg_plot8, aes(x=LE_MET, y=value/a_unit, fill=Stock)) + #  geom_bar(stat="identity", position=position_dodge())
+  p8_barplot_bottomfishing_pel_price <- ggplot(data=the_agg_plot8, aes(x=met_desc, y=value/a_unit, fill=Stock)) + #  geom_bar(stat="identity", position=position_dodge())
   geom_bar(stat = "summary", fun = a_func_mean) + 
    labs(y = "Euro catch per kg", x= "Fleet-segments") +
-       scale_fill_manual(values=some_color_species, name="Species") + theme_minimal() + guides(fill =guide_legend(ncol=7))  + 
+       scale_fill_manual(values=some_color_species, name="Species") + theme_minimal() + guides(fill =guide_legend(ncol=1, position="right"))  + 
         # theme(axis.text.x=element_blank()) 
-         theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5, size=8))
+         theme(axis.text.x=element_text(angle=60,hjust=1,vjust=1, size=12))
   print(p8)
 
 
  
- namefile <- paste0("barplot_mean_fuel_efficiency_", years[1], "-", years[length(years)],  a_comment, "_PEL_plot_land_and_FPUC_and_FPUV_rev.tif")
+ # for paper:
+a_width <- 6000 ; a_height <- 5500
+  namefile <- paste0("barplot_mean_fuel_efficiency_", years[1], "-", years[length(years)],  a_comment, "_PEL_plot_land_and_FPUC_and_FPUV_rev.tif")
  tiff(filename=file.path(getwd(), "outputs2020", "output_plots",  namefile),   width = a_width, height = a_height,
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
-  library(ggpubr)
-  ggarrange(p1, p2, p4, p5, ncol=1, heights=c(1,1,1,2),common.legend = TRUE, legend="bottom")
+  ggarrange(p1_barplot_bottomfishing_pel_land, p2_barplot_bottomfishing_pel_fuel, p4_barplot_bottomfishing_pel_vpuf, p5_barplot_bottomfishing_pel_fpuc, ncol=1,
+                            heights=c(1,1,1,2),common.legend = TRUE, legend="right")
 
 dev.off()
 
@@ -1885,7 +1892,8 @@ dev.off()
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
 
   library(ggpubr)
-  ggarrange(p8, ncol=1, heights=c(1),common.legend = TRUE, legend="bottom")
+   ggarrange(p8_barplot_bottomfishing_dem_price, ncol=1, heights=c(1),common.legend = TRUE, legend="bottom")
+
 dev.off()
 
 
@@ -2039,7 +2047,6 @@ write.table(collecting_table2019,
    "#377EB8", "#4DAF4A", "#984EA3", "#FF7F00", "#FFFF33", "#A65628", "#F781BF", "#999999", "#66C2A5", "#FC8D62", "#8DA0CB", "#E78AC3", "#A6D854", "#FFD92F", "#E5C494", "#B3B3B3", "#8DD3C7", "#FFFFB3", "#BEBADA", "#FB8072", "#80B1D3", "#FDB462", "#B3DE69",
    "#FCCDE5", "#D9D9D9", "#BC80BD", "#CCEBC5", "#FFED6F")
 
- a_width <- 6200 ; a_height <- 6500
  library(ggplot2)
  a_comment <- ""
  a_unit <- 1
@@ -2069,44 +2076,42 @@ write.table(collecting_table2019,
   
   the_agg_plot1 <- as.data.frame(the_agg_plot[grep("(a)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot1$LE_MET <- gsub("\\(a)","", the_agg_plot1$LE_MET)
-
-  p1 <- ggplot(the_agg_plot1, aes(x=as.character(Year), y=value/1e6, group=LE_MET)) +
+  p1_area_bottomfishing_dem_land_per_stk <- ggplot(the_agg_plot1, aes(x=as.character(Year), y=value/1e6, group=LE_MET)) +
      facet_wrap(. ~ Stock, scales = "free_y", ncol=1)  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +
   geom_area(aes(fill=met_desc))  +     labs(y = "Landings (*1000 tons)", x = "Year")   +
-   scale_fill_manual(values=some_color_seg, name="Fleet-segments") +   guides(fill =guide_legend(ncol=2))  +
+   scale_fill_manual(values=some_color_seg, name="Fleet-segments") +   guides(fill =guide_legend(ncol=1, position="right"))  +
     xlab("")
  
  the_agg_plot3 <- as.data.frame(the_agg_plot[grep("(c)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot3$LE_MET <- gsub("\\(c)","", the_agg_plot3$LE_MET)
-
- p3 <- ggplot(the_agg_plot3, aes(x=as.character(Year), y=value/a_unit, group=LE_MET)) +
+  p3_area_bottomfishing_dem_cpuf_per_stk <- ggplot(the_agg_plot3, aes(x=as.character(Year), y=value/a_unit, group=LE_MET)) +
      facet_wrap(. ~ Stock, scales = "free_y", ncol=1)  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +  
   geom_area(aes(fill=met_desc))  +     labs(y = "CPUF (kg per litre)", x = "Year")   +
-   scale_fill_manual(values=some_color_seg, name="Fleet-segments") +   guides(fill =guide_legend(ncol=2))  +
+   scale_fill_manual(values=some_color_seg, name="Fleet-segments") +   guides(fill =guide_legend(ncol=1, position="right"))  +
     xlab("")
  #print(p2)
  
  the_agg_plot4 <- as.data.frame(the_agg_plot[grep("(d)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot4$LE_MET <- gsub("\\(d)","", the_agg_plot4$LE_MET)
- p4 <- ggplot(the_agg_plot4, aes(x=as.character(Year), y=value/a_unit, group=LE_MET)) +
+ p4_area_bottomfishing_dem_vpuf_per_stk <- ggplot(the_agg_plot4, aes(x=as.character(Year), y=value/a_unit, group=LE_MET)) +
      facet_wrap(. ~ Stock, scales = "free_y", ncol=1)  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +   
   geom_area(aes(fill=met_desc))  +     labs(y = "VPUF (euro per litre)", x = "Year")   +
-   scale_fill_manual(values=some_color_seg, name="Fleet-segments") +   guides(fill =guide_legend(ncol=2))  +
+   scale_fill_manual(values=some_color_seg, name="Fleet-segments") +   guides(fill =guide_legend(ncol=1, position="right"))  +
     xlab("")
  #print(p3)
 
  the_agg_plot5 <- as.data.frame(the_agg_plot[grep("(e)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot5$LE_MET <- gsub("\\(e)","", the_agg_plot5$LE_MET)
-  p5 <- ggplot(the_agg_plot5, aes(x=as.character(Year), y=value/a_unit, group=LE_MET)) +
+  p5_area_bottomfishing_dem_fpuc_per_stk <- ggplot(the_agg_plot5, aes(x=as.character(Year), y=value/a_unit, group=LE_MET)) +
      facet_wrap(. ~ Stock, scales = "free_y", ncol=1)  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +   
   geom_area(aes(fill=met_desc))  +     labs(y = "Litre per kg catch", x = "Year")   +
-   scale_fill_manual(values=some_color_seg, name="Fleet-segments") +   guides(fill =guide_legend(ncol=2))  +
+   scale_fill_manual(values=some_color_seg, name="Fleet-segments") +   guides(fill =guide_legend(ncol=1, position="right"))  +
     xlab("")
  #print(p5)
 
  the_agg_plot6 <- as.data.frame(the_agg_plot[grep("(f)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot6$LE_MET <- gsub("\\(f)","", the_agg_plot6$LE_MET)
-  p6 <- ggplot(the_agg_plot6, aes(x=as.character(Year), y=value/a_unit, group=LE_MET)) +
+  p6_area_bottomfishing_dem_fpuv_per_stk <- ggplot(the_agg_plot6, aes(x=as.character(Year), y=value/a_unit, group=LE_MET)) +
      facet_wrap(. ~ Stock, scales = "free_y", ncol=1)  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +   
   geom_area(aes(fill=met_desc))  +     labs(y = "Litre per euro catch", x = "Year")   +
    scale_fill_manual(values=some_color_seg, name="Fleet-segments") +   guides(fill =guide_legend(ncol=2))  +
@@ -2115,11 +2120,12 @@ write.table(collecting_table2019,
 
 
 
+ a_width <- 6200 ; a_height <- 6500
   namefile <- paste0("ts_fuel_efficiency", a_variable, "_", years[1], "-", years[length(years)],  a_comment, "_DEM_areaplot_per_stk_land_and_FPUC_and_FPUV_per_species.tif")
   tiff(filename=file.path(getwd(), "outputs2020", "output_plots",  namefile),   width = a_width, height = a_height,
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
   library(ggpubr)
-  ggarrange(p1, p4, p5, ncol=3, common.legend = TRUE, legend="bottom")
+  ggarrange(p1_area_bottomfishing_dem_land_per_stk, p4_area_bottomfishing_dem_vpuf_per_stk, p5_area_bottomfishing_dem_fpuc_per_stk, ncol=3, common.legend = TRUE, legend="right")
  dev.off()
 
 
@@ -2200,7 +2206,6 @@ write.table(collecting_table2019,
 
 
 ##--------
-a_width <- 6200 ; a_height <- 6500
 library(ggplot2)
 a_comment <- ""
 a_unit <- 1
@@ -2227,54 +2232,55 @@ a_unit <- 1
   
   the_agg_plot1 <- as.data.frame(the_agg_plot[grep("(a)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot1$LE_MET <- gsub("\\(a)","", the_agg_plot1$LE_MET)
-  p1 <- ggplot(the_agg_plot1, aes(x=as.character(Year), y=value/1e3, group=LE_MET)) +
+  p1_area_bottomfishing_pel_land_per_stk <- ggplot(the_agg_plot1, aes(x=as.character(Year), y=value/1e3, group=LE_MET)) +
      facet_wrap(. ~ Stock, scales = "free_y", ncol=1)  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +
       geom_area(aes(fill=met_desc))  +     labs(y = "Landings (tons)", x = "Year")   +
-      scale_fill_manual(values=some_color_seg, name="Fleet-segments") +   guides(fill =guide_legend(ncol=2))  +
+      scale_fill_manual(values=some_color_seg, name="Fleet-segments") +   guides(fill =guide_legend(ncol=1, position="right"))  +
     xlab("")
  
   the_agg_plot3 <- as.data.frame(the_agg_plot[grep("(c)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot3$LE_MET <- gsub("\\(c)","", the_agg_plot3$LE_MET)  
-  p3 <- ggplot(the_agg_plot3, aes(x=as.character(Year), y=value/a_unit, group=LE_MET)) +
+  p3_area_bottomfishing_pel_cpuf_per_stk <- ggplot(the_agg_plot3, aes(x=as.character(Year), y=value/a_unit, group=LE_MET)) +
      facet_wrap(. ~ Stock, scales = "free_y", ncol=1)  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +  
       geom_area(aes(fill=met_desc))  +     labs(y = "CPUF (kg per litre)", x = "Year")   +
-      scale_fill_manual(values=some_color_seg, name="Fleet-segments") +   guides(fill =guide_legend(ncol=2))  +
+      scale_fill_manual(values=some_color_seg, name="Fleet-segments") +   guides(fill =guide_legend(ncol=1, position="right"))  +
     xlab("")
  
 
  the_agg_plot4 <- as.data.frame(the_agg_plot[grep("(d)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot4$LE_MET <- gsub("\\(d)","", the_agg_plot4$LE_MET)
- p4 <- ggplot(the_agg_plot4, aes(x=as.character(Year), y=value/a_unit, group=LE_MET)) +
+ p4_area_bottomfishing_pel_vpuf_per_stk <- ggplot(the_agg_plot4, aes(x=as.character(Year), y=value/a_unit, group=LE_MET)) +
      facet_wrap(. ~ Stock, scales = "free_y", ncol=1)  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +   
   geom_area(aes(fill=met_desc))  +     labs(y = "VPUF (euro per litre)", x = "Year")   +
-   scale_fill_manual(values=some_color_seg, name="Fleet-segments") +   guides(fill =guide_legend(ncol=2))  +
+   scale_fill_manual(values=some_color_seg, name="Fleet-segments") +   guides(fill =guide_legend(ncol=1, position="right"))  +
     xlab("")
  #print(p3)
 
  the_agg_plot5 <- as.data.frame(the_agg_plot[grep("(e)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot5$LE_MET <- gsub("\\(e)","", the_agg_plot5$LE_MET)
-  p5 <- ggplot(the_agg_plot5, aes(x=as.character(Year), y=value/a_unit, group=LE_MET)) +
+  p5_area_bottomfishing_pel_fpuc_per_stk <- ggplot(the_agg_plot5, aes(x=as.character(Year), y=value/a_unit, group=LE_MET)) +
      facet_wrap(. ~ Stock, scales = "free_y", ncol=1)  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +   
   geom_area(aes(fill=met_desc))  +     labs(y = "Litre per kg catch", x = "Year")   +
-   scale_fill_manual(values=some_color_seg, name="Fleet-segments") +   guides(fill =guide_legend(ncol=2))  +
+   scale_fill_manual(values=some_color_seg, name="Fleet-segments") +   guides(fill =guide_legend(ncol=1, position="right"))  +
     xlab("")
  #print(p5)
 
  the_agg_plot6 <- as.data.frame(the_agg_plot[grep("(f)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot6$LE_MET <- gsub("\\(f)","", the_agg_plot6$LE_MET)
-  p6 <- ggplot(the_agg_plot6, aes(x=as.character(Year), y=value/a_unit, group=LE_MET)) +
+  p6_area_bottomfishing_pel_fpuv_per_stk <- ggplot(the_agg_plot6, aes(x=as.character(Year), y=value/a_unit, group=LE_MET)) +
      facet_wrap(. ~ Stock, scales = "free_y", ncol=1)  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +   
   geom_area(aes(fill=met_desc))  +     labs(y = "Litre per euro catch", x = "Year")   +
-   scale_fill_manual(values=some_color_seg, name="Fleet-segments") +   guides(fill =guide_legend(ncol=2))  +
+   scale_fill_manual(values=some_color_seg, name="Fleet-segments") +   guides(fill =guide_legend(ncol=1, position="right"))  +
     xlab("")
  #print(p6)
  
 
+a_width <- 6200 ; a_height <- 6500
 namefile <- paste0("ts_fuel_efficiency", a_variable, "_", years[1], "-", years[length(years)],  a_comment, "_PEL_areaplot_per_stk_land_and_FPUC_and_FPUV_per_species.tif")
  tiff(filename=file.path(getwd(), "outputs2020", "output_plots",  namefile),   width = a_width, height = a_height,
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
- library(ggpubr)
-  ggarrange(p1, p4, p5, ncol=3, common.legend = TRUE, legend="bottom")
+  library(ggpubr)
+  ggarrange(p1_area_bottomfishing_pel_land_per_stk, p4_area_bottomfishing_pel_vpuf_per_stk, p5_area_bottomfishing_pel_fpuc_per_stk, ncol=3, common.legend = TRUE, legend="right")
 
 dev.off()
 
@@ -2387,7 +2393,6 @@ setwd (file.path("D:","FBA","BENTHIS_2020"))   # adapt to your need
    
 ##----------
 ## DEM
- a_width <- 4200 ; a_height <- 6500
  library(ggplot2)
 
 # DEM
@@ -2432,59 +2437,61 @@ setwd (file.path("D:","FBA","BENTHIS_2020"))   # adapt to your need
  the_agg_plot1 <- as.data.frame(the_agg_plot[grep("(a)",the_agg_plot$LE_MET, fixed=TRUE),])
  the_agg_plot1$LE_MET <- gsub("\\(a)","", the_agg_plot1$LE_MET)
   the_agg_plot1$Stock <- factor(the_agg_plot1$Stock, level=stock_ordered) # reorder
-  p1 <- ggplot(data=the_agg_plot1, aes(x=Stock, y=value/1000, fill=LE_MET)) + #  geom_bar(stat="identity", position=position_dodge())
+  p1_barplot_bottomfishing_dem_land_per_stk <- ggplot(data=the_agg_plot1, aes(x=Stock, y=value/1000, fill=LE_MET)) + #  geom_bar(stat="identity", position=position_dodge())
   geom_bar(stat = "summary", fun = "mean") +  labs(y = "Landings (*1000 tons)", x= "") +
-       scale_fill_manual(values=some_color_seg, name="Fleet-segments") + theme_minimal() + theme(axis.text.x=element_blank()) + guides(fill =guide_legend(ncol=2))
+       scale_fill_manual(values=some_color_seg, name="Fleet-segments") + theme_minimal() + theme(axis.text.x=element_blank()) + guides(fill =guide_legend(ncol=1, position="right"))
   print(p1)
 
  the_agg_plot2 <- as.data.frame(the_agg_plot[grep("(b)",the_agg_plot$LE_MET, fixed=TRUE),])
  the_agg_plot2$LE_MET <- gsub("\\(b)","", the_agg_plot2$LE_MET)
   the_agg_plot2$Stock <- factor(the_agg_plot2$Stock, level=stock_ordered) # reorder
- p2 <- ggplot(data=the_agg_plot2, aes(x=Stock, y=value/1e6, fill=LE_MET)) + #  geom_bar(stat="identity", position=position_dodge())
+ p2_barplot_bottomfishing_dem_fuel_per_stk <- ggplot(data=the_agg_plot2, aes(x=Stock, y=value/1e6, fill=LE_MET)) + #  geom_bar(stat="identity", position=position_dodge())
   geom_bar(stat = "summary", fun = "mean") +  labs(y ="Fuel (millions litre)", x= "") +
-       scale_fill_manual(values=some_color_seg, name="Fleet-segments")  + theme_minimal() + theme(axis.text.x=element_blank()) + guides(fill =guide_legend(ncol=7))  
+       scale_fill_manual(values=some_color_seg, name="Fleet-segments")  + theme_minimal() + theme(axis.text.x=element_blank()) + guides(fill =guide_legend(ncol=1, position="right"))  
   #print(p2)
 
  the_agg_plot3 <- as.data.frame(the_agg_plot[grep("(c)",the_agg_plot$LE_MET, fixed=TRUE),])
  the_agg_plot3$LE_MET <- gsub("\\(c)","", the_agg_plot3$LE_MET)
   the_agg_plot3$Stock <- factor(the_agg_plot3$Stock, level=stock_ordered) # reorder
-  p3 <- ggplot(data=the_agg_plot3, aes(x=Stock, y=value/a_unit, fill=LE_MET)) + #  geom_bar(stat="identity", position=position_dodge())
+  p3_barplot_bottomfishing_dem_cpuf_per_stk <- ggplot(data=the_agg_plot3, aes(x=Stock, y=value/a_unit, fill=LE_MET)) + #  geom_bar(stat="identity", position=position_dodge())
   geom_bar(stat = "summary", fun = "mean") +  labs(y ="CPUF (kg per litre)", x= "") +
-       scale_fill_manual(values=some_color_seg, name="Fleet-segments")  + theme_minimal() + theme(axis.text.x=element_blank()) + guides(fill =guide_legend(ncol=7))  
+       scale_fill_manual(values=some_color_seg, name="Fleet-segments")  + theme_minimal() + theme(axis.text.x=element_blank()) + guides(fill =guide_legend(ncol=1, position="right"))  
   #print(p3)
 
   the_agg_plot4 <- as.data.frame(the_agg_plot[grep("(d)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot4$LE_MET <- gsub("\\(d)","", the_agg_plot4$LE_MET)
    the_agg_plot4$Stock <- factor(the_agg_plot4$Stock, level=stock_ordered) # reorder
-  p4 <- ggplot(data=the_agg_plot4, aes(x=Stock, y=value/a_unit, fill=LE_MET)) + #  geom_bar(stat="identity", position=position_dodge())
-  geom_bar(stat = "summary", fun = "mean") +  labs(y = "VPUF (euro per litre)", x= "Species") +
-       scale_fill_manual(values=some_color_seg, name="Fleet-segments") + theme_minimal() + guides(fill =guide_legend(ncol=7))  + 
-        theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5, size=8))
+  p4_barplot_bottomfishing_dem_vpuf_per_stk <- ggplot(data=the_agg_plot4, aes(x=Stock, y=value/a_unit, fill=LE_MET)) + #  geom_bar(stat="identity", position=position_dodge())
+  geom_bar(stat = "summary", fun = "mean") +  labs(y = "VPUF (euro per litre)", x= "") +
+       scale_fill_manual(values=some_color_seg, name="Fleet-segments") + theme_minimal() + guides(fill =guide_legend(ncol=1, position="right"))  + 
+        theme(axis.text.x=element_blank())
   #print(p4)
 
 the_agg_plot5 <- as.data.frame(the_agg_plot[grep("(e)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot5$LE_MET <- gsub("\\(e)","", the_agg_plot5$LE_MET)
    the_agg_plot5$Stock <- factor(the_agg_plot5$Stock, level=stock_ordered) # reorder
- p5 <- ggplot(data=the_agg_plot4, aes(x=Stock, y=value/a_unit, fill=LE_MET)) + #  geom_bar(stat="identity", position=position_dodge())
+ p5_barplot_bottomfishing_dem_fpuc_per_stk <- ggplot(data=the_agg_plot4, aes(x=Stock, y=value/a_unit, fill=LE_MET)) + #  geom_bar(stat="identity", position=position_dodge())
     geom_bar(stat = "summary", fun = "mean") +  labs(y = "Litre per kg catch", x= "Species") +
-       scale_fill_manual(values=some_color_seg, name="Fleet-segments") + theme_minimal() + guides(fill =guide_legend(ncol=7))  + 
-        theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5, size=8))
+       scale_fill_manual(values=some_color_seg, name="Fleet-segments") + theme_minimal() + guides(fill =guide_legend(ncol=1, position="right"))  + 
+        theme(axis.text.x=element_text(angle=90,hjust=1,vjust=1, size=12))
  
   the_agg_plot6 <- as.data.frame(the_agg_plot[grep("(f)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot6$LE_MET <- gsub("\\(f)","", the_agg_plot6$LE_MET)
   the_agg_plot6$Stock <- factor(the_agg_plot6$Stock, level=stock_ordered) # reorder
-  p6 <- ggplot(data=the_agg_plot4, aes(x=Stock, y=value/a_unit, fill=LE_MET)) + #  geom_bar(stat="identity", position=position_dodge())
+  p6_barplot_bottomfishing_dem_fpuv_per_stk <- ggplot(data=the_agg_plot4, aes(x=Stock, y=value/a_unit, fill=LE_MET)) + #  geom_bar(stat="identity", position=position_dodge())
   geom_bar(stat = "summary", fun = "mean") +  labs(y = "Litre per euro catch", x= "Species") +
-       scale_fill_manual(values=some_color_seg, name="Fleet-segments") + theme_minimal() + guides(fill =guide_legend(ncol=7))  + 
+       scale_fill_manual(values=some_color_seg, name="Fleet-segments") + theme_minimal() + guides(fill =guide_legend(ncol=1, position="right"))  + 
         theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5, size=8))
   
 
   
+ a_width <- 4200 ; a_height <- 6500
  namefile <- paste0("barplot_mean_fuel_efficiency_per_stock_", a_variable, "_", years[1], "-", years[length(years)],  a_comment, "_DEM_plot_land_and_CPUF_and_VPUF_per_species.tif")
   tiff(filename=file.path(getwd(), "outputs2020", "output_plots",  namefile),   width = a_width, height = a_height,
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
   library(ggpubr)
-  ggarrange(p1, p2, p4, p5, ncol=1, heights=c(1,1,1,2),common.legend = TRUE, legend="bottom")
+  ggarrange(p1_barplot_bottomfishing_dem_land_per_stk, p2_barplot_bottomfishing_dem_fuel_per_stk, p4_barplot_bottomfishing_dem_vpuf_per_stk, p5_barplot_bottomfishing_dem_fpuc_per_stk, 
+            ncol=1, heights=c(1,1,1,2),common.legend = TRUE, legend="right")
  dev.off()
 
 
@@ -2495,7 +2502,6 @@ the_agg_plot5 <- as.data.frame(the_agg_plot[grep("(e)",the_agg_plot$LE_MET, fixe
    
 ##----------
 ## PEL
- a_width <- 4200 ; a_height <- 6500
  library(ggplot2)
 
 # PEL
@@ -2542,62 +2548,65 @@ the_agg_plot5 <- as.data.frame(the_agg_plot[grep("(e)",the_agg_plot$LE_MET, fixe
   fleet_segments_ordered2 <- as.character(dd[,1])
  
   #------------
+  #------------
  the_agg_plot1 <- as.data.frame(the_agg_plot[grep("(a)",the_agg_plot$LE_MET, fixed=TRUE),])
  the_agg_plot1$LE_MET <- gsub("\\(a)","", the_agg_plot1$LE_MET)
   the_agg_plot1$Stock <- factor(the_agg_plot1$Stock, level=stock_ordered) # reorder
-  p1 <- ggplot(data=the_agg_plot1, aes(x=Stock, y=value/1000, fill=LE_MET)) + #  geom_bar(stat="identity", position=position_dodge())
+  p1_barplot_bottomfishing_pel_land_per_stk <- ggplot(data=the_agg_plot1, aes(x=Stock, y=value/1000, fill=LE_MET)) + #  geom_bar(stat="identity", position=position_dodge())
   geom_bar(stat = "summary", fun = "mean") +  labs(y = "Landings (*1000 tons)", x= "") +
-       scale_fill_manual(values=some_color_seg, name="Fleet-segments") + theme_minimal() + theme(axis.text.x=element_blank()) + guides(fill =guide_legend(ncol=2))
+       scale_fill_manual(values=some_color_seg, name="Fleet-segments") + theme_minimal() + theme(axis.text.x=element_blank()) + guides(fill =guide_legend(ncol=1, position="right"))
   print(p1)
 
  the_agg_plot2 <- as.data.frame(the_agg_plot[grep("(b)",the_agg_plot$LE_MET, fixed=TRUE),])
  the_agg_plot2$LE_MET <- gsub("\\(b)","", the_agg_plot2$LE_MET)
   the_agg_plot2$Stock <- factor(the_agg_plot2$Stock, level=stock_ordered) # reorder
- p2 <- ggplot(data=the_agg_plot2, aes(x=Stock, y=value/1e6, fill=LE_MET)) + #  geom_bar(stat="identity", position=position_dodge())
+ p2_barplot_bottomfishing_pel_fuel_per_stk <- ggplot(data=the_agg_plot2, aes(x=Stock, y=value/1e6, fill=LE_MET)) + #  geom_bar(stat="identity", position=position_dodge())
   geom_bar(stat = "summary", fun = "mean") +  labs(y ="Fuel (millions litre)", x= "") +
-       scale_fill_manual(values=some_color_seg, name="Fleet-segments")  + theme_minimal() + theme(axis.text.x=element_blank()) + guides(fill =guide_legend(ncol=7))  
+       scale_fill_manual(values=some_color_seg, name="Fleet-segments")  + theme_minimal() + theme(axis.text.x=element_blank()) + guides(fill =guide_legend(ncol=1, position="right"))  
   #print(p2)
 
  the_agg_plot3 <- as.data.frame(the_agg_plot[grep("(c)",the_agg_plot$LE_MET, fixed=TRUE),])
  the_agg_plot3$LE_MET <- gsub("\\(c)","", the_agg_plot3$LE_MET)
   the_agg_plot3$Stock <- factor(the_agg_plot3$Stock, level=stock_ordered) # reorder
-  p3 <- ggplot(data=the_agg_plot3, aes(x=Stock, y=value/a_unit, fill=LE_MET)) + #  geom_bar(stat="identity", position=position_dodge())
+  p3_barplot_bottomfishing_pel_cpuf_per_stk <- ggplot(data=the_agg_plot3, aes(x=Stock, y=value/a_unit, fill=LE_MET)) + #  geom_bar(stat="identity", position=position_dodge())
   geom_bar(stat = "summary", fun = "mean") +  labs(y ="CPUF (kg per litre)", x= "") +
-       scale_fill_manual(values=some_color_seg, name="Fleet-segments")  + theme_minimal() + theme(axis.text.x=element_blank()) + guides(fill =guide_legend(ncol=7))  
+       scale_fill_manual(values=some_color_seg, name="Fleet-segments")  + theme_minimal() + theme(axis.text.x=element_blank()) + guides(fill =guide_legend(ncol=1, position="right"))  
   #print(p3)
 
   the_agg_plot4 <- as.data.frame(the_agg_plot[grep("(d)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot4$LE_MET <- gsub("\\(d)","", the_agg_plot4$LE_MET)
    the_agg_plot4$Stock <- factor(the_agg_plot4$Stock, level=stock_ordered) # reorder
-  p4 <- ggplot(data=the_agg_plot4, aes(x=Stock, y=value/a_unit, fill=LE_MET)) + #  geom_bar(stat="identity", position=position_dodge())
-  geom_bar(stat = "summary", fun = "mean") +  labs(y = "VPUF (euro per litre)", x= "Species") +
-       scale_fill_manual(values=some_color_seg, name="Fleet-segments") + theme_minimal() + guides(fill =guide_legend(ncol=7))  + 
-        theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5, size=8))
+  p4_barplot_bottomfishing_pel_vpuf_per_stk <- ggplot(data=the_agg_plot4, aes(x=Stock, y=value/a_unit, fill=LE_MET)) + #  geom_bar(stat="identity", position=position_dodge())
+  geom_bar(stat = "summary", fun = "mean") +  labs(y = "VPUF (euro per litre)", x= "") +
+       scale_fill_manual(values=some_color_seg, name="Fleet-segments") + theme_minimal() + guides(fill =guide_legend(ncol=1, position="right"))  + 
+        theme(axis.text.x=element_blank())
   #print(p4)
 
 the_agg_plot5 <- as.data.frame(the_agg_plot[grep("(e)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot5$LE_MET <- gsub("\\(e)","", the_agg_plot5$LE_MET)
    the_agg_plot5$Stock <- factor(the_agg_plot5$Stock, level=stock_ordered) # reorder
- p5 <- ggplot(data=the_agg_plot4, aes(x=Stock, y=value/a_unit, fill=LE_MET)) + #  geom_bar(stat="identity", position=position_dodge())
+ p5_barplot_bottomfishing_pel_fpuc_per_stk <- ggplot(data=the_agg_plot4, aes(x=Stock, y=value/a_unit, fill=LE_MET)) + #  geom_bar(stat="identity", position=position_dodge())
     geom_bar(stat = "summary", fun = "mean") +  labs(y = "Litre per kg catch", x= "Species") +
-       scale_fill_manual(values=some_color_seg, name="Fleet-segments") + theme_minimal() + guides(fill =guide_legend(ncol=7))  + 
-        theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5, size=8))
+       scale_fill_manual(values=some_color_seg, name="Fleet-segments") + theme_minimal() + guides(fill =guide_legend(ncol=1, position="right"))  + 
+        theme(axis.text.x=element_text(angle=90,hjust=1,vjust=1, size=12))
  
   the_agg_plot6 <- as.data.frame(the_agg_plot[grep("(f)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot6$LE_MET <- gsub("\\(f)","", the_agg_plot6$LE_MET)
   the_agg_plot6$Stock <- factor(the_agg_plot6$Stock, level=stock_ordered) # reorder
-  p6 <- ggplot(data=the_agg_plot4, aes(x=Stock, y=value/a_unit, fill=LE_MET)) + #  geom_bar(stat="identity", position=position_dodge())
+  p6_barplot_bottomfishing_pel_fpuv_per_stk <- ggplot(data=the_agg_plot4, aes(x=Stock, y=value/a_unit, fill=LE_MET)) + #  geom_bar(stat="identity", position=position_dodge())
   geom_bar(stat = "summary", fun = "mean") +  labs(y = "Litre per euro catch", x= "Species") +
-       scale_fill_manual(values=some_color_seg, name="Fleet-segments") + theme_minimal() + guides(fill =guide_legend(ncol=7))  + 
+       scale_fill_manual(values=some_color_seg, name="Fleet-segments") + theme_minimal() + guides(fill =guide_legend(ncol=1, position="right"))  + 
         theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5, size=8))
   
 
-  
+ 
+ a_width <- 4200 ; a_height <- 6500
  namefile <- paste0("barplot_mean_fuel_efficiency_per_stock_", a_variable, "_", years[1], "-", years[length(years)],  a_comment, "_PEL_plot_land_and_CPUF_and_VPUF_per_species.tif")
   tiff(filename=file.path(getwd(), "outputs2020", "output_plots",  namefile),   width = a_width, height = a_height,
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
   library(ggpubr)
-  ggarrange(p1, p2, p4, p5, ncol=1, heights=c(1,1,1,2),common.legend = TRUE, legend="bottom")
+  ggarrange(p1_barplot_bottomfishing_pel_land_per_stk, p2_barplot_bottomfishing_pel_fuel_per_stk, p4_barplot_bottomfishing_pel_vpuf_per_stk, p5_barplot_bottomfishing_pel_fpuc_per_stk, 
+            ncol=1, heights=c(1,1,1,2),common.legend = TRUE, legend="right")
  dev.off()
 
 
