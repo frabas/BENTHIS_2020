@@ -144,7 +144,7 @@ if(.Platform$OS.type == "unix") {
    
   }# end FALSE
 
-  if(TRUE){
+  if(FALSE){
  
   ##-----------------------------------
   ## COMPUTE SWEPT AREA
@@ -245,11 +245,7 @@ if(.Platform$OS.type == "unix") {
     load(file=file.path(outPath, a_year, "interpolated", "plus",
                                                 paste("tacsatSweptAreaPlus_", a_year, ".RData", sep="")))
  
-     # compute effort in nmin
-     tacsatSweptArea$effort_mins <- c(0,as.numeric(diff(tacsatSweptArea$SI_DATIM), units='mins'))
-     idx <- which( tacsatSweptArea$effort_mins & tacsatSweptArea$LE_GEAR %in% towedGears > 15) # if interval > 15 min 
-     tacsatSweptArea[ idx, "effort_mins"] <- NA  # exclude change of haul
-     idx <- which( tacsatSweptArea$effort_mins & tacsatSweptArea$LE_GEAR %in% seineGears > 75) # if interval > 75 min 
+     idx <- which( tacsatSweptArea$effort_mins & tacsatSweptArea$LE_GEAR %in% netGears > 75) # if interval > 75 min 
      tacsatSweptArea[ idx, "effort_mins"] <- NA  # exclude change of haul
      idx <- which( tacsatSweptArea$effort_mins <0) #   
      tacsatSweptArea[ idx, "effort_mins"] <- NA  # exclude change of vessel id
