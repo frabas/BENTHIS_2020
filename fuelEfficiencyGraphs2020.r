@@ -1425,6 +1425,64 @@ dev.off()
  ##!!!!!!!!!!!!!!!!!!!!!!!!!##
  ##!!!!!!!!!!!!!!!!!!!!!!!!!##
  ##FORAGE FISH or SMALL MESHES
+ 
+ ### SUMMARIZE LANDINGS AND CPUF ON THE SAME GRAPH.......
+ variables <- c("KEUROallsp","KKGallsp", "LE_KG_LITRE_FUEL", "CPUFallsp",  "VPUFallsp", "FPUCallsp", "FPUVallsp", "VPUFSWAallsp", "mpriceallsp")
+ prefixes  <- c("LE_EURO_","LE_KG_","LE_KG_",   "LE_CPUF_",  "LE_VPUF_", "LE_KG_", "LE_KG_", "LE_VPUF_", "LE_MPRICE_")
+ the_names <- c("(z)", "(a)","(b)", "(c)", "(d)", "(e)", "(f)", "(g)", "(h)")
+
+ count <- 0
+ the_agg <- NULL
+ for(a_variable in variables){
+ count <- count+1
+ for (y in years){
+     #dd <- get(paste0("aggResultPerMet_", y))
+     dd <- aggResultPerMetAlly[aggResultPerMetAlly$Year==y, ]
+     dd$met_desc <- friendly_met_names(dd)
+     
+      # debug SAN
+     dd[grepl("LargeMesh",dd$LE_MET) , paste0(prefixes[count], "SAN")] <- 0 # because SAN creates misleading distorsion on plots...
+
+     # debug outlier
+     aggResultPerMetAlly[aggResultPerMetAlly$FPUCallsp>100, c("FPUCallsp", "FPUVallsp")] <- 0
+
+     # get percent per stock for sectorisation
+     PercentThisStk <- dd[paste0(prefixes[count],spp)] / apply(dd[paste0(prefixes[count],spp)], 1, sum, na.rm=TRUE)*100
+     if(prefixes[count]=="LE_MPRICE_")   PercentThisStk <- (dd[paste0(prefixes[count],spp)]*dd[paste0("LE_KG_",spp)]) / apply(dd[paste0(prefixes[count],spp)]*dd[paste0("LE_KG_",spp)], 1, sum, na.rm=TRUE)*100
+    
+     colnames(PercentThisStk)  <- paste0("Percent_",spp)
+     dd <- cbind.data.frame (dd, PercentThisStk)
+     VarThisStk <- sweep(dd[,colnames(PercentThisStk)]/100, 1, dd[,a_variable], FUN="*")
+     colnames(VarThisStk)  <- spp
+     dd <- cbind.data.frame (dd, VarThisStk)
+     # reshape
+     library(data.table)
+     long <- melt(setDT(dd[,c("met_desc","LE_MET", a_variable, colnames(VarThisStk))]), id.vars = c("met_desc","LE_MET", a_variable), variable.name = "Stock")
+     colnames(long)[colnames(long)==a_variable] <- "Total"
+     
+     #as.data.frame(long)
+     long <- long[complete.cases(long),]
+
+     long$LE_MET <- paste(long$LE_MET, the_names[count])
+    
+     head(long[long$LE_MET=="SmallMesh_27.3_OTB_CRU_32-69_0_0 (b)",])
+  
+     if(y==years[1]){
+     agg <- cbind.data.frame(as.data.frame(long), year=y)
+     }
+      else{
+      agg <- rbind.data.frame(as.data.frame(agg),
+             cbind.data.frame(long, year=y))
+     }
+     
+   }
+
+     the_agg <- rbind.data.frame(as.data.frame(the_agg), as.data.frame(agg))
+ }
+
+
+  the_agg <- the_agg[!grepl("misc.",the_agg$met_desc),] # get rid of OTHER
+
 
  a_width <- 6200 ; a_height <- 12500
  library(ggplot2)
@@ -1551,6 +1609,64 @@ dev.off()
  #load(file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndRatiosBottContact.RData", sep="")))  # aggResultPerMetAlly
  load(file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndRatiosBottContactAndGNS.RData", sep="")))  # aggResultPerMetAlly
 
+ ### SUMMARIZE LANDINGS AND CPUF ON THE SAME GRAPH.......
+ variables <- c("KEUROallsp","KKGallsp", "LE_KG_LITRE_FUEL", "CPUFallsp",  "VPUFallsp", "FPUCallsp", "FPUVallsp", "VPUFSWAallsp", "mpriceallsp")
+ prefixes  <- c("LE_EURO_","LE_KG_","LE_KG_",   "LE_CPUF_",  "LE_VPUF_", "LE_KG_", "LE_KG_", "LE_VPUF_", "LE_MPRICE_")
+ the_names <- c("(z)", "(a)","(b)", "(c)", "(d)", "(e)", "(f)", "(g)", "(h)")
+
+ count <- 0
+ the_agg <- NULL
+ for(a_variable in variables){
+ count <- count+1
+ for (y in years){
+     #dd <- get(paste0("aggResultPerMet_", y))
+     dd <- aggResultPerMetAlly[aggResultPerMetAlly$Year==y, ]
+     dd$met_desc <- friendly_met_names(dd)
+     
+      # debug SAN
+     dd[grepl("LargeMesh",dd$LE_MET) , paste0(prefixes[count], "SAN")] <- 0 # because SAN creates misleading distorsion on plots...
+
+     # debug outlier
+     aggResultPerMetAlly[aggResultPerMetAlly$FPUCallsp>100, c("FPUCallsp", "FPUVallsp")] <- 0
+
+     # get percent per stock for sectorisation
+     PercentThisStk <- dd[paste0(prefixes[count],spp)] / apply(dd[paste0(prefixes[count],spp)], 1, sum, na.rm=TRUE)*100
+     if(prefixes[count]=="LE_MPRICE_")   PercentThisStk <- (dd[paste0(prefixes[count],spp)]*dd[paste0("LE_KG_",spp)]) / apply(dd[paste0(prefixes[count],spp)]*dd[paste0("LE_KG_",spp)], 1, sum, na.rm=TRUE)*100
+    
+     colnames(PercentThisStk)  <- paste0("Percent_",spp)
+     dd <- cbind.data.frame (dd, PercentThisStk)
+     VarThisStk <- sweep(dd[,colnames(PercentThisStk)]/100, 1, dd[,a_variable], FUN="*")
+     colnames(VarThisStk)  <- spp
+     dd <- cbind.data.frame (dd, VarThisStk)
+     # reshape
+     library(data.table)
+     long <- melt(setDT(dd[,c("met_desc","LE_MET", a_variable, colnames(VarThisStk))]), id.vars = c("met_desc","LE_MET", a_variable), variable.name = "Stock")
+     colnames(long)[colnames(long)==a_variable] <- "Total"
+     
+     #as.data.frame(long)
+     long <- long[complete.cases(long),]
+
+     long$LE_MET <- paste(long$LE_MET, the_names[count])
+    
+     head(long[long$LE_MET=="SmallMesh_27.3_OTB_CRU_32-69_0_0 (b)",])
+  
+     if(y==years[1]){
+     agg <- cbind.data.frame(as.data.frame(long), year=y)
+     }
+      else{
+      agg <- rbind.data.frame(as.data.frame(agg),
+             cbind.data.frame(long, year=y))
+     }
+     
+   }
+
+     the_agg <- rbind.data.frame(as.data.frame(the_agg), as.data.frame(agg))
+ }
+
+
+  the_agg <- the_agg[!grepl("misc.",the_agg$met_desc),] # get rid of OTHER
+
+
 ## DEM
  library(ggplot2)
  a_comment <- ""
@@ -1655,7 +1771,7 @@ the_agg_plot1 <- as.data.frame(the_agg_plot[grep("(a)",the_agg_plot$LE_MET, fixe
    labs(y = "Litre per kg catch", x= "Fleet-segments") +
        scale_fill_manual(values=some_color_species, name="Species") + theme_minimal() + guides(fill =guide_legend(ncol=1, position="right"))  + 
         # theme(axis.text.x=element_blank()) 
-         theme(axis.text.x=element_text(angle=60,hjust=1,vjust=1, size=10))
+         theme(axis.text.x=element_text(angle=60,hjust=1,vjust=1, size=12))
 
   the_agg_plot6 <- as.data.frame(the_agg_plot[grep("(f)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot6$LE_MET <- gsub("\\(f)","", the_agg_plot6$LE_MET)
@@ -1666,7 +1782,7 @@ the_agg_plot1 <- as.data.frame(the_agg_plot[grep("(a)",the_agg_plot$LE_MET, fixe
    labs(y = "Litre per euro catch", x= "Fleet-segments") +
        scale_fill_manual(values=some_color_species, name="Species") + theme_minimal() + guides(fill =guide_legend(ncol=1, position="right"))  + 
         # theme(axis.text.x=element_blank()) 
-         theme(axis.text.x=element_text(angle=90,hjust=1,vjust=1, size=8))
+         theme(axis.text.x=element_text(angle=90,hjust=1,vjust=1, size=12))
 
 
           ## ADD-ON revenue per swept area for bottom fishing
@@ -1978,7 +2094,7 @@ write.table(collecting_table2019,
  the_names <- c("(z)", "(a)","(b)", "(c)", "(d)", "(e)", "(f)", "(g)", "(h)")
 
 
- count <- 0
+count <- 0
  the_agg <- NULL
  for(a_variable in variables){
  count <- count+1
@@ -1991,15 +2107,22 @@ write.table(collecting_table2019,
     marginal_sum_catches <- apply( dd[,  paste0(prefixes[count], spp)] , 2, sum, na.rm=TRUE)
     percent_over_met <- sweep(dd[, paste0(prefixes[count], spp)] , 2,   marginal_sum_catches, FUN="/")*100
     a_data <- cbind.data.frame(dd[,c("Year","met_desc", "LE_MET", a_variable)], as.data.frame(percent_over_met))
-   
+  
+ 
        
     # reshape first
     library(data.table)
     a_long <- melt(setDT(a_data[,c("met_desc", "LE_MET", "Year", a_variable, paste0(prefixes[count], spp))]), id.vars = c("met_desc", "LE_MET", "Year", a_variable), variable.name = "Var")
     a_long <- as.data.frame(a_long)
+    
+    if(!a_variable %in% c("CPUFallsp",  "VPUFallsp", "FPUCallsp", "FPUVallsp", "VPUFSWAallsp", "mpriceallsp"))
+     {  # apply if not a ratio.
+       a_long[, a_variable] <- marginal_sum_catches[ a_long[, "Var"] ] /1000 # convert in tons or thousand euros
+     }
+    
     a_long$value <- a_long$value* a_long[, a_variable]/100 # dispatch with percentage
 
-    
+   
     a_long <- a_long[complete.cases(a_long),]
 
     a_long$Stock <- sapply(strsplit(as.character(a_long$Var), split="_"), function(x) x[3])
@@ -2030,11 +2153,13 @@ write.table(collecting_table2019,
 
    # filtering the ratios:
    # a quick informative table (for kg) for filtering out the ratios that are misleading because low catch kg
-   ss <- the_agg[the_agg$Var %in%  paste0("LE_KG_", spp) & as.numeric(as.character(the_agg$value))>2000000, ]  # < 2000tons?
-   the_agg <- the_agg[the_agg$Stock %in% unique(ss$Stock),]
+   #ss <- the_agg[the_agg$Var %in%  paste0("LE_KG_", spp) & as.numeric(as.character(the_agg$value))>2000e3, ]  # < 5000tons?
+   #the_agg <- the_agg[the_agg$Stock %in% unique(ss$Stock),]
 
    
    the_agg <- the_agg[,-grep("Var", colnames(the_agg))]
+
+   
  
    # select some species
   the_agg <- the_agg[the_agg$Stock %in% c("COD 27.3", "COD 27.4", "HAD 27.4", "HKE 27.4", "NEP 27.3", "PLE 27.3", "PLE 27.4", "POK 27.4", "SOL 27.3"),]
@@ -2076,7 +2201,7 @@ write.table(collecting_table2019,
   
   the_agg_plot1 <- as.data.frame(the_agg_plot[grep("(a)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot1$LE_MET <- gsub("\\(a)","", the_agg_plot1$LE_MET)
-  p1_area_bottomfishing_dem_land_per_stk <- ggplot(the_agg_plot1, aes(x=as.character(Year), y=value/1e6, group=LE_MET)) +
+  p1_area_bottomfishing_dem_land_per_stk <- ggplot(the_agg_plot1, aes(x=as.character(Year), y=value/1e3, group=LE_MET)) +
      facet_wrap(. ~ Stock, scales = "free_y", ncol=1)  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +
   geom_area(aes(fill=met_desc))  +     labs(y = "Landings (*1000 tons)", x = "Year")   +
    scale_fill_manual(values=some_color_seg, name="Fleet-segments") +   guides(fill =guide_legend(ncol=1, position="right"))  +
@@ -2136,13 +2261,33 @@ write.table(collecting_table2019,
 #!!!!!!!!!!!!
 # PEL
 
+#REDO SOME STUFF FOR A STANDALONE CODE:
+ setwd (file.path("D:","FBA","BENTHIS_2020"))   # adapt to your need
+ library(doBy)
+ years <- 2005:2019
+ spp <- c("COD", "CSH","DAB","ELE","FLE","HAD","HER","HKE","HOM","LEM","MAC","MON","MUS","NEP","NOP","PLE","POK","PRA", "SAN","SOL","SPR","TUR","WHB","WIT","WHG","OTH")
+ color_species <- c("#E69F00","hotpink","#56B4E9","#F0E442", "green", "#0072B2", "mediumorchid4", "#CC79A7",
+                    "indianred2", "#EEC591", "#458B00", "#F0F8FF", "black", "#e3dcbf", "#CD5B45", "lightseagreen",
+                    "#6495ED", "#CDC8B1", "#00FFFF", "#8B0000", "#008B8B", "#A9A9A9", "#76a5c4", "red", "yellow", "blue")
+ 
+ some_color_species<- c("COD"="#E69F00", "CSH"="hotpink", "DAB"="#56B4E9", "ELE"="#F0E442", "FLE"="green",
+                        "HAD"="#0072B2", "HER"="mediumorchid4", "HKE"="#CC79A7","HOM"="indianred2", "LEM"="#EEC591",
+                         "MAC"="#458B00", "MON"="#F0F8FF", "MUS"="black", "NEP"="#e3dcbf", "NOP"="#CD5B45", "PLE"="lightseagreen",
+                         "POK"="#6495ED", "PRA"="#CDC8B1", "SAN"="#00FFFF", "SOL"="#8B0000", "SPR"="#008B8B", "TUR"="#A9A9A9", "WHB"="#76a5c4",
+                          "WIT"="red", "WHG"="yellow", "OTH"="blue")
+ #load(file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndVsizeAndRatiosBottContact.RData", sep="")))  # aggResultPerMetAlly
+ load(file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndRatiosBottContactAndGNS.RData", sep="")))  # aggResultPerMetAlly
+ 
+
+ 
  ### SUMMARIZE LANDINGS AND CPUF ON THE SAME GRAPH.......
  variables <- c("KEUROallsp","KKGallsp", "LE_KG_LITRE_FUEL", "CPUFallsp",  "VPUFallsp", "FPUCallsp", "FPUVallsp", "VPUFSWAallsp", "mpriceallsp")
  prefixes  <- c("LE_EURO_","LE_KG_",       "LE_KG_",          "LE_KG_",  "LE_KG_", "LE_KG_", "LE_KG_", "LE_VPUF_", "LE_MPRICE_")
  the_names <- c("(z)", "(a)","(b)", "(c)", "(d)", "(e)", "(f)", "(g)", "(h)")
 
 
- count <- 0
+
+count <- 0
  the_agg <- NULL
  for(a_variable in variables){
  count <- count+1
@@ -2155,15 +2300,22 @@ write.table(collecting_table2019,
     marginal_sum_catches <- apply( dd[,  paste0(prefixes[count], spp)] , 2, sum, na.rm=TRUE)
     percent_over_met <- sweep(dd[, paste0(prefixes[count], spp)] , 2,   marginal_sum_catches, FUN="/")*100
     a_data <- cbind.data.frame(dd[,c("Year","met_desc", "LE_MET", a_variable)], as.data.frame(percent_over_met))
-   
+  
+ 
        
     # reshape first
     library(data.table)
     a_long <- melt(setDT(a_data[,c("met_desc", "LE_MET", "Year", a_variable, paste0(prefixes[count], spp))]), id.vars = c("met_desc", "LE_MET", "Year", a_variable), variable.name = "Var")
     a_long <- as.data.frame(a_long)
+    
+    if(!a_variable %in% c("CPUFallsp",  "VPUFallsp", "FPUCallsp", "FPUVallsp", "VPUFSWAallsp", "mpriceallsp"))
+     {  # apply if not a ratio.
+       a_long[, a_variable] <- marginal_sum_catches[ a_long[, "Var"] ] /1000 # convert in tons or thousand euros
+     }
+    
     a_long$value <- a_long$value* a_long[, a_variable]/100 # dispatch with percentage
 
-    
+   
     a_long <- a_long[complete.cases(a_long),]
 
     a_long$Stock <- sapply(strsplit(as.character(a_long$Var), split="_"), function(x) x[3])
@@ -2194,12 +2346,13 @@ write.table(collecting_table2019,
 
    # filtering the ratios:
    # a quick informative table (for kg) for filtering out the ratios that are misleading because low catch kg
-   ss <- the_agg[the_agg$Var %in%  paste0("LE_KG_", spp) & as.numeric(as.character(the_agg$value))>2000e3, ]  # < 5000tons?
-   the_agg <- the_agg[the_agg$Stock %in% unique(ss$Stock),]
+   #ss <- the_agg[the_agg$Var %in%  paste0("LE_KG_", spp) & as.numeric(as.character(the_agg$value))>2000e3, ]  # < 5000tons?
+   #the_agg <- the_agg[the_agg$Stock %in% unique(ss$Stock),]
 
    
    the_agg <- the_agg[,-grep("Var", colnames(the_agg))]
- 
+
+   
    # select some species
   the_agg <- the_agg[the_agg$Stock %in% c("HOM 27.4","MAC 27.4","NOP 27.4","PRA 27.3", "SAN 27.4","WHG 27.4"),]
 
@@ -2234,7 +2387,7 @@ a_unit <- 1
   the_agg_plot1$LE_MET <- gsub("\\(a)","", the_agg_plot1$LE_MET)
   p1_area_bottomfishing_pel_land_per_stk <- ggplot(the_agg_plot1, aes(x=as.character(Year), y=value/1e3, group=LE_MET)) +
      facet_wrap(. ~ Stock, scales = "free_y", ncol=1)  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +
-      geom_area(aes(fill=met_desc))  +     labs(y = "Landings (tons)", x = "Year")   +
+      geom_area(aes(fill=met_desc))  +     labs(y = "Landings (*1000 tons)", x = "Year")   +
       scale_fill_manual(values=some_color_seg, name="Fleet-segments") +   guides(fill =guide_legend(ncol=1, position="right"))  +
     xlab("")
  
@@ -2343,15 +2496,22 @@ setwd (file.path("D:","FBA","BENTHIS_2020"))   # adapt to your need
     marginal_sum_catches <- apply( dd[,  paste0(prefixes[count], spp)] , 2, sum, na.rm=TRUE)
     percent_over_met <- sweep(dd[, paste0(prefixes[count], spp)] , 2,   marginal_sum_catches, FUN="/")*100
     a_data <- cbind.data.frame(dd[,c("Year","met_desc", "LE_MET", a_variable)], as.data.frame(percent_over_met))
-   
+  
+ 
        
     # reshape first
     library(data.table)
     a_long <- melt(setDT(a_data[,c("met_desc", "LE_MET", "Year", a_variable, paste0(prefixes[count], spp))]), id.vars = c("met_desc", "LE_MET", "Year", a_variable), variable.name = "Var")
     a_long <- as.data.frame(a_long)
+    
+    if(!a_variable %in% c("CPUFallsp",  "VPUFallsp", "FPUCallsp", "FPUVallsp", "VPUFSWAallsp", "mpriceallsp"))
+     {  # apply if not a ratio.
+       a_long[, a_variable] <- marginal_sum_catches[ a_long[, "Var"] ] /1000 # convert in tons or thousand euros
+     }
+    
     a_long$value <- a_long$value* a_long[, a_variable]/100 # dispatch with percentage
 
-    
+   
     a_long <- a_long[complete.cases(a_long),]
 
     a_long$Stock <- sapply(strsplit(as.character(a_long$Var), split="_"), function(x) x[3])
@@ -2382,8 +2542,8 @@ setwd (file.path("D:","FBA","BENTHIS_2020"))   # adapt to your need
 
    # filtering the ratios:
    # a quick informative table (for kg) for filtering out the ratios that are misleading because low catch kg
-   ss <- the_agg[the_agg$Var %in%  paste0("LE_KG_", spp) & as.numeric(as.character(the_agg$value))>2000e3, ]  # < 5000tons?
-   the_agg <- the_agg[the_agg$Stock %in% unique(ss$Stock),]
+   #ss <- the_agg[the_agg$Var %in%  paste0("LE_KG_", spp) & as.numeric(as.character(the_agg$value))>2000e3, ]  # < 5000tons?
+   #the_agg <- the_agg[the_agg$Stock %in% unique(ss$Stock),]
 
    
    the_agg <- the_agg[,-grep("Var", colnames(the_agg))]
@@ -2399,7 +2559,7 @@ setwd (file.path("D:","FBA","BENTHIS_2020"))   # adapt to your need
  the_agg_plot <- as.data.frame(the_agg[grep("LargeMesh",the_agg$LE_MET),])
 
    # select some species
-  the_agg_plot <- the_agg_plot[the_agg_plot$Stock %in% c("COD 27.3", "COD 27.4", "HAD 27.4", "HKE 27.4", "NEP 27.3", "PLE 27.3", "PLE 27.4", "POK 27.4", "SOL 27.3"),]
+  the_agg_plot <- the_agg_plot[the_agg_plot$Stock %in% c("COD 27.3", "COD 27.4",  "HAD 27.4", "MON 27.4", "FLE 27.3", "LEM 27.4", "WIT 27.3", "HKE 27.4", "DAB 27.4", "NEP 27.3", "PLE 27.3", "PLE 27.4", "POK 27.4", "SOL 27.3"),]
  
  # a visual fix adding all combi--
  dd <- expand.grid(LE_MET=levels(factor(the_agg_plot$LE_MET)), Stock=levels(factor(the_agg_plot$Stock)), Year=levels(factor(the_agg_plot$Year)))
@@ -2419,13 +2579,15 @@ setwd (file.path("D:","FBA","BENTHIS_2020"))   # adapt to your need
  
  # filtering the ratios:
   # a quick informative table (for kg) for filtering out the ratios that are misleading because low catch kg
-  ss <- the_agg_plot[grep("(a)",the_agg_plot$LE_MET, fixed=TRUE) & as.numeric(as.character(the_agg_plot$value))>500e3, ]  # 500tons
-  the_agg_plot <- the_agg_plot[the_agg_plot$Stock %in% unique(ss$Stock),]
+  #ss <- the_agg_plot[grep("(a)",the_agg_plot$LE_MET, fixed=TRUE) & as.numeric(as.character(the_agg_plot$value))>500e3, ]  # 500tons
+  #the_agg_plot <- the_agg_plot[the_agg_plot$Stock %in% unique(ss$Stock),]
 
   the_agg_plot <- the_agg_plot[!the_agg_plot$Stock %in% c("SAN 27.4",  "SPR 27.4"),]
-
+  the_agg_plot$Stock <- factor(the_agg_plot$Stock)
+  the_agg_plot$LE_MET <- factor(the_agg_plot$LE_MET ) 
+  the_agg_plot$met_desc <- factor(the_agg_plot$met_desc) 
  
-    # find order of met
+    # find order of stcok
   dd <- the_agg_plot[grep("(a)",the_agg_plot$LE_MET, fixed=TRUE),]
   dd <- aggregate(dd$value, by=list(dd$Stock), sum)
   dd <- orderBy(~ -x,dd)
@@ -2437,7 +2599,7 @@ setwd (file.path("D:","FBA","BENTHIS_2020"))   # adapt to your need
  the_agg_plot1 <- as.data.frame(the_agg_plot[grep("(a)",the_agg_plot$LE_MET, fixed=TRUE),])
  the_agg_plot1$LE_MET <- gsub("\\(a)","", the_agg_plot1$LE_MET)
   the_agg_plot1$Stock <- factor(the_agg_plot1$Stock, level=stock_ordered) # reorder
-  p1_barplot_bottomfishing_dem_land_per_stk <- ggplot(data=the_agg_plot1, aes(x=Stock, y=value/1000, fill=LE_MET)) + #  geom_bar(stat="identity", position=position_dodge())
+  p1_barplot_bottomfishing_dem_land_per_stk <- ggplot(data=the_agg_plot1, aes(x=Stock, y=value/1e3, fill=met_desc)) + #  geom_bar(stat="identity", position=position_dodge())
   geom_bar(stat = "summary", fun = "mean") +  labs(y = "Landings (*1000 tons)", x= "") +
        scale_fill_manual(values=some_color_seg, name="Fleet-segments") + theme_minimal() + theme(axis.text.x=element_blank()) + guides(fill =guide_legend(ncol=1, position="right"))
   print(p1)
@@ -2445,7 +2607,7 @@ setwd (file.path("D:","FBA","BENTHIS_2020"))   # adapt to your need
  the_agg_plot2 <- as.data.frame(the_agg_plot[grep("(b)",the_agg_plot$LE_MET, fixed=TRUE),])
  the_agg_plot2$LE_MET <- gsub("\\(b)","", the_agg_plot2$LE_MET)
   the_agg_plot2$Stock <- factor(the_agg_plot2$Stock, level=stock_ordered) # reorder
- p2_barplot_bottomfishing_dem_fuel_per_stk <- ggplot(data=the_agg_plot2, aes(x=Stock, y=value/1e6, fill=LE_MET)) + #  geom_bar(stat="identity", position=position_dodge())
+ p2_barplot_bottomfishing_dem_fuel_per_stk <- ggplot(data=the_agg_plot2, aes(x=Stock, y=value/1e3, fill=met_desc)) + #  geom_bar(stat="identity", position=position_dodge())
   geom_bar(stat = "summary", fun = "mean") +  labs(y ="Fuel (millions litre)", x= "") +
        scale_fill_manual(values=some_color_seg, name="Fleet-segments")  + theme_minimal() + theme(axis.text.x=element_blank()) + guides(fill =guide_legend(ncol=1, position="right"))  
   #print(p2)
@@ -2453,7 +2615,7 @@ setwd (file.path("D:","FBA","BENTHIS_2020"))   # adapt to your need
  the_agg_plot3 <- as.data.frame(the_agg_plot[grep("(c)",the_agg_plot$LE_MET, fixed=TRUE),])
  the_agg_plot3$LE_MET <- gsub("\\(c)","", the_agg_plot3$LE_MET)
   the_agg_plot3$Stock <- factor(the_agg_plot3$Stock, level=stock_ordered) # reorder
-  p3_barplot_bottomfishing_dem_cpuf_per_stk <- ggplot(data=the_agg_plot3, aes(x=Stock, y=value/a_unit, fill=LE_MET)) + #  geom_bar(stat="identity", position=position_dodge())
+  p3_barplot_bottomfishing_dem_cpuf_per_stk <- ggplot(data=the_agg_plot3, aes(x=Stock, y=value/a_unit, fill=met_desc)) + #  geom_bar(stat="identity", position=position_dodge())
   geom_bar(stat = "summary", fun = "mean") +  labs(y ="CPUF (kg per litre)", x= "") +
        scale_fill_manual(values=some_color_seg, name="Fleet-segments")  + theme_minimal() + theme(axis.text.x=element_blank()) + guides(fill =guide_legend(ncol=1, position="right"))  
   #print(p3)
@@ -2461,7 +2623,7 @@ setwd (file.path("D:","FBA","BENTHIS_2020"))   # adapt to your need
   the_agg_plot4 <- as.data.frame(the_agg_plot[grep("(d)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot4$LE_MET <- gsub("\\(d)","", the_agg_plot4$LE_MET)
    the_agg_plot4$Stock <- factor(the_agg_plot4$Stock, level=stock_ordered) # reorder
-  p4_barplot_bottomfishing_dem_vpuf_per_stk <- ggplot(data=the_agg_plot4, aes(x=Stock, y=value/a_unit, fill=LE_MET)) + #  geom_bar(stat="identity", position=position_dodge())
+  p4_barplot_bottomfishing_dem_vpuf_per_stk <- ggplot(data=the_agg_plot4, aes(x=Stock, y=value/a_unit, fill=met_desc)) + #  geom_bar(stat="identity", position=position_dodge())
   geom_bar(stat = "summary", fun = "mean") +  labs(y = "VPUF (euro per litre)", x= "") +
        scale_fill_manual(values=some_color_seg, name="Fleet-segments") + theme_minimal() + guides(fill =guide_legend(ncol=1, position="right"))  + 
         theme(axis.text.x=element_blank())
@@ -2470,18 +2632,18 @@ setwd (file.path("D:","FBA","BENTHIS_2020"))   # adapt to your need
 the_agg_plot5 <- as.data.frame(the_agg_plot[grep("(e)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot5$LE_MET <- gsub("\\(e)","", the_agg_plot5$LE_MET)
    the_agg_plot5$Stock <- factor(the_agg_plot5$Stock, level=stock_ordered) # reorder
- p5_barplot_bottomfishing_dem_fpuc_per_stk <- ggplot(data=the_agg_plot4, aes(x=Stock, y=value/a_unit, fill=LE_MET)) + #  geom_bar(stat="identity", position=position_dodge())
+ p5_barplot_bottomfishing_dem_fpuc_per_stk <- ggplot(data=the_agg_plot5, aes(x=Stock, y=value/a_unit, fill=met_desc)) + #  geom_bar(stat="identity", position=position_dodge())
     geom_bar(stat = "summary", fun = "mean") +  labs(y = "Litre per kg catch", x= "Species") +
        scale_fill_manual(values=some_color_seg, name="Fleet-segments") + theme_minimal() + guides(fill =guide_legend(ncol=1, position="right"))  + 
-        theme(axis.text.x=element_text(angle=90,hjust=1,vjust=1, size=12))
+        theme(axis.text.x=element_text(angle=60,hjust=1,vjust=1, size=12))
  
   the_agg_plot6 <- as.data.frame(the_agg_plot[grep("(f)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot6$LE_MET <- gsub("\\(f)","", the_agg_plot6$LE_MET)
   the_agg_plot6$Stock <- factor(the_agg_plot6$Stock, level=stock_ordered) # reorder
-  p6_barplot_bottomfishing_dem_fpuv_per_stk <- ggplot(data=the_agg_plot4, aes(x=Stock, y=value/a_unit, fill=LE_MET)) + #  geom_bar(stat="identity", position=position_dodge())
+  p6_barplot_bottomfishing_dem_fpuv_per_stk <- ggplot(data=the_agg_plot4, aes(x=Stock, y=value/a_unit, fill=met_desc)) + #  geom_bar(stat="identity", position=position_dodge())
   geom_bar(stat = "summary", fun = "mean") +  labs(y = "Litre per euro catch", x= "Species") +
        scale_fill_manual(values=some_color_seg, name="Fleet-segments") + theme_minimal() + guides(fill =guide_legend(ncol=1, position="right"))  + 
-        theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5, size=8))
+        theme(axis.text.x=element_text(angle=60,hjust=1,vjust=0.5, size=12))
   
 
   
@@ -2501,14 +2663,106 @@ the_agg_plot5 <- as.data.frame(the_agg_plot[grep("(e)",the_agg_plot$LE_MET, fixe
 
    
 ##----------
-## PEL
+## BOTTOM TRAWL WITH SMALL MESHES
+#REDO SOME STUFF FOR A STANDALONE CODE:
+setwd (file.path("D:","FBA","BENTHIS_2020"))   # adapt to your need
+ library(doBy)
+ years <- 2005:2019
+ spp <- c("COD", "CSH","DAB","ELE","FLE","HAD","HER","HKE","HOM","LEM","MAC","MON","MUS","NEP","NOP","PLE","POK","PRA", "SAN","SOL","SPR","TUR","WHB","WIT","WHG","OTH")
+ color_species <- c("#E69F00","hotpink","#56B4E9","#F0E442", "green", "#0072B2", "mediumorchid4", "#CC79A7",
+                    "indianred2", "#EEC591", "#458B00", "#F0F8FF", "black", "#e3dcbf", "#CD5B45", "lightseagreen",
+                    "#6495ED", "#CDC8B1", "#00FFFF", "#8B0000", "#008B8B", "#A9A9A9", "#76a5c4", "red", "yellow", "blue")
+ 
+ some_color_species<- c("COD"="#E69F00", "CSH"="hotpink", "DAB"="#56B4E9", "ELE"="#F0E442", "FLE"="green",
+                        "HAD"="#0072B2", "HER"="mediumorchid4", "HKE"="#CC79A7","HOM"="indianred2", "LEM"="#EEC591",
+                         "MAC"="#458B00", "MON"="#F0F8FF", "MUS"="black", "NEP"="#e3dcbf", "NOP"="#CD5B45", "PLE"="lightseagreen",
+                         "POK"="#6495ED", "PRA"="#CDC8B1", "SAN"="#00FFFF", "SOL"="#8B0000", "SPR"="#008B8B", "TUR"="#A9A9A9", "WHB"="#76a5c4",
+                          "WIT"="red", "WHG"="yellow", "OTH"="blue")
+ #load(file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndVsizeAndRatiosBottContact.RData", sep="")))  # aggResultPerMetAlly
+ load(file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndRatiosBottContactAndGNS.RData", sep="")))  # aggResultPerMetAlly
+ 
+
+ 
+ ### SUMMARIZE LANDINGS AND CPUF ON THE SAME GRAPH.......
+ variables <- c("KEUROallsp","KKGallsp", "LE_KG_LITRE_FUEL", "CPUFallsp",  "VPUFallsp", "FPUCallsp", "FPUVallsp", "VPUFSWAallsp", "mpriceallsp")
+ prefixes  <- c("LE_EURO_","LE_KG_",       "LE_KG_",          "LE_KG_",  "LE_KG_", "LE_KG_", "LE_KG_", "LE_VPUF_", "LE_MPRICE_")
+ the_names <- c("(z)", "(a)","(b)", "(c)", "(d)", "(e)", "(f)", "(g)", "(h)")
+ 
+
+
+ count <- 0
+ the_agg <- NULL
+ for(a_variable in variables){
+ count <- count+1
+ for (y in years){
+    dd <- aggResultPerMetAlly[aggResultPerMetAlly$Year==y, ]
+    dd$met_desc <- friendly_met_names(dd)
+  
+    dd <- cbind.data.frame(Year=y, dd)
+   
+    marginal_sum_catches <- apply( dd[,  paste0(prefixes[count], spp)] , 2, sum, na.rm=TRUE)
+    percent_over_met <- sweep(dd[, paste0(prefixes[count], spp)] , 2,   marginal_sum_catches, FUN="/")*100
+    a_data <- cbind.data.frame(dd[,c("Year","met_desc", "LE_MET", a_variable)], as.data.frame(percent_over_met))
+  
+ 
+       
+    # reshape first
+    library(data.table)
+    a_long <- melt(setDT(a_data[,c("met_desc", "LE_MET", "Year", a_variable, paste0(prefixes[count], spp))]), id.vars = c("met_desc", "LE_MET", "Year", a_variable), variable.name = "Var")
+    a_long <- as.data.frame(a_long)
+    
+    if(!a_variable %in% c("CPUFallsp",  "VPUFallsp", "FPUCallsp", "FPUVallsp", "VPUFSWAallsp", "mpriceallsp"))
+     {  # apply if not a ratio.
+       a_long[, a_variable] <- marginal_sum_catches[ a_long[, "Var"] ] /1000 # convert in tons or thousand euros
+     }
+    
+    a_long$value <- a_long$value* a_long[, a_variable]/100 # dispatch with percentage
+
+   
+    a_long <- a_long[complete.cases(a_long),]
+
+    a_long$Stock <- sapply(strsplit(as.character(a_long$Var), split="_"), function(x) x[3])
+    
+   # assign area to species as a proxy of stock
+   a_long$Stock <- paste(a_long$Stock, sapply(strsplit(as.character(a_long$LE_MET), split="_"), function(x) x[2]))
+
+   colnames(a_long)[colnames(a_long) %in% c(a_variable)] <- "Total"
+   
+  
+   a_long$LE_MET <- paste(a_long$LE_MET, the_names[count])
+   a_long <- as.data.frame(a_long)
+   a_long$LE_MET <- factor(a_long$LE_MET)
+   
+     if(y==years[1]){
+     agg <- cbind.data.frame(as.data.frame(a_long))
+     }
+      else{
+      agg <- rbind.data.frame(as.data.frame(agg),
+             cbind.data.frame(a_long))
+     }
+     
+   }
+
+     the_agg <- rbind.data.frame(as.data.frame(the_agg), as.data.frame(agg))
+ }
+
+
+   # filtering the ratios:
+   # a quick informative table (for kg) for filtering out the ratios that are misleading because low catch kg
+   #ss <- the_agg[the_agg$Var %in%  paste0("LE_KG_", spp) & as.numeric(as.character(the_agg$value))>2000e3, ]  # < 5000tons?
+   #the_agg <- the_agg[the_agg$Stock %in% unique(ss$Stock),]
+
+   
+   the_agg <- the_agg[,-grep("Var", colnames(the_agg))]
+ 
+
  library(ggplot2)
 
 # PEL
  the_agg_plot <- as.data.frame(the_agg[grep("SmallMesh",the_agg$LE_MET),])
   
   # select some species
-  the_agg_plot <- the_agg_plot[the_agg_plot$Stock %in% c("HOM 27.4","MAC 27.4","NOP 27.4","PRA 27.3", "SAN 27.4","WHG 27.4"),]
+  the_agg_plot <- the_agg_plot[the_agg_plot$Stock %in% c("HOM 27.4","SPR 27.4", "SPR 27.3", "HER 27.4", "HER 27.3", "WHG 27.4", "MAC 27.4","NOP 27.4","PRA 27.3", "SAN 27.4","WHG 27.4", "CSH 27.4", "MUS 27.4"),]
 
 
 
@@ -2530,29 +2784,27 @@ the_agg_plot5 <- as.data.frame(the_agg_plot[grep("(e)",the_agg_plot$LE_MET, fixe
  
  # filtering the ratios:
   # a quick informative table (for kg) for filtering out the ratios that are misleading because low catch kg
-  ss <- the_agg_plot[grep("(a)",the_agg_plot$LE_MET, fixed=TRUE) & as.numeric(as.character(the_agg_plot$value))>500e3, ]  # 500tons
-  the_agg_plot <- the_agg_plot[the_agg_plot$Stock %in% unique(ss$Stock),]
+  #ss <- the_agg_plot[grep("(a)",the_agg_plot$LE_MET, fixed=TRUE) & as.numeric(as.character(the_agg_plot$value))>500e3, ]  # 500tons
+  #the_agg_plot <- the_agg_plot[the_agg_plot$Stock %in% unique(ss$Stock),]
 
-  # find order of met
+  the_agg_plot$Stock <- factor(the_agg_plot$Stock)
+  the_agg_plot$LE_MET <- factor(the_agg_plot$LE_MET )
+  the_agg_plot$met_desc <- factor(the_agg_plot$met_desc)
+
+
+  # find order of stock
   dd <- the_agg_plot[grep("(a)",the_agg_plot$LE_MET, fixed=TRUE),]
   dd <- aggregate(dd$value, by=list(dd$Stock), sum)
   dd <- orderBy(~ -x,dd)
   stock_ordered <- as.character(dd[,1])
-
-  
- # find order of met_desc
-  dd <- as.data.frame(the_agg_plot[grep("(a)",the_agg_plot$LE_MET, fixed=TRUE),])
-  dd$LE_MET <- gsub("\\(a)","", dd$LE_MET)
-  dd <- aggregate(dd$Total, by=list(dd$met_desc), a_func_mean)
-  dd <- orderBy(~ -x,dd)
-  fleet_segments_ordered2 <- as.character(dd[,1])
  
   #------------
   #------------
+#------------
  the_agg_plot1 <- as.data.frame(the_agg_plot[grep("(a)",the_agg_plot$LE_MET, fixed=TRUE),])
  the_agg_plot1$LE_MET <- gsub("\\(a)","", the_agg_plot1$LE_MET)
   the_agg_plot1$Stock <- factor(the_agg_plot1$Stock, level=stock_ordered) # reorder
-  p1_barplot_bottomfishing_pel_land_per_stk <- ggplot(data=the_agg_plot1, aes(x=Stock, y=value/1000, fill=LE_MET)) + #  geom_bar(stat="identity", position=position_dodge())
+  p1_barplot_bottomfishing_pel_land_per_stk <- ggplot(data=the_agg_plot1, aes(x=Stock, y=value/1e3, fill=met_desc)) + #  geom_bar(stat="identity", position=position_dodge())
   geom_bar(stat = "summary", fun = "mean") +  labs(y = "Landings (*1000 tons)", x= "") +
        scale_fill_manual(values=some_color_seg, name="Fleet-segments") + theme_minimal() + theme(axis.text.x=element_blank()) + guides(fill =guide_legend(ncol=1, position="right"))
   print(p1)
@@ -2560,7 +2812,7 @@ the_agg_plot5 <- as.data.frame(the_agg_plot[grep("(e)",the_agg_plot$LE_MET, fixe
  the_agg_plot2 <- as.data.frame(the_agg_plot[grep("(b)",the_agg_plot$LE_MET, fixed=TRUE),])
  the_agg_plot2$LE_MET <- gsub("\\(b)","", the_agg_plot2$LE_MET)
   the_agg_plot2$Stock <- factor(the_agg_plot2$Stock, level=stock_ordered) # reorder
- p2_barplot_bottomfishing_pel_fuel_per_stk <- ggplot(data=the_agg_plot2, aes(x=Stock, y=value/1e6, fill=LE_MET)) + #  geom_bar(stat="identity", position=position_dodge())
+ p2_barplot_bottomfishing_pel_fuel_per_stk <- ggplot(data=the_agg_plot2, aes(x=Stock, y=value/1e3, fill=met_desc)) + #  geom_bar(stat="identity", position=position_dodge())
   geom_bar(stat = "summary", fun = "mean") +  labs(y ="Fuel (millions litre)", x= "") +
        scale_fill_manual(values=some_color_seg, name="Fleet-segments")  + theme_minimal() + theme(axis.text.x=element_blank()) + guides(fill =guide_legend(ncol=1, position="right"))  
   #print(p2)
@@ -2568,7 +2820,7 @@ the_agg_plot5 <- as.data.frame(the_agg_plot[grep("(e)",the_agg_plot$LE_MET, fixe
  the_agg_plot3 <- as.data.frame(the_agg_plot[grep("(c)",the_agg_plot$LE_MET, fixed=TRUE),])
  the_agg_plot3$LE_MET <- gsub("\\(c)","", the_agg_plot3$LE_MET)
   the_agg_plot3$Stock <- factor(the_agg_plot3$Stock, level=stock_ordered) # reorder
-  p3_barplot_bottomfishing_pel_cpuf_per_stk <- ggplot(data=the_agg_plot3, aes(x=Stock, y=value/a_unit, fill=LE_MET)) + #  geom_bar(stat="identity", position=position_dodge())
+  p3_barplot_bottomfishing_pel_cpuf_per_stk <- ggplot(data=the_agg_plot3, aes(x=Stock, y=value/a_unit, fill=met_desc)) + #  geom_bar(stat="identity", position=position_dodge())
   geom_bar(stat = "summary", fun = "mean") +  labs(y ="CPUF (kg per litre)", x= "") +
        scale_fill_manual(values=some_color_seg, name="Fleet-segments")  + theme_minimal() + theme(axis.text.x=element_blank()) + guides(fill =guide_legend(ncol=1, position="right"))  
   #print(p3)
@@ -2576,7 +2828,7 @@ the_agg_plot5 <- as.data.frame(the_agg_plot[grep("(e)",the_agg_plot$LE_MET, fixe
   the_agg_plot4 <- as.data.frame(the_agg_plot[grep("(d)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot4$LE_MET <- gsub("\\(d)","", the_agg_plot4$LE_MET)
    the_agg_plot4$Stock <- factor(the_agg_plot4$Stock, level=stock_ordered) # reorder
-  p4_barplot_bottomfishing_pel_vpuf_per_stk <- ggplot(data=the_agg_plot4, aes(x=Stock, y=value/a_unit, fill=LE_MET)) + #  geom_bar(stat="identity", position=position_dodge())
+  p4_barplot_bottomfishing_pel_vpuf_per_stk <- ggplot(data=the_agg_plot4, aes(x=Stock, y=value/a_unit, fill=met_desc)) + #  geom_bar(stat="identity", position=position_dodge())
   geom_bar(stat = "summary", fun = "mean") +  labs(y = "VPUF (euro per litre)", x= "") +
        scale_fill_manual(values=some_color_seg, name="Fleet-segments") + theme_minimal() + guides(fill =guide_legend(ncol=1, position="right"))  + 
         theme(axis.text.x=element_blank())
@@ -2585,18 +2837,18 @@ the_agg_plot5 <- as.data.frame(the_agg_plot[grep("(e)",the_agg_plot$LE_MET, fixe
 the_agg_plot5 <- as.data.frame(the_agg_plot[grep("(e)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot5$LE_MET <- gsub("\\(e)","", the_agg_plot5$LE_MET)
    the_agg_plot5$Stock <- factor(the_agg_plot5$Stock, level=stock_ordered) # reorder
- p5_barplot_bottomfishing_pel_fpuc_per_stk <- ggplot(data=the_agg_plot4, aes(x=Stock, y=value/a_unit, fill=LE_MET)) + #  geom_bar(stat="identity", position=position_dodge())
+ p5_barplot_bottomfishing_pel_fpuc_per_stk <- ggplot(data=the_agg_plot5, aes(x=Stock, y=value/a_unit, fill=met_desc)) + #  geom_bar(stat="identity", position=position_dodge())
     geom_bar(stat = "summary", fun = "mean") +  labs(y = "Litre per kg catch", x= "Species") +
        scale_fill_manual(values=some_color_seg, name="Fleet-segments") + theme_minimal() + guides(fill =guide_legend(ncol=1, position="right"))  + 
-        theme(axis.text.x=element_text(angle=90,hjust=1,vjust=1, size=12))
+        theme(axis.text.x=element_text(angle=60,hjust=1,vjust=1, size=12))
  
   the_agg_plot6 <- as.data.frame(the_agg_plot[grep("(f)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot6$LE_MET <- gsub("\\(f)","", the_agg_plot6$LE_MET)
   the_agg_plot6$Stock <- factor(the_agg_plot6$Stock, level=stock_ordered) # reorder
-  p6_barplot_bottomfishing_pel_fpuv_per_stk <- ggplot(data=the_agg_plot4, aes(x=Stock, y=value/a_unit, fill=LE_MET)) + #  geom_bar(stat="identity", position=position_dodge())
+  p6_barplot_bottomfishing_pel_fpuv_per_stk <- ggplot(data=the_agg_plot6, aes(x=Stock, y=value/a_unit, fill=met_desc)) + #  geom_bar(stat="identity", position=position_dodge())
   geom_bar(stat = "summary", fun = "mean") +  labs(y = "Litre per euro catch", x= "Species") +
        scale_fill_manual(values=some_color_seg, name="Fleet-segments") + theme_minimal() + guides(fill =guide_legend(ncol=1, position="right"))  + 
-        theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5, size=8))
+        theme(axis.text.x=element_text(angle=60,hjust=1,vjust=0.5, size=12))
   
 
  
