@@ -1538,9 +1538,7 @@ spp <- colnames(aggResultPerMetAlly) [grep("LE_EURO_", colnames(aggResultPerMetA
  the_names <- c("(z)", "(a)","(b)", "(c)", "(d)", "(e)", "(f)", "(g)", "(h)")
 
 
-
-
- count <- 0
+  count <- 0
  the_agg <- NULL
  for(a_variable in variables){
  count <- count+1
@@ -1550,22 +1548,32 @@ spp <- colnames(aggResultPerMetAlly) [grep("LE_EURO_", colnames(aggResultPerMetA
   
     dd <- cbind.data.frame(Year=y, dd)
    
-    marginal_sum_catches <- apply( dd[,  paste0(prefixes[count], spp)] , 2, sum, na.rm=TRUE)
-    percent_over_met <- sweep(dd[, paste0(prefixes[count], spp)] , 2,   marginal_sum_catches, FUN="/")*100
-    a_data <- cbind.data.frame(dd[,c("Year","met_desc", "LE_MET", a_variable)], as.data.frame(percent_over_met))
-  
+   if(a_variable %in% c("KEUROallsp","KKGallsp","LE_KG_LITRE_FUEL")){
+   
+       marginal_sum_catches <- apply( dd[,  paste0(prefixes[count], spp)] , 1, sum, na.rm=TRUE) # in row
+       percent_over_stk <- sweep(dd[, paste0(prefixes[count], spp)] , 1,   marginal_sum_catches, FUN="/")*100
+       a_data <- cbind.data.frame(dd[,c("Year","met_desc", "LE_MET", a_variable)], as.data.frame(percent_over_stk))
+       # tapply(a_data$LE_KG_LITRE_FUEL, a_data$met_desc, sum, na.rm=TRUE)
+       # reshape first
+       library(data.table)
+       a_long <- melt(setDT(a_data[,c("met_desc", "LE_MET", "Year", a_variable, paste0(prefixes[count], spp))]), id.vars = c("met_desc", "LE_MET", "Year", a_variable), variable.name = "Var")
+       a_long <- as.data.frame(a_long)
+    
+      }
+   if(!a_variable %in% c("KEUROallsp","KKGallsp","LE_KG_LITRE_FUEL")){
+   
+       marginal_sum_catches <- apply( dd[,  paste0(prefixes[count], spp)] , 2, sum, na.rm=TRUE) # in col
+       percent_over_met <- sweep(dd[, paste0(prefixes[count], spp)] , 2,   marginal_sum_catches, FUN="/")*100
+       a_data <- cbind.data.frame(dd[,c("Year","met_desc", "LE_MET", a_variable)], as.data.frame(percent_over_met))
+       # tapply(a_data$LE_KG_LITRE_FUEL, a_data$met_desc, sum, na.rm=TRUE)
+       # reshape first
+       library(data.table)
+       a_long <- melt(setDT(a_data[,c("met_desc", "LE_MET", "Year", a_variable, paste0(prefixes[count], spp))]), id.vars = c("met_desc", "LE_MET", "Year", a_variable), variable.name = "Var")
+       a_long <- as.data.frame(a_long)
  
-       
-    # reshape first
-    library(data.table)
-    a_long <- melt(setDT(a_data[,c("met_desc", "LE_MET", "Year", a_variable, paste0(prefixes[count], spp))]), id.vars = c("met_desc", "LE_MET", "Year", a_variable), variable.name = "Var")
-    a_long <- as.data.frame(a_long)
+   }  
     
-    if(!a_variable %in% c("CPUFallsp",  "VPUFallsp", "FPUCallsp", "FPUVallsp", "VPUFSWAallsp", "mpriceallsp"))
-     {  # apply if not a ratio.
-       a_long[, a_variable] <- marginal_sum_catches[ a_long[, "Var"] ] /1000 # convert in tons or thousand euros
-     }
-    
+     
     a_long$value <- a_long$value* a_long[, a_variable]/100 # dispatch with percentage
 
    
@@ -1599,32 +1607,32 @@ spp <- colnames(aggResultPerMetAlly) [grep("LE_EURO_", colnames(aggResultPerMetA
 
    # filtering the ratios:
    # a quick informative table (for kg) for filtering out the ratios that are misleading because low catch kg
-   #ss <- the_agg[the_agg$Var %in%  paste0("LE_KG_", spp) & as.numeric(as.character(the_agg$value))>2000e3, ]  # < 5000tons?
+   #ss <- the_agg[the_agg$Var %in%  paste0("LE_KG_", spp) & as.numeric(as.character(the_agg$value))>2000000, ]  # < 2000tons?
    #the_agg <- the_agg[the_agg$Stock %in% unique(ss$Stock),]
 
    
    the_agg <- the_agg[,-grep("Var", colnames(the_agg))]
-
-    the_agg <- the_agg[!grepl("misc.", the_agg$met_desc),]
+    
+  
+    the_agg <- the_agg[!grepl("misc.", the_agg$met_desc, fixed=TRUE),]
  
 ##--------
 library(ggplot2)
 a_comment <- ""
 a_unit <- 1
 
- the_agg_plot <- as.data.frame(the_agg[grep("SmallMesh",the_agg$LE_MET),])
+ the_agg_plot <- as.data.frame(the_agg[grep("SmallMesh",the_agg$LE_MET, fixed=TRUE),])
 
  # a visual fix adding all combi--
- dd <- expand.grid(LE_MET=levels(factor(the_agg_plot$LE_MET)), Stock=levels(factor(the_agg_plot$Stock)), Year=levels(factor(the_agg_plot$Year)))
- dd$met_desc <- friendly_met_names(dd)
-  
- dd$value <- 0
- dd[,"Total"] <- 0
- dd <- dd[,colnames(the_agg_plot)]
- rownames(the_agg_plot) <- paste0(the_agg_plot$LE_MET,the_agg_plot$Stock,the_agg_plot$Year)
- rownames(dd) <- paste0(dd$LE_MET,dd$Stock,dd$Year)
- dd <- dd[!rownames(dd)%in%rownames(the_agg_plot),]
- the_agg_plot <- rbind.data.frame(the_agg_plot, dd)
+ #dd <- expand.grid(LE_MET=levels(factor(the_agg_plot$LE_MET)), Stock=levels(factor(the_agg_plot$Stock)), Year=levels(factor(the_agg_plot$Year)))
+ #dd$met_desc <- friendly_met_names(dd)
+ #dd$value <- 0
+ #dd[,"Total"] <- 0
+ #dd <- dd[,colnames(the_agg_plot)]
+ #rownames(the_agg_plot) <- paste0(the_agg_plot$LE_MET,the_agg_plot$Stock,the_agg_plot$Year)
+ #rownames(dd) <- paste0(dd$LE_MET,dd$Stock,dd$Year)
+ #dd <- dd[!rownames(dd)%in%rownames(the_agg_plot),]
+ #the_agg_plot <- rbind.data.frame(the_agg_plot, dd)
  #---
 
   the_agg_plot$LE_MET <- gsub("LargeMesh_", "", the_agg_plot$LE_MET)
@@ -1719,7 +1727,7 @@ spp <- colnames(aggResultPerMetAlly) [grep("LE_EURO_", colnames(aggResultPerMetA
 
 
 
- count <- 0
+  count <- 0
  the_agg <- NULL
  for(a_variable in variables){
  count <- count+1
@@ -1729,22 +1737,32 @@ spp <- colnames(aggResultPerMetAlly) [grep("LE_EURO_", colnames(aggResultPerMetA
   
     dd <- cbind.data.frame(Year=y, dd)
    
-    marginal_sum_catches <- apply( dd[,  paste0(prefixes[count], spp)] , 2, sum, na.rm=TRUE)
-    percent_over_met <- sweep(dd[, paste0(prefixes[count], spp)] , 2,   marginal_sum_catches, FUN="/")*100
-    a_data <- cbind.data.frame(dd[,c("Year","met_desc", "LE_MET", a_variable)], as.data.frame(percent_over_met))
-  
+   if(a_variable %in% c("KEUROallsp","KKGallsp","LE_KG_LITRE_FUEL")){
+   
+       marginal_sum_catches <- apply( dd[,  paste0(prefixes[count], spp)] , 1, sum, na.rm=TRUE) # in row
+       percent_over_stk <- sweep(dd[, paste0(prefixes[count], spp)] , 1,   marginal_sum_catches, FUN="/")*100
+       a_data <- cbind.data.frame(dd[,c("Year","met_desc", "LE_MET", a_variable)], as.data.frame(percent_over_stk))
+       # tapply(a_data$LE_KG_LITRE_FUEL, a_data$met_desc, sum, na.rm=TRUE)
+       # reshape first
+       library(data.table)
+       a_long <- melt(setDT(a_data[,c("met_desc", "LE_MET", "Year", a_variable, paste0(prefixes[count], spp))]), id.vars = c("met_desc", "LE_MET", "Year", a_variable), variable.name = "Var")
+       a_long <- as.data.frame(a_long)
+    
+      }
+   if(!a_variable %in% c("KEUROallsp","KKGallsp","LE_KG_LITRE_FUEL")){
+   
+       marginal_sum_catches <- apply( dd[,  paste0(prefixes[count], spp)] , 2, sum, na.rm=TRUE) # in col
+       percent_over_met <- sweep(dd[, paste0(prefixes[count], spp)] , 2,   marginal_sum_catches, FUN="/")*100
+       a_data <- cbind.data.frame(dd[,c("Year","met_desc", "LE_MET", a_variable)], as.data.frame(percent_over_met))
+       # tapply(a_data$LE_KG_LITRE_FUEL, a_data$met_desc, sum, na.rm=TRUE)
+       # reshape first
+       library(data.table)
+       a_long <- melt(setDT(a_data[,c("met_desc", "LE_MET", "Year", a_variable, paste0(prefixes[count], spp))]), id.vars = c("met_desc", "LE_MET", "Year", a_variable), variable.name = "Var")
+       a_long <- as.data.frame(a_long)
  
-       
-    # reshape first
-    library(data.table)
-    a_long <- melt(setDT(a_data[,c("met_desc", "LE_MET", "Year", a_variable, paste0(prefixes[count], spp))]), id.vars = c("met_desc", "LE_MET", "Year", a_variable), variable.name = "Var")
-    a_long <- as.data.frame(a_long)
+   }  
     
-    if(!a_variable %in% c("CPUFallsp",  "VPUFallsp", "FPUCallsp", "FPUVallsp", "VPUFSWAallsp", "mpriceallsp"))
-     {  # apply if not a ratio.
-       a_long[, a_variable] <- marginal_sum_catches[ a_long[, "Var"] ] /1000 # convert in tons or thousand euros
-     }
-    
+     
     a_long$value <- a_long$value* a_long[, a_variable]/100 # dispatch with percentage
 
    
@@ -1774,7 +1792,6 @@ spp <- colnames(aggResultPerMetAlly) [grep("LE_EURO_", colnames(aggResultPerMetA
 
      the_agg <- rbind.data.frame(as.data.frame(the_agg), as.data.frame(agg))
  }
-
 
 
    # filtering the ratios:
@@ -1843,7 +1860,7 @@ spp <- colnames(aggResultPerMetAlly) [grep("LE_EURO_", colnames(aggResultPerMetA
  the_agg_plot2 <- as.data.frame(the_agg_plot[grep("(b)",the_agg_plot$LE_MET, fixed=TRUE),])
  the_agg_plot2$LE_MET <- gsub("\\(b)","", the_agg_plot2$LE_MET)
  the_agg_plot2$Stock <- factor(the_agg_plot2$Stock, level=stock_ordered) # reorder
-  p2_barplot_pelfishing_pel_fuel_per_stk <- ggplot(data=the_agg_plot2, aes(x=Stock, y=value/1e3, fill=met_desc)) + #  geom_bar(stat="identity", position=position_dodge())
+  p2_barplot_pelfishing_pel_fuel_per_stk <- ggplot(data=the_agg_plot2, aes(x=Stock, y=value/1e6, fill=met_desc)) + #  geom_bar(stat="identity", position=position_dodge())
   geom_bar(stat = "summary", fun = "mean") +  labs(y ="Fuel (millions litre)", x= "") +
        scale_fill_manual(values=some_color_seg, name="Fleet-segments")  + theme_minimal() + theme(axis.text.x=element_blank()) + guides(fill =guide_legend(ncol=1, position="right"))  
   #print(p2)

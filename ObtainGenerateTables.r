@@ -186,7 +186,7 @@ library(doBy)
   a_data <- rbind.data.frame(long, long2, long3)
   a_data <- as.data.frame(a_data)
 
-  a_data_to_plot <- a_data[a_data$LE_MET %in% top5,]
+  a_data_to_plot <- a_data[a_data$LE_MET %in% top7,]
   a_data_to_plot$LE_MET <- factor(a_data_to_plot$LE_MET)
   a_data_to_plot$LE_MET <- with(a_data_to_plot, reorder(LE_MET,value, median)) # reorder
 
@@ -299,8 +299,7 @@ library(doBy)
    lon <- "CELL_LONG" ; lat <- "CELL_LATI"
    rm(AllAggResultsBot)
    gc() 
-   x <- x[,colnames(x) %in% c(grID)]
-  
+   
   # code F_SUBAREA (time consuming code...)
    # Convert all points first to SpatialPoints first
    library(rgdal)
@@ -325,7 +324,7 @@ library(doBy)
    # check
    plot(fao_areas[fao_areas$F_CODE %in% c("27.3.d.24","27.3.b.23"),])
    points( x[is.na(x$F_CODE), c(lon, lat)], col=3, pch="+")
-   #=> pblm with discret pos and coastline...so brute search below to fix:
+   #=> pblm with discrete pos and coastline...so brute search below to fix:
    for(multi in seq(1,3,by=0.2))  {
    for(a_sign1 in c(-1,1))  {
    for(a_sign2 in c(-1,1))  {
@@ -395,7 +394,8 @@ library(doBy)
   
    # export
    x <- cbind.data.frame(datatype="dem", x)
-   save(x, file=file.path(getwd(), "outputs2020", paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatios",a_comment,"ForBotAllyAndStocks",years[1],"-",years[length(years)],".RData", sep="")))
+   #save(x, file=file.path(getwd(), "outputs2020", paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatios",a_comment,"ForBotAllyAndStocks",years[1],"-",years[length(years)],".RData", sep="")))
+   save(x, file=file.path(getwd(), "outputs2020", paste("AggregatedSweptAreaPlusMet6AndRatios",a_comment,"ForBotAllyAndStocks",years[1],"-",years[length(years)],".RData", sep="")))
   
    # e.g. a table...
    xx <- tapply(x$value, list(x$Stock, x$Year), mean, na.rm=TRUE)
