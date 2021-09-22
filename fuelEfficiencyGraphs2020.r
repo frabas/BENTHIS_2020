@@ -66,10 +66,6 @@
                         "POK"="#6495ED", "PRA"="#CDC8B1", "SAN"="#00FFFF", "SOL"="#8B0000", "SPR"="#008B8B", "TUR"="#A9A9A9", "WHB"="#76a5c4",
                          "WIT"="red", "WHG"="yellow", "OTH"="blue")
 
-some_color_seg <-  c("#7FC97F", "#BEAED4", "#FDC086", "#FFFF99", "#386CB0", "#F0027F", "#BF5B17", "#666666", "#1B9E77", "#D95F02", "#7570B3", "#E7298A", "#66A61E", "#E6AB02", "#A6761D", "#666666", "#A6CEE3", "#1F78B4", "#B2DF8A", "#33A02C", "#FB9A99", "#E31A1C", "#FDBF6F",
-   "#FF7F00", "#CAB2D6", "#6A3D9A", "#FFFF99", "#B15928", "#FBB4AE", "#B3CDE3", "#CCEBC5", "#DECBE4", "#FED9A6", "#FFFFCC", "#E5D8BD", "#FDDAEC", "#F2F2F2", "#B3E2CD", "#FDCDAC", "#CBD5E8", "#F4CAE4", "#E6F5C9", "#FFF2AE", "#F1E2CC", "#CCCCCC", "#E41A1C",
-   "#377EB8", "#4DAF4A", "#984EA3", "#FF7F00", "#FFFF33", "#A65628", "#F781BF", "#999999", "#66C2A5", "#FC8D62", "#8DA0CB", "#E78AC3", "#A6D854", "#FFD92F", "#E5C494", "#B3B3B3", "#8DD3C7", "#FFFFB3", "#BEBADA", "#FB8072", "#80B1D3", "#FDB462", "#B3DE69",
-   "#FCCDE5", "#D9D9D9", "#BC80BD", "#CCEBC5", "#FFED6F")
                          
 
  per_metier_level6 <- TRUE
@@ -1019,11 +1015,6 @@ dev.off()
   a_width <- 9500 ; a_height <- 4000
    a_comment <- "" ; if(per_metier_level6) a_comment <- "_met6";  if(per_vessel_size) a_comment <- paste0(a_comment,"_vsize") ; if(per_region) a_comment <- paste0(a_comment,"_region")
 
-   some_color_seg <-  c("#7FC97F", "#BEAED4", "#FDC086", "#FFFF99", "#386CB0", "#F0027F", "#BF5B17", "#666666", "#1B9E77", "#D95F02", "#7570B3", "#E7298A", "#66A61E", "#E6AB02", "#A6761D", "#666666", "#A6CEE3", "#1F78B4", "#B2DF8A", "#33A02C", "#FB9A99", "#E31A1C", "#FDBF6F",
-   "#FF7F00", "#CAB2D6", "#6A3D9A", "#FFFF99", "#B15928", "#FBB4AE", "#B3CDE3", "#CCEBC5", "#DECBE4", "#FED9A6", "#FFFFCC", "#E5D8BD", "#FDDAEC", "#F2F2F2", "#B3E2CD", "#FDCDAC", "#CBD5E8", "#F4CAE4", "#E6F5C9", "#FFF2AE", "#F1E2CC", "#CCCCCC", "#E41A1C",
-   "#377EB8", "#4DAF4A", "#984EA3", "#FF7F00", "#FFFF33", "#A65628", "#F781BF", "#999999", "#66C2A5", "#FC8D62", "#8DA0CB", "#E78AC3", "#A6D854", "#FFD92F", "#E5C494", "#B3B3B3", "#8DD3C7", "#FFFFB3", "#BEBADA", "#FB8072", "#80B1D3", "#FDB462", "#B3DE69",
-   "#FCCDE5", "#D9D9D9", "#BC80BD", "#CCEBC5", "#FFED6F")
-
  # dem
  namefile <- paste0("ts_fuel_efficiency_per_stk_", a_variable, "_", years[1], "-", years[length(years)],  a_comment, "_DEM.tif")
  tiff(filename=file.path(getwd(), "outputs2020", "output_plots",  namefile),   width = a_width, height = a_height,
@@ -1191,11 +1182,20 @@ dev.off()
                          "MAC"="#458B00", "MON"="#F0F8FF", "MUS"="black", "NEP"="#e3dcbf", "NOP"="#CD5B45", "PLE"="lightseagreen",
                          "POK"="#6495ED", "PRA"="#CDC8B1", "SAN"="#00FFFF", "SOL"="#8B0000", "SPR"="#008B8B", "TUR"="#A9A9A9", "WHB"="#76a5c4",
                           "WIT"="red", "WHG"="yellow", "OTH"="blue")
- #load(file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndVsizeAndRatiosBottContact.RData", sep="")))  # aggResultPerMetAlly
- #load(file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndRatiosBottContact.RData", sep="")))  # aggResultPerMetAlly
- load(file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndRatiosBottContactAndGNS.RData", sep="")))  # aggResultPerMetAlly
  
- head(aggResultPerMetAlly[aggResultPerMetAlly$LE_MET=="SmallMesh_27.3_OTB_CRU_32-69_0_0",])
+ # caution: always same color for seg
+  some_color_seg <-  c("#7FC97F", "#BEAED4", "#FDC086", "#FFFF99", "#386CB0", "#F0027F", "#BF5B17", "#666666", "#1B9E77", "#D95F02", "#7570B3", "#E7298A", "#66A61E", "#E6AB02", "#A6761D", "#666666", "#A6CEE3", "#1F78B4", "#B2DF8A", "#33A02C", "#FB9A99", "#E31A1C", "#FDBF6F",
+   "#FF7F00", "#CAB2D6", "#6A3D9A", "#FFFF99", "#B15928", "#FBB4AE", "#B3CDE3", "#CCEBC5", "#DECBE4", "#FED9A6", "#FFFFCC", "#E5D8BD", "#FDDAEC", "#F2F2F2", "#B3E2CD", "#FDCDAC", "#CBD5E8", "#F4CAE4", "#E6F5C9", "#FFF2AE", "#F1E2CC", "#CCCCCC", "#E41A1C",
+   "#377EB8", "#4DAF4A", "#984EA3", "#FF7F00", "#FFFF33", "#A65628", "#F781BF", "#999999", "#66C2A5", "#FC8D62", "#8DA0CB", "#E78AC3", "#A6D854", "#FFD92F", "#E5C494", "#B3B3B3", "#8DD3C7", "#FFFFB3", "#BEBADA", "#FB8072", "#80B1D3", "#FDB462", "#B3DE69",
+   "#FCCDE5", "#D9D9D9", "#BC80BD", "#CCEBC5", "#FFED6F")
+   load(file=file.path(getwd(), "outputs2020_pel", paste("aggResultPerMetAllyMet6AndRatiosForPel.RData", sep="")))  # aggResultPerMetAlly
+   met_set_1 <- friendly_met_names(aggResultPerMetAlly)
+   load(file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndRatiosBottContactAndGNS.RData", sep="")))  # aggResultPerMetAlly
+   met_set_2 <- friendly_met_names(aggResultPerMetAlly)
+   names(some_color_seg) <- unique(c(met_set_1, met_set_2))
+   some_color_seg <- some_color_seg[!is.na(names(some_color_seg))]
+   
+ 
 
  friendly_met_names <- function(dd){
      # a more friendly naming of metiers
@@ -1239,6 +1239,15 @@ dev.off()
     } 
                                    
                                                                      
+
+ #load(file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndVsizeAndRatiosBottContact.RData", sep="")))  # aggResultPerMetAlly
+ #load(file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndRatiosBottContact.RData", sep="")))  # aggResultPerMetAlly
+ load(file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndRatiosBottContactAndGNS.RData", sep="")))  # aggResultPerMetAlly
+ 
+ head(aggResultPerMetAlly[aggResultPerMetAlly$LE_MET=="SmallMesh_27.3_OTB_CRU_32-69_0_0",])
+ 
+ 
+ 
  library(ggplot2)
  
  # compare prices e.g seine vs. trawls for cod
@@ -1676,19 +1685,30 @@ dev.off()
  the_agg_plot <- as.data.frame(the_agg[grep("LargeMesh",the_agg$LE_MET),])   
 
  # a visual fix adding all combi--
- dd <- expand.grid(LE_MET=levels(factor(the_agg_plot$LE_MET)), Stock=levels(factor(the_agg_plot$Stock)), year=levels(factor(the_agg_plot$year)))
- dd$met_desc <- friendly_met_names (dd)
+ #dd <- expand.grid(LE_MET=levels(factor(the_agg_plot$LE_MET)), Stock=levels(factor(the_agg_plot$Stock)), year=levels(factor(the_agg_plot$year)))
+ #dd$met_desc <- friendly_met_names (dd)
 
- dd$value <- 0
- dd[,"Total"] <- 0
- dd <- dd[,colnames(the_agg_plot)]
- rownames(the_agg_plot) <- paste0(the_agg_plot$LE_MET,the_agg_plot$Stock,the_agg_plot$year)
- rownames(dd) <- paste0(dd$LE_MET,dd$Stock,dd$year)
- dd <- dd[!rownames(dd)%in%rownames(the_agg_plot),]
- the_agg_plot <- rbind.data.frame(the_agg_plot, dd)
+ #dd$value <- 0
+ #dd[,"Total"] <- 0
+ #dd <- dd[,colnames(the_agg_plot)]
+ #rownames(the_agg_plot) <- paste0(the_agg_plot$LE_MET,the_agg_plot$Stock,the_agg_plot$year)
+ #rownames(dd) <- paste0(dd$LE_MET,dd$Stock,dd$year)
+ #dd <- dd[!rownames(dd)%in%rownames(the_agg_plot),]
+ #the_agg_plot <- rbind.data.frame(the_agg_plot, dd)
  #---
 
  the_agg_plot$LE_MET <- gsub("LargeMesh_", "", the_agg_plot$LE_MET)
+
+  # filter out small contribution species 
+  ss <- the_agg_plot[grepl ( "(a)",  the_agg_plot$LE_MET)   & as.numeric(as.character(the_agg_plot$value))>20, ]  # < 20tons?
+  the_agg_plot <- the_agg_plot[the_agg_plot$Stock %in% unique(ss$Stock),]
+
+  
+  the_agg_plot$LE_MET <- factor(the_agg_plot$LE_MET )
+  the_agg_plot$met_desc <- factor(the_agg_plot$met_desc )
+  the_agg_plot$Stock <- factor(the_agg_plot$Stock )
+
+
 
  a_func_mean <- function (x) mean(x[x!=0 & !is.na(x)])
   a_func_cv <- function(x) {sqrt(var(x[x!=0 & !is.na(x)]))/mean(x[x!=0 & !is.na(x)])}
@@ -1861,27 +1881,115 @@ dev.off()
 
 
 ##!!!!!!!!!!!!!!!!!!!!!!##
-## PEL 
+##!!!!!!!!!!!!!!!!!!!!!!##
+##!!!!!!!!!!!!!!!!!!!!!!##
+## BOTTOM TRAWL WITH SMALL MESHES
+#REDO SOME STUFF FOR A STANDALONE CODE:
+ setwd (file.path("D:","FBA","BENTHIS_2020"))   # adapt to your need
+ library(doBy)
+ years <- 2005:2019
+ spp <- c("COD", "CSH","DAB","ELE","FLE","HAD","HER","HKE","HOM","LEM","MAC","MON","MUS","NEP","NOP","PLE","POK","PRA", "SAN","SOL","SPR","TUR","WHB","WIT","WHG","OTH")
+ color_species <- c("#E69F00","hotpink","#56B4E9","#F0E442", "green", "#0072B2", "mediumorchid4", "#CC79A7",
+                    "indianred2", "#EEC591", "#458B00", "#F0F8FF", "black", "#e3dcbf", "#CD5B45", "lightseagreen",
+                    "#6495ED", "#CDC8B1", "#00FFFF", "#8B0000", "#008B8B", "#A9A9A9", "#76a5c4", "red", "yellow", "blue")
+ 
+ some_color_species<- c("COD"="#E69F00", "CSH"="hotpink", "DAB"="#56B4E9", "ELE"="#F0E442", "FLE"="green",
+                        "HAD"="#0072B2", "HER"="mediumorchid4", "HKE"="#CC79A7","HOM"="indianred2", "LEM"="#EEC591",
+                         "MAC"="#458B00", "MON"="#F0F8FF", "MUS"="black", "NEP"="#e3dcbf", "NOP"="#CD5B45", "PLE"="lightseagreen",
+                         "POK"="#6495ED", "PRA"="#CDC8B1", "SAN"="#00FFFF", "SOL"="#8B0000", "SPR"="#008B8B", "TUR"="#A9A9A9", "WHB"="#76a5c4",
+                          "WIT"="red", "WHG"="yellow", "OTH"="blue")
+ #load(file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndVsizeAndRatiosBottContact.RData", sep="")))  # aggResultPerMetAlly
+ #load(file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndRatiosBottContact.RData", sep="")))  # aggResultPerMetAlly
+ load(file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndRatiosBottContactAndGNS.RData", sep="")))  # aggResultPerMetAlly
+
+ ### SUMMARIZE LANDINGS AND CPUF ON THE SAME GRAPH.......
+ variables <- c("KEUROallsp","KKGallsp", "LE_KG_LITRE_FUEL", "CPUFallsp",  "VPUFallsp", "FPUCallsp", "FPUVallsp", "VPUFSWAallsp", "mpriceallsp")
+ prefixes  <- c("LE_EURO_","LE_KG_","LE_KG_",   "LE_CPUF_",  "LE_VPUF_", "LE_KG_", "LE_KG_", "LE_VPUF_", "LE_MPRICE_")
+ the_names <- c("(z)", "(a)","(b)", "(c)", "(d)", "(e)", "(f)", "(g)", "(h)")
+
+ count <- 0
+ the_agg <- NULL
+ for(a_variable in variables){
+ count <- count+1
+ for (y in years){
+     #dd <- get(paste0("aggResultPerMet_", y))
+     dd <- aggResultPerMetAlly[aggResultPerMetAlly$Year==y, ]
+     dd$met_desc <- friendly_met_names(dd)
+     
+      # debug SAN
+     dd[grepl("LargeMesh",dd$LE_MET) , paste0(prefixes[count], "SAN")] <- 0 # because SAN creates misleading distorsion on plots...
+
+     # debug outlier
+     aggResultPerMetAlly[aggResultPerMetAlly$FPUCallsp>100, c("FPUCallsp", "FPUVallsp")] <- 0
+
+     # get percent per stock for sectorisation
+     PercentThisStk <- dd[paste0(prefixes[count],spp)] / apply(dd[paste0(prefixes[count],spp)], 1, sum, na.rm=TRUE)*100
+     if(prefixes[count]=="LE_MPRICE_")   PercentThisStk <- (dd[paste0(prefixes[count],spp)]*dd[paste0("LE_KG_",spp)]) / apply(dd[paste0(prefixes[count],spp)]*dd[paste0("LE_KG_",spp)], 1, sum, na.rm=TRUE)*100
+    
+     colnames(PercentThisStk)  <- paste0("Percent_",spp)
+     dd <- cbind.data.frame (dd, PercentThisStk)
+     VarThisStk <- sweep(dd[,colnames(PercentThisStk)]/100, 1, dd[,a_variable], FUN="*")
+     colnames(VarThisStk)  <- spp
+     dd <- cbind.data.frame (dd, VarThisStk)
+     # reshape
+     library(data.table)
+     long <- melt(setDT(dd[,c("met_desc","LE_MET", a_variable, colnames(VarThisStk))]), id.vars = c("met_desc","LE_MET", a_variable), variable.name = "Stock")
+     colnames(long)[colnames(long)==a_variable] <- "Total"
+     
+     #as.data.frame(long)
+     long <- long[complete.cases(long),]
+
+     long$LE_MET <- paste(long$LE_MET, the_names[count])
+    
+     head(long[long$LE_MET=="SmallMesh_27.3_OTB_CRU_32-69_0_0 (b)",])
+  
+     if(y==years[1]){
+     agg <- cbind.data.frame(as.data.frame(long), year=y)
+     }
+      else{
+      agg <- rbind.data.frame(as.data.frame(agg),
+             cbind.data.frame(long, year=y))
+     }
+     
+   }
+
+     the_agg <- rbind.data.frame(as.data.frame(the_agg), as.data.frame(agg))
+ }
+
+
+  the_agg <- the_agg[!grepl("misc.",the_agg$met_desc),] # get rid of OTHER
+
+
 
  library(ggplot2)
 
  the_agg_plot <- as.data.frame(the_agg[grep("SmallMesh",the_agg$LE_MET),])
 
  # a visual fix adding all combi--
- dd <- expand.grid(LE_MET=levels(factor(the_agg_plot$LE_MET)), Stock=levels(factor(the_agg_plot$Stock)), year=levels(factor(the_agg_plot$year)))
- dd$met_desc <- friendly_met_names (dd)
+ #dd <- expand.grid(LE_MET=levels(factor(the_agg_plot$LE_MET)), Stock=levels(factor(the_agg_plot$Stock)), year=levels(factor(the_agg_plot$year)))
+ #dd$met_desc <- friendly_met_names (dd)
 
- dd$value <- 0
- dd[,"Total"] <- 0
- dd <- dd[,colnames(the_agg_plot)]
- rownames(the_agg_plot) <- paste0(the_agg_plot$LE_MET,the_agg_plot$Stock,the_agg_plot$year)
- rownames(dd) <- paste0(dd$LE_MET,dd$Stock,dd$year)
- dd <- dd[!rownames(dd)%in%rownames(the_agg_plot),]
- the_agg_plot <- rbind.data.frame(the_agg_plot, dd)
+ #dd$value <- 0
+ #dd[,"Total"] <- 0
+ #dd <- dd[,colnames(the_agg_plot)]
+ #rownames(the_agg_plot) <- paste0(the_agg_plot$LE_MET,the_agg_plot$Stock,the_agg_plot$year)
+ #rownames(dd) <- paste0(dd$LE_MET,dd$Stock,dd$year)
+ #dd <- dd[!rownames(dd)%in%rownames(the_agg_plot),]
+ #the_agg_plot <- rbind.data.frame(the_agg_plot, dd)
  #---
 
   the_agg_plot$LE_MET <- gsub("SmallMesh_", "", the_agg_plot$LE_MET)
+ 
+  # filter out small contribution species 
+  ss <- the_agg_plot[grepl ( "(a)",  the_agg_plot$LE_MET)   & as.numeric(as.character(the_agg_plot$value))>200, ]  # < 200tons?
+  the_agg_plot <- the_agg_plot[the_agg_plot$Stock %in% unique(ss$Stock),]
 
+  
+  the_agg_plot$LE_MET <- factor(the_agg_plot$LE_MET )
+  the_agg_plot$met_desc <- factor(the_agg_plot$met_desc )
+  the_agg_plot$Stock <- factor(the_agg_plot$Stock )
+
+ 
   # find order of LE_MET
   dd <- as.data.frame(the_agg_plot[grep("(a)",the_agg_plot$LE_MET, fixed=TRUE),])
   dd$LE_MET <- gsub("\\(a)","", dd$LE_MET)
@@ -2167,12 +2275,7 @@ count <- 0
 ##!!!!!!!!!!!!!!!!!!!!!!!!!##
  ##!!!!!!!!!!!!!!!!!!!!!!!!!##
  ##!!!!!!!!!!!!!!!!!!!!!!!!!##
-   some_color_seg <-  c("#7FC97F", "#BEAED4", "#FDC086", "#FFFF99", "#386CB0", "#F0027F", "#BF5B17", "#666666", "#1B9E77", "#D95F02", "#7570B3", "#E7298A", "#66A61E", "#E6AB02", "#A6761D", "#666666", "#A6CEE3", "#1F78B4", "#B2DF8A", "#33A02C", "#FB9A99", "#E31A1C", "#FDBF6F",
-   "#FF7F00", "#CAB2D6", "#6A3D9A", "#FFFF99", "#B15928", "#FBB4AE", "#B3CDE3", "#CCEBC5", "#DECBE4", "#FED9A6", "#FFFFCC", "#E5D8BD", "#FDDAEC", "#F2F2F2", "#B3E2CD", "#FDCDAC", "#CBD5E8", "#F4CAE4", "#E6F5C9", "#FFF2AE", "#F1E2CC", "#CCCCCC", "#E41A1C",
-   "#377EB8", "#4DAF4A", "#984EA3", "#FF7F00", "#FFFF33", "#A65628", "#F781BF", "#999999", "#66C2A5", "#FC8D62", "#8DA0CB", "#E78AC3", "#A6D854", "#FFD92F", "#E5C494", "#B3B3B3", "#8DD3C7", "#FFFFB3", "#BEBADA", "#FB8072", "#80B1D3", "#FDB462", "#B3DE69",
-   "#FCCDE5", "#D9D9D9", "#BC80BD", "#CCEBC5", "#FFED6F")
-
- library(ggplot2)
+  library(ggplot2)
  a_comment <- ""
  a_unit <- 1
 
@@ -2562,30 +2665,29 @@ setwd (file.path("D:","FBA","BENTHIS_2020"))   # adapt to your need
   the_agg_plot <- the_agg_plot[the_agg_plot$Stock %in% c("COD 27.3", "COD 27.4",  "HAD 27.4", "MON 27.4", "FLE 27.3", "LEM 27.4", "WIT 27.3", "HKE 27.4", "DAB 27.4", "NEP 27.3", "PLE 27.3", "PLE 27.4", "POK 27.4", "SOL 27.3"),]
  
  # a visual fix adding all combi--
- dd <- expand.grid(LE_MET=levels(factor(the_agg_plot$LE_MET)), Stock=levels(factor(the_agg_plot$Stock)), Year=levels(factor(the_agg_plot$Year)))
-  dd$met_desc <- friendly_met_names(dd)
- 
- dd$value <- 0
- dd[,"Total"] <- 0
- dd <- dd[,colnames(the_agg_plot)]
- rownames(the_agg_plot) <- paste0(the_agg_plot$LE_MET,the_agg_plot$Stock,the_agg_plot$Year)
- rownames(dd) <- paste0(dd$LE_MET,dd$Stock,dd$Year)
- dd <- dd[!rownames(dd)%in%rownames(the_agg_plot),]
- the_agg_plot <- rbind.data.frame(the_agg_plot, dd)
+ #dd <- expand.grid(LE_MET=levels(factor(the_agg_plot$LE_MET)), Stock=levels(factor(the_agg_plot$Stock)), Year=levels(factor(the_agg_plot$Year)))
+ #dd$met_desc <- friendly_met_names(dd)
+ #dd$value <- 0
+ #dd[,"Total"] <- 0
+ #dd <- dd[,colnames(the_agg_plot)]
+ #rownames(the_agg_plot) <- paste0(the_agg_plot$LE_MET,the_agg_plot$Stock,the_agg_plot$Year)
+ #rownames(dd) <- paste0(dd$LE_MET,dd$Stock,dd$Year)
+ #dd <- dd[!rownames(dd)%in%rownames(the_agg_plot),]
+ #the_agg_plot <- rbind.data.frame(the_agg_plot, dd)
  #---
+ 
  # DEM
  the_agg_plot$LE_MET <- gsub("LargeMesh_", "", the_agg_plot$LE_MET)
 
- 
- # filtering the ratios:
-  # a quick informative table (for kg) for filtering out the ratios that are misleading because low catch kg
-  #ss <- the_agg_plot[grep("(a)",the_agg_plot$LE_MET, fixed=TRUE) & as.numeric(as.character(the_agg_plot$value))>500e3, ]  # 500tons
-  #the_agg_plot <- the_agg_plot[the_agg_plot$Stock %in% unique(ss$Stock),]
-
+  # filter out small contribution metier 
+  ss <- the_agg_plot[grepl ( "(a)",  the_agg_plot$LE_MET)   & as.numeric(as.character(the_agg_plot$value))>200, ]  # < 20tons?
+  the_agg_plot <- the_agg_plot[the_agg_plot$met_desc %in% unique(ss$met_desc),]
   the_agg_plot <- the_agg_plot[!the_agg_plot$Stock %in% c("SAN 27.4",  "SPR 27.4"),]
-  the_agg_plot$Stock <- factor(the_agg_plot$Stock)
-  the_agg_plot$LE_MET <- factor(the_agg_plot$LE_MET ) 
-  the_agg_plot$met_desc <- factor(the_agg_plot$met_desc) 
+  
+  the_agg_plot$LE_MET <- factor(the_agg_plot$LE_MET )
+  the_agg_plot$met_desc <- factor(the_agg_plot$met_desc )
+  the_agg_plot$Stock <- factor(the_agg_plot$Stock )
+
  
     # find order of stcok
   dd <- the_agg_plot[grep("(a)",the_agg_plot$LE_MET, fixed=TRUE),]
@@ -2593,7 +2695,6 @@ setwd (file.path("D:","FBA","BENTHIS_2020"))   # adapt to your need
   dd <- orderBy(~ -x,dd)
   stock_ordered <- as.character(dd[,1])
 
-    
  
  #------------
  the_agg_plot1 <- as.data.frame(the_agg_plot[grep("(a)",the_agg_plot$LE_MET, fixed=TRUE),])
@@ -2640,7 +2741,7 @@ the_agg_plot5 <- as.data.frame(the_agg_plot[grep("(e)",the_agg_plot$LE_MET, fixe
   the_agg_plot6 <- as.data.frame(the_agg_plot[grep("(f)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot6$LE_MET <- gsub("\\(f)","", the_agg_plot6$LE_MET)
   the_agg_plot6$Stock <- factor(the_agg_plot6$Stock, level=stock_ordered) # reorder
-  p6_barplot_bottomfishing_dem_fpuv_per_stk <- ggplot(data=the_agg_plot4, aes(x=Stock, y=value/a_unit, fill=met_desc)) + #  geom_bar(stat="identity", position=position_dodge())
+  p6_barplot_bottomfishing_dem_fpuv_per_stk <- ggplot(data=the_agg_plot6, aes(x=Stock, y=value/a_unit, fill=met_desc)) + #  geom_bar(stat="identity", position=position_dodge())
   geom_bar(stat = "summary", fun = "mean") +  labs(y = "Litre per euro catch", x= "Species") +
        scale_fill_manual(values=some_color_seg, name="Fleet-segments") + theme_minimal() + guides(fill =guide_legend(ncol=1, position="right"))  + 
         theme(axis.text.x=element_text(angle=60,hjust=1,vjust=0.5, size=12))
@@ -2767,29 +2868,29 @@ setwd (file.path("D:","FBA","BENTHIS_2020"))   # adapt to your need
 
 
  # a visual fix adding all combi--
- dd <- expand.grid(LE_MET=levels(factor(the_agg_plot$LE_MET)), Stock=levels(factor(the_agg_plot$Stock)), Year=levels(factor(the_agg_plot$Year)))
-  dd$met_desc <- friendly_met_names(dd)
+ #dd <- expand.grid(LE_MET=levels(factor(the_agg_plot$LE_MET)), Stock=levels(factor(the_agg_plot$Stock)), Year=levels(factor(the_agg_plot$Year)))
+ #dd$met_desc <- friendly_met_names(dd)
+ # dd$value <- 0
+ #dd[,"Total"] <- 0
+ #dd <- dd[,colnames(the_agg_plot)]
+ #rownames(the_agg_plot) <- paste0(the_agg_plot$LE_MET,the_agg_plot$Stock,the_agg_plot$Year)
+ #rownames(dd) <- paste0(dd$LE_MET,dd$Stock,dd$Year)
+ #dd <- dd[!rownames(dd)%in%rownames(the_agg_plot),]
+ #the_agg_plot <- rbind.data.frame(the_agg_plot, dd)
  
- dd$value <- 0
- dd[,"Total"] <- 0
- dd <- dd[,colnames(the_agg_plot)]
- rownames(the_agg_plot) <- paste0(the_agg_plot$LE_MET,the_agg_plot$Stock,the_agg_plot$Year)
- rownames(dd) <- paste0(dd$LE_MET,dd$Stock,dd$Year)
- dd <- dd[!rownames(dd)%in%rownames(the_agg_plot),]
- the_agg_plot <- rbind.data.frame(the_agg_plot, dd)
  #---
  # PEL
  the_agg_plot$LE_MET <- gsub("SmallMesh_", "", the_agg_plot$LE_MET)
 
  
- # filtering the ratios:
-  # a quick informative table (for kg) for filtering out the ratios that are misleading because low catch kg
-  #ss <- the_agg_plot[grep("(a)",the_agg_plot$LE_MET, fixed=TRUE) & as.numeric(as.character(the_agg_plot$value))>500e3, ]  # 500tons
-  #the_agg_plot <- the_agg_plot[the_agg_plot$Stock %in% unique(ss$Stock),]
+   # filter out small contribution metier 
+  ss <- the_agg_plot[grepl ( "(a)",  the_agg_plot$LE_MET)   & as.numeric(as.character(the_agg_plot$value))>200, ]  # < 200tons?
+  the_agg_plot <- the_agg_plot[the_agg_plot$met_desc %in% unique(ss$met_desc),]
 
-  the_agg_plot$Stock <- factor(the_agg_plot$Stock)
+  
   the_agg_plot$LE_MET <- factor(the_agg_plot$LE_MET )
-  the_agg_plot$met_desc <- factor(the_agg_plot$met_desc)
+  the_agg_plot$met_desc <- factor(the_agg_plot$met_desc )
+  the_agg_plot$Stock <- factor(the_agg_plot$Stock )
 
 
   # find order of stock

@@ -1,7 +1,8 @@
 
 
 
-save(list=ls()[grepl("barplot",ls()) | grepl("area",ls())], file=file.path("D:","FBA","BENTHIS_2020", "ggplots.RData"))
+#save(list=ls()[grepl("barplot",ls()) | grepl("area",ls())], file=file.path("D:","FBA","BENTHIS_2020", "ggplots.RData"))
+load(file=file.path("D:","FBA","BENTHIS_2020", "ggplots.RData"))
 
 
 
