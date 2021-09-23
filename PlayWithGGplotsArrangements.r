@@ -38,8 +38,10 @@ load(file=file.path("D:","FBA","BENTHIS_2020", "ggplots.RData"))
      dd[grepl("SPF_32-69_0_0",dd$LE_MET), "met_desc3"] <- "pelagics (32-69mm)"
      dd[grepl("DEF_16-31_0_0",dd$LE_MET), "met_desc3"] <- "d/pelagics (16-31mm)"
      dd[grepl("CRU_32-69",dd$LE_MET), "met_desc3"] <- "crustaceans (32-69mm)"
-     dd[grepl("CRU_80-99",dd$LE_MET), "met_desc3"] <- "crustaceans (90-99mm)"
+     dd[grepl("CRU_80-99",dd$LE_MET), "met_desc3"] <- "crustaceans (80-99mm)"
+     dd[grepl("CRU_>=120_0_0",dd$LE_MET), "met_desc3"] <- "crustaceans (>120mm)"
      dd[grepl("MOL",dd$LE_MET), "met_desc3"] <- "molluscs"
+     dd[grepl("CSH",dd$LE_MET), "met_desc3"] <- "shrimp"
      dd$met_desc2[is.na(dd$met_desc2)] <- ""
      dd$met_desc3[is.na(dd$met_desc3)] <- ""
 
