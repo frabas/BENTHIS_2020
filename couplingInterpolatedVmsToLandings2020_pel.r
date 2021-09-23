@@ -700,9 +700,9 @@ if(.Platform$OS.type == "unix") {
     p4 <-   ggplot() + geom_bar(data=aggEffortAndFuelAlly, aes(x=as.character(Year), y=effective_effort_mins/60, group=VesselSize, fill=VesselSize), size=1.5, position="stack",  stat = "summary", fun = "sum") +
        geom_line(data=dd, aes(x=as.character(Year), y=nbvessel, group=VesselSize, color=VesselSize),size=1.5, stat = "summary", fun = "sum") +   
        #geom_line(data=dd, aes(x=as.character(Year), y=litre_fuel/10, group=VesselSize, color=VesselSize),size=1 , linetype = "dashed", stat = "summary", fun = "sum") +   
-       geom_line(data=dd, aes(x=as.character(Year), y=litre_fuel/20, group=1),size=1, color=1, linetype = "dashed", stat = "summary", fun = "sum") +   
-        geom_line(data=dd, aes(x=as.character(Year), y=toteuros/100, group=1),size=1,  color=2, linetype = "dashed", stat = "summary", fun = "sum") +   
-       scale_y_continuous(name = "Effective effort hours; or fuel use (litre/20); or keuros", sec.axis = sec_axis(~./2e4, name = "Nb Vessels") )+
+       geom_line(data=dd, aes(x=as.character(Year), y=litre_fuel/100, group=1),size=1.2, color=1, linetype = "dashed", stat = "summary", fun = "sum") +   
+        geom_line(data=dd, aes(x=as.character(Year), y=toteuros/100, group=1),size=1.2,  color=5, linetype = "dashed", stat = "summary", fun = "sum") +   
+       scale_y_continuous(name = "fished hours effort; or fuel use (klitres); or keuros", sec.axis = sec_axis(~./2e4, name = "Nb Vessels") )+
        theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  + 
        labs(x = "Year")     + 
        scale_color_manual(values=some_color_vessel_size, name="VesselSize") +  
@@ -714,7 +714,7 @@ if(.Platform$OS.type == "unix") {
 
 # pel
 #a_width <- 3000; a_height <- 2300
-a_width <- 5500; a_height <- 2500
+a_width <- 4000; a_height <- 2500   
  namefile <- paste0("barplot_and_ts_effort_nb_vessels_", years[1], "-", years[length(years)], "_PEL.tif")
  tiff(filename=file.path(getwd(), "outputs2020_pel", "output_plots",  namefile),   width = a_width, height = a_height,
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))

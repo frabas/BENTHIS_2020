@@ -220,7 +220,7 @@ library(vmstools)
 
 # lgbkonly
   #a_width <- 3000; a_height <- 2300 
-  a_width <- 5500; a_height <- 2500    
+a_width <- 4000; a_height <- 2500      
  namefile <- paste0("barplot_and_ts_effort_nb_vessels_", years[1], "-", years[length(years)], "_lgbkonly.tif")
  tiff(filename=file.path(getwd(), "outputs2020_lgbkonly", "output_plots",  namefile),   width = a_width, height = a_height,
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))

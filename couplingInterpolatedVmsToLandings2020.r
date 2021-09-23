@@ -628,11 +628,11 @@ if(.Platform$OS.type == "unix") {
      ###----------------------
      ## do a ggplot 
      load(file=file.path(outPath,  paste("AggregatedEffortAndFuelAlly_BottomFishing.RData"))) # aggEffortAlly
-    
-    
-    library(ggplot2)
-    some_color_vessel_size <- c("[15,18)"="#FFDB6D",  "[18,24)"="#FC4E07",  "[24,40)"="#52854C",  "[40,100)"="#293352")
-
+     
+     library(ggplot2)
+     some_color_vessel_size <- c("[15,18)"="#FFDB6D",  "[18,24)"="#FC4E07",  "[24,40)"="#52854C",  "[40,100)"="#293352")
+   
+  
      p <-  ggplot() + geom_bar(data=aggEffortAndFuelAlly, aes(x=as.character(Year), y=effective_effort_mins/60, group=VesselSize, fill=VesselSize), size=1.5, position="stack",  stat = "summary", fun = "sum") +
        #facet_wrap(. ~ LE_MET, scales = "free_y")  + 
        theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  + 
@@ -679,7 +679,7 @@ if(.Platform$OS.type == "unix") {
     dd <- aggEffortAndFuelAlly[!duplicated(data.frame(aggEffortAndFuelAlly$VE_REF, aggEffortAndFuelAlly$Year)),]
     dd$nbvessel <- 1 
     a_ylab <- "Income from landings (euros)"
-    p3 <- ggplot() +
+    p4 <- ggplot() +
      geom_line(data=dd, aes(x=as.character(Year), y=toteuros/1e6, group=VesselSize, color=VesselSize),size=1.5, stat = "summary", fun = "sum") +   
        #facet_wrap(. ~ LE_MET, scales = "free_y")  + 
        theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  + 
@@ -687,7 +687,7 @@ if(.Platform$OS.type == "unix") {
        #   geom_point(aes(color=VesselSize), size=3)   + 
        scale_color_manual(values=some_color_vessel_size, name="VesselSize") +  
        guides(fill =guide_legend(ncol=1)) 
- print(p3)
+ print(p4)
 
 
 
@@ -698,9 +698,9 @@ if(.Platform$OS.type == "unix") {
       dd$nbvessel <- 2e4 
     p4 <-   ggplot() + geom_bar(data=aggEffortAndFuelAlly, aes(x=as.character(Year), y=effective_effort_mins/60, group=VesselSize, fill=VesselSize), size=1.5, position="stack",  stat = "summary", fun = "sum") +
        geom_line(data=dd, aes(x=as.character(Year), y=nbvessel, group=VesselSize, color=VesselSize),size=1.5, stat = "summary", fun = "sum") +   
-       geom_line(data=dd, aes(x=as.character(Year), y=litre_fuel/5, group=1),size=1,  color=1, linetype = "dashed", stat = "summary", fun = "sum") +   
-       geom_line(data=dd, aes(x=as.character(Year), y=toteuros/100, group=1),size=1,  color=2, linetype = "dashed", stat = "summary", fun = "sum") +   
-        scale_y_continuous(name = "Effective effort hours; or fuel use (litre/5); or keuros", sec.axis = sec_axis(~./2e4, name = "Nb Vessels") )+
+       geom_line(data=dd, aes(x=as.character(Year), y=litre_fuel/100, group=1),size=1.2,  color=1, linetype = "dashed", stat = "summary", fun = "sum") +   
+       geom_line(data=dd, aes(x=as.character(Year), y=toteuros/100, group=1),size=1.2,  color=5, linetype = "dashed", stat = "summary", fun = "sum") +   
+        scale_y_continuous(name = "Fished hours effort; or fuel use (klitres); or keuros", sec.axis = sec_axis(~./2e4, name = "Nb Vessels") )+
        theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  + 
        labs(x = "Year")     + 
        scale_color_manual(values=some_color_vessel_size, name="VesselSize") +  
@@ -711,7 +711,7 @@ if(.Platform$OS.type == "unix") {
 
 # dem
 #a_width <- 3000; a_height <- 2300
-a_width <- 5500; a_height <- 2500   
+a_width <- 4000; a_height <- 2500   
  namefile <- paste0("barplot_and_ts_effort_nb_vessels_", years[1], "-", years[length(years)], "_DEM.tif")
  tiff(filename=file.path(getwd(), "outputs2020", "output_plots",  namefile),   width = a_width, height = a_height,
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))

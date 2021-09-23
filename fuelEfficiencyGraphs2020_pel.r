@@ -998,11 +998,11 @@ load(file=file.path(getwd(), "outputs2020_pel", paste("aggResultPerMetAllyMet6An
 spp <- colnames(aggResultPerMetAlly) [grep("LE_EURO_", colnames(aggResultPerMetAlly))]   ; spp <- gsub("LE_EURO_", "", spp) ; spp <- spp [!spp=="SPECS"]
 
 
-friendly_met_names <- function(dd){
+ friendly_met_names <- function(dd){
      # a more friendly naming of metiers
-     dd$met_desc1 <- NA # init 
-     dd$met_desc2 <- NA # init 
-     dd$met_desc3 <- NA # init 
+     dd$met_desc1 <- NA # init
+     dd$met_desc2 <- NA # init
+     dd$met_desc3 <- NA # init
      dd[grepl("27.3",dd$LE_MET), "met_desc1"] <- "BS"
      dd[grepl("27.4",dd$LE_MET), "met_desc1"] <- "NS"
      dd[grepl("OTB",dd$LE_MET), "met_desc2"] <- "dem.trawl for\n"
@@ -1016,28 +1016,28 @@ friendly_met_names <- function(dd){
      dd[grepl("TBB",dd$LE_MET), "met_desc2"] <- "beam.trawl for\n"
      dd[grepl("TM",dd$LE_MET), "met_desc2"] <- "midw.trawl for\n"
      dd[grepl("OTHER",dd$LE_MET), "met_desc2"] <- "misc."
-     dd[grepl(">=120_0_0",dd$LE_MET), "met_desc3"] <- "fish (>120mm)"   
-     dd[grepl(">=105_1_120",dd$LE_MET), "met_desc3"] <- "fish (105-120mm)"   
-     dd[grepl(">=105_1_110",dd$LE_MET), "met_desc3"] <- "fish (105-110mm)"   
-     dd[grepl("120-219_0",dd$LE_MET), "met_desc3"] <- "fish (120-219mm)"   
-     dd[grepl("90-104_0",dd$LE_MET), "met_desc3"] <- "fish (90-104mm)"   
-     dd[grepl("70-99_0",dd$LE_MET), "met_desc3"] <- "fish (70-119mm)"   
-     dd[grepl("90-119_0_0",dd$LE_MET), "met_desc3"] <- "fish (90-119mm)"   
-     dd[grepl("100-119_0_0",dd$LE_MET), "met_desc3"] <- "fish (100-119mm)"   
-     dd[grepl("110-119_0_0",dd$LE_MET), "met_desc3"] <- "fish (110-119mm)"   
-     dd[grepl("120-219_0",dd$LE_MET), "met_desc3"] <- "fish (120-219mm)"   
-     dd[grepl("<16_0_0",dd$LE_MET), "met_desc3"] <- "forage fish (<16mm)"   
-     dd[grepl("SPF_16-31_0_0",dd$LE_MET), "met_desc3"] <- "pelagics (16-31mm)"   
-     dd[grepl("_PS_SPF_>0_0_0",dd$LE_MET), "met_desc3"] <- "pelagics"   
-     dd[grepl("SPF_32-69_0_0",dd$LE_MET), "met_desc3"] <- "pelagics (32-69mm)"   
-     dd[grepl("DEF_16-31_0_0",dd$LE_MET), "met_desc3"] <- "d/pelagics (16-31mm)"   
-     dd[grepl("CRU",dd$LE_MET), "met_desc3"] <- "crustaceans" 
-     dd[grepl("MOL",dd$LE_MET), "met_desc3"] <- "molluscs" 
-     dd$met_desc2[is.na(dd$met_desc2)] <- ""  
-     dd$met_desc3[is.na(dd$met_desc3)] <- ""  
-     
+     dd[grepl(">=120_0_0",dd$LE_MET), "met_desc3"] <- "fish (>120mm)"
+     dd[grepl(">=105_1_120",dd$LE_MET), "met_desc3"] <- "fish (105-120mm)"
+     dd[grepl(">=105_1_110",dd$LE_MET), "met_desc3"] <- "fish (105-110mm)"
+     dd[grepl("120-219_0",dd$LE_MET), "met_desc3"] <- "fish (120-219mm)"
+     dd[grepl("90-104_0",dd$LE_MET), "met_desc3"] <- "fish (90-104mm)"
+     dd[grepl("70-99_0",dd$LE_MET), "met_desc3"] <- "fish (70-99mm)"
+     dd[grepl("90-119_0_0",dd$LE_MET), "met_desc3"] <- "fish (90-119mm)"
+     dd[grepl("100-119_0_0",dd$LE_MET), "met_desc3"] <- "fish (100-119mm)"
+     dd[grepl("120-219_0",dd$LE_MET), "met_desc3"] <- "fish (120-219mm)"
+     dd[grepl("<16_0_0",dd$LE_MET), "met_desc3"] <- "forage fish (<16mm)"
+     dd[grepl("SPF_16-31_0_0",dd$LE_MET), "met_desc3"] <- "pelagics (16-31mm)"
+     dd[grepl("_PS_SPF_>0_0_0",dd$LE_MET), "met_desc3"] <- "pelagics"
+     dd[grepl("SPF_32-69_0_0",dd$LE_MET), "met_desc3"] <- "pelagics (32-69mm)"
+     dd[grepl("DEF_16-31_0_0",dd$LE_MET), "met_desc3"] <- "d/pelagics (16-31mm)"
+     dd[grepl("CRU_32-69",dd$LE_MET), "met_desc3"] <- "crustaceans (32-69mm)"
+     dd[grepl("CRU_80-99",dd$LE_MET), "met_desc3"] <- "crustaceans (90-99mm)"
+     dd[grepl("MOL",dd$LE_MET), "met_desc3"] <- "molluscs"
+     dd$met_desc2[is.na(dd$met_desc2)] <- ""
+     dd$met_desc3[is.na(dd$met_desc3)] <- ""
+
     return(paste(dd$met_desc1, dd$met_desc2, dd$met_desc3))
-    } 
+    }
 
 
 
