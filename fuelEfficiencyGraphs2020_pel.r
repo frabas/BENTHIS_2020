@@ -871,7 +871,8 @@ some_color_species<- c("COD"="#E69F00", "CSH"="hotpink", "DAB"="#56B4E9", "ELE"=
 load(file=file.path(getwd(), "outputs2020_pel", paste("aggResultPerMetAllyMet6AndRatiosForPel.RData", sep="")))  # aggResultPerMetAlly
 spp <- colnames(aggResultPerMetAlly) [grep("LE_EURO_", colnames(aggResultPerMetAlly))]   ; spp <- gsub("LE_EURO_", "", spp) ; spp <- spp [!spp=="SPECS"]
 
-friendly_met_names <- function(dd){
+
+ friendly_met_names <- function(dd){
      # a more friendly naming of metiers
      dd$met_desc1 <- NA # init
      dd$met_desc2 <- NA # init
@@ -907,7 +908,7 @@ friendly_met_names <- function(dd){
      dd[grepl("CRU_80-99",dd$LE_MET), "met_desc3"] <- "crustaceans (80-99mm)"
      dd[grepl("CRU_>=120_0_0",dd$LE_MET), "met_desc3"] <- "crustaceans (>120mm)"
      dd[grepl("MOL",dd$LE_MET), "met_desc3"] <- "molluscs"
-     dd[grepl("CSH",dd$LE_MET), "met_desc3"] <- "shrimp"
+     dd[grepl("TBB_CRU_16-31",dd$LE_MET), "met_desc3"] <- "shrimp"
      dd$met_desc2[is.na(dd$met_desc2)] <- ""
      dd$met_desc3[is.na(dd$met_desc3)] <- ""
 
@@ -1715,13 +1716,16 @@ spp <- colnames(aggResultPerMetAlly) [grep("LE_EURO_", colnames(aggResultPerMetA
   ss <- the_agg_plot[grep("(a)",the_agg_plot$LE_MET, fixed=TRUE) & as.numeric(as.character(the_agg_plot$value))>500e3, ]  # 500tons
   the_agg_plot <- the_agg_plot[the_agg_plot$Stock %in% unique(ss$Stock),]
 
-   # find order of met
+   # find order of stock
   dd <- the_agg_plot[grep("(a)",the_agg_plot$LE_MET, fixed=TRUE),]
   dd <- aggregate(dd$value, by=list(dd$Stock), sum)
   dd <- orderBy(~ -x,dd)
   stock_ordered <- as.character(dd[,1])
 
- 
+    # order fleets in the legend
+    the_agg_plot$met_desc <- factor(the_agg_plot$met_desc)
+  the_agg_plot$met_desc <-  factor(as.character(the_agg_plot$met_desc), levels= levels(the_agg_plot$met_desc)[order(substr(levels(the_agg_plot$met_desc),4,9) )]  )  # reorder the fleet desc in alphabetical order
+
  #------------
  the_agg_plot1 <- as.data.frame(the_agg_plot[grep("(a)",the_agg_plot$LE_MET, fixed=TRUE),])
  the_agg_plot1$LE_MET <- gsub("\\(a)","", the_agg_plot1$LE_MET)
@@ -1729,7 +1733,7 @@ spp <- colnames(aggResultPerMetAlly) [grep("LE_EURO_", colnames(aggResultPerMetA
   p1_barplot_pelfishing_pel_land_per_stk <- ggplot(data=the_agg_plot1, aes(x=Stock, y=value/1000, fill=met_desc)) + #  geom_bar(stat="identity", position=position_dodge())
   geom_bar(stat = "summary", fun = "mean") +  labs(y = "Landings (*1000 tons)", x= "") +
        scale_fill_manual(values=some_color_seg, name="Fleet-segments") + theme_minimal() + theme(axis.text.x=element_blank()) + guides(fill =guide_legend(ncol=1, position="right"))  
-  print(p1)
+  #print(p1)
 
  the_agg_plot2 <- as.data.frame(the_agg_plot[grep("(b)",the_agg_plot$LE_MET, fixed=TRUE),])
  the_agg_plot2$LE_MET <- gsub("\\(b)","", the_agg_plot2$LE_MET)

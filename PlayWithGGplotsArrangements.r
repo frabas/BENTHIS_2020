@@ -41,7 +41,7 @@ load(file=file.path("D:","FBA","BENTHIS_2020", "ggplots.RData"))
      dd[grepl("CRU_80-99",dd$LE_MET), "met_desc3"] <- "crustaceans (80-99mm)"
      dd[grepl("CRU_>=120_0_0",dd$LE_MET), "met_desc3"] <- "crustaceans (>120mm)"
      dd[grepl("MOL",dd$LE_MET), "met_desc3"] <- "molluscs"
-     dd[grepl("CSH",dd$LE_MET), "met_desc3"] <- "shrimp"
+     dd[grepl("TBB_CRU_16-31",dd$LE_MET), "met_desc3"] <- "shrimp"
      dd$met_desc2[is.na(dd$met_desc2)] <- ""
      dd$met_desc3[is.na(dd$met_desc3)] <- ""
 
@@ -54,39 +54,59 @@ some_color_seg <-  c("#7FC97F", "#BEAED4", "#FDC086", "#FFFF99", "#386CB0", "#F0
    "#377EB8", "#4DAF4A", "#984EA3", "#FF7F00", "#FFFF33", "#A65628", "#F781BF", "#999999", "#66C2A5", "#FC8D62", "#8DA0CB", "#E78AC3", "#A6D854", "#FFD92F", "#E5C494", "#B3B3B3", "#8DD3C7", "#FFFFB3", "#BEBADA", "#FB8072", "#80B1D3", "#FDB462", "#B3DE69",
    "#FCCDE5", "#D9D9D9", "#BC80BD", "#CCEBC5", "#FFED6F")
 
+
    load(file=file.path(getwd(), "outputs2020_pel", paste("aggResultPerMetAllyMet6AndRatiosForPel.RData", sep="")))  # aggResultPerMetAlly
    met_set_1 <- friendly_met_names(aggResultPerMetAlly)
    load(file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndRatiosBottContactAndGNS.RData", sep="")))  # aggResultPerMetAlly
    met_set_2 <- friendly_met_names(aggResultPerMetAlly)
-   library(wesanderson)
-   names(wes_palettes)
-   some_colors <- wes_palette("Darjeeling2", length( unique(c(met_set_1, met_set_2))), type = c("continuous"))
-   #for(i in c(11:20)){
-   #set.seed(i)
-   set.seed(20)
-   some_colors <- some_colors[sample(1:length(some_colors))]
-   some_color_seg <- as.character(some_colors)
-   names(some_color_seg) <- unique(c(met_set_1, met_set_2))
-   some_color_seg <- some_color_seg[!is.na(names(some_color_seg))]
-   print(p5_barplot_bottomfishing_dem_fpuc_per_stk + scale_fill_manual(values=some_color_seg, name="Fleet-segments")+ guides(fill =guide_legend(ncol=3, position="right")) )
-   #print(i)
-   #browser()
-   #}
+   # alternative palette:
+   #library(wesanderson)
+   #names(wes_palettes)
+   #some_colors <- wes_palette("Darjeeling1", length( unique(c(met_set_1, met_set_2))), type = c("continuous"))
+   ##for(i in c(11:20)){
+   ##set.seed(i)
+   #set.seed(5)
+   #some_colors <- some_colors[sample(1:length(some_colors))]
+   #some_color_seg <- as.character(some_colors)
+   #some_color_seg <- some_color_seg[1:length(unique(c(met_set_1, met_set_2)))]
+   #names(some_color_seg) <- unique(c(met_set_1, met_set_2))
+   #some_color_seg <- some_color_seg[!is.na(names(some_color_seg))]
+   #print(p5_barplot_bottomfishing_dem_fpuc_per_stk + scale_fill_manual(values=some_color_seg, name="Fleet-segments")+ guides(fill =guide_legend(ncol=3, position="right")) )
+   ##print(i)
+   ##browser()
+   ##}
+    library(colorspace)
+   idx <- grep("dem.trawl for\n fish", unique(c(met_set_1, met_set_2)))
+    some_color_seg[ idx  ] <- terrain_hcl(12)  [1:length(idx)]
+    idx <- grep("dem.trawl for\n pelagics", unique(c(met_set_1, met_set_2)))
+   some_color_seg[ idx  ] <- colorspace::rainbow_hcl(12)  [1:length(idx)]
+    idx <- grep("dem.trawl for\n crustaceans", unique(c(met_set_1, met_set_2)))
+  some_color_seg[ idx  ] <-  colorspace::heat_hcl(12)  [1:length(idx)]
+  idx <- grep("midw.trawl", unique(c(met_set_1, met_set_2)))
+   some_color_seg[ idx  ] <-  colorspace::diverge_hcl(12)  [1:length(idx)]
+   idx <- grep("seine", unique(c(met_set_1, met_set_2)))
+   some_color_seg[ idx  ] <-  colorspace::sequential_hcl(8)  [1:length(idx)]
+   idx <- grep("gillnet", unique(c(met_set_1, met_set_2)))
+   some_color_seg[ idx  ] <-  colorRampPalette(c("red","pink")) (2)  [1:length(idx)]
+   idx <- grep("dredge", unique(c(met_set_1, met_set_2)))
+   some_color_seg[ idx  ] <-  wes_palette("IsleofDogs1", 15, type = c("continuous"))[1:length(idx)]
+   idx <- grep("beam", unique(c(met_set_1, met_set_2)))
+     some_color_seg[ idx  ] <- colorRampPalette(c("pink","purple")) (5)  [1:length(idx)]
+    idx <- unique(c(grep("NA", unique(c(met_set_1, met_set_2))), grep("misc.", unique(c(met_set_1, met_set_2)))))
+     some_color_seg[ idx  ] <- colorRampPalette(c("black","white")) (10)  [1:length(idx)]
 
-
-
- # paper
+  # paper
  a_width <- 8000 ; a_height <- 11500
  namefile <- paste0("ggplot.tif")
  tiff(filename=file.path("D:","FBA","BENTHIS_2020", "ggplots", "landAndFuel.tiff"),   width = a_width, height = a_height,
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
 library(ggpubr)
-ggarrange(    p1_barplot_bottomfishing_dem_land_per_stk + guides(fill =guide_legend(ncol=3, position="right"))+ scale_fill_manual(values=some_color_seg, name="Fleet-segments")+ theme(legend.text = element_text(size = 12),axis.text.x=element_text(angle=60,hjust=1,vjust=1, size=12)),
-              p2_barplot_bottomfishing_dem_fuel_per_stk + guides(fill =guide_legend(ncol=3, position="right"))+ scale_fill_manual(values=some_color_seg, name="Fleet-segments")+ theme(legend.text = element_text(size = 12),axis.text.x=element_text(angle=60,hjust=1,vjust=1, size=12)),
-              p1_barplot_bottomfishing_pel_land_per_stk + guides(fill =guide_legend(ncol=3, position="right"))+ scale_fill_manual(values=some_color_seg, name="Fleet-segments")+ theme(legend.text = element_text(size = 12),axis.text.x=element_text(angle=60,hjust=1,vjust=1, size=12)),
-              p2_barplot_bottomfishing_pel_fuel_per_stk + guides(fill =guide_legend(ncol=3, position="right"))+ scale_fill_manual(values=some_color_seg, name="Fleet-segments")+ theme(legend.text = element_text(size = 12),axis.text.x=element_text(angle=60,hjust=1,vjust=1, size=12)),
-              p1_barplot_pelfishing_pel_land_per_stk + guides(fill =guide_legend(ncol=3, position="right")) + scale_fill_manual(values=some_color_seg, name="Fleet-segments")+ theme(legend.text = element_text(size = 12), axis.text.x=element_text(angle=60,hjust=1,vjust=1, size=12)),
-              p2_barplot_pelfishing_pel_fuel_per_stk + guides(fill =guide_legend(ncol=3, position="right"))+ scale_fill_manual(values=some_color_seg, name="Fleet-segments")+ theme(legend.text = element_text(size = 12),axis.text.x=element_text(angle=60,hjust=1,vjust=1, size=12)),
+ggarrange(    p1_barplot_bottomfishing_dem_land_per_stk  + ggtitle("Bottom fishing") + guides(fill =guide_legend(ncol=3, position="right"))+ scale_fill_manual(values=some_color_seg, name="Fleet-segments")+ theme(legend.text = element_text(size = 12),axis.text.x=element_text(angle=60,hjust=1,vjust=1, size=12), plot.title=element_text(hjust = 0.5,margin=margin(t=40,b=-60))),
+              p2_barplot_bottomfishing_dem_fuel_per_stk  + ggtitle("Bottom fishing") + guides(fill =guide_legend(ncol=3, position="right"))+ scale_fill_manual(values=some_color_seg, name="Fleet-segments")+ theme(legend.text = element_text(size = 12),axis.text.x=element_text(angle=60,hjust=1,vjust=1, size=12), plot.title=element_text(hjust = 0.5,margin=margin(t=40,b=-60))),
+              p1_barplot_bottomfishing_pel_land_per_stk  + ggtitle("Bottom fishing with small/no mesh") + guides(fill =guide_legend(ncol=3, position="right"))+ scale_fill_manual(values=some_color_seg, name="Fleet-segments")+ theme(legend.text = element_text(size = 12),axis.text.x=element_text(angle=60,hjust=1,vjust=1, size=12), plot.title=element_text(hjust = 0.5,margin=margin(t=40,b=-60))),
+              p2_barplot_bottomfishing_pel_fuel_per_stk  + ggtitle("Bottom fishing with small/no mesh ") + guides(fill =guide_legend(ncol=3, position="right"))+ scale_fill_manual(values=some_color_seg, name="Fleet-segments")+ theme(legend.text = element_text(size = 12),axis.text.x=element_text(angle=60,hjust=1,vjust=1, size=12), plot.title=element_text(hjust = 0.5,margin=margin(t=40,b=-60))),
+              p1_barplot_pelfishing_pel_land_per_stk  + ggtitle("Pelagic fishing") + guides(fill =guide_legend(ncol=3, position="right")) + scale_fill_manual(values=some_color_seg, name="Fleet-segments")+ theme(legend.text = element_text(size = 12), axis.text.x=element_text(angle=60,hjust=1,vjust=1, size=12), plot.title=element_text(hjust = 0.5,margin=margin(t=40,b=-60))),
+              p2_barplot_pelfishing_pel_fuel_per_stk  + ggtitle("Pelagic fishing") + guides(fill =guide_legend(ncol=3, position="right"))+ scale_fill_manual(values=some_color_seg, name="Fleet-segments")+ theme(legend.text = element_text(size = 12),axis.text.x=element_text(angle=60,hjust=1,vjust=1, size=12), plot.title=element_text(hjust = 0.5,margin=margin(t=40,b=-60))),
         ncol=1, heights=c(1,1,1,1,1, 1), common.legend = FALSE, legend="right")
 
 dev.off()
@@ -108,5 +128,34 @@ ggarrange(    p5_barplot_bottomfishing_dem_fpuc + guides(fill =guide_legend(ncol
 
 dev.off()
 
+
+# split into two
+#1
+a_unit <- 1
+ # paper
+ a_width <- 6000 ; a_height <- 7500
+ namefile <- paste0("ggplot.tif")
+ tiff(filename=file.path("D:","FBA","BENTHIS_2020", "ggplots", "fpuc_per_fleet.tiff"),   width = a_width, height = a_height,
+                                   units = "px", pointsize = 12,  res=600, compression = c("lzw"))
+library(ggpubr)
+ggarrange(    p5_barplot_bottomfishing_dem_fpuc + ggtitle("Bottom fishing") + guides(fill =guide_legend(ncol=2, position="right")) + theme(legend.text = element_text(size = 12),axis.text.x=element_text(angle=60,hjust=1,vjust=1, size=12), plot.title=element_text(margin=margin(t=40,b=-20))),
+              p5_barplot_bottomfishing_pel_fpuc + ggtitle("Bottom fishing small/no mesh")+ guides(fill =guide_legend(ncol=2, position="right")) + theme(legend.text = element_text(size = 12),axis.text.x=element_text(angle=60,hjust=1,vjust=1, size=12)),
+              p5_barplot_pelfishing_pel_fpuc + ggtitle("Pelagic fishing") + guides(fill =guide_legend(ncol=2, position="right")) + theme(legend.text = element_text(size = 12),axis.text.x=element_text(angle=60,hjust=1,vjust=1, size=12)),
+          ncol=1, heights=c(1.5,1.5,1.2,1,1, 1), common.legend = FALSE, legend="right")
+
+dev.off()
+
+#2
+ a_width <- 6000 ; a_height <- 7500
+ namefile <- paste0("ggplot.tif")
+ tiff(filename=file.path("D:","FBA","BENTHIS_2020", "ggplots", "fpuc_per_species.tiff"),   width = a_width, height = a_height,
+                                   units = "px", pointsize = 12,  res=600, compression = c("lzw"))
+library(ggpubr)
+ggarrange(    p5_barplot_bottomfishing_dem_fpuc_per_stk+ ggtitle("Bottom fishing")+ scale_fill_manual(values=some_color_seg, name="Fleet-segments") + guides(fill =guide_legend(ncol=2, position="right"))+ theme(legend.text = element_text(size = 12),axis.text.x=element_text(angle=60,hjust=1,vjust=1, size=12)),
+              p5_barplot_bottomfishing_pel_fpuc_per_stk+ ggtitle("Bottom fishing small/no mesh")+ scale_fill_manual(values=some_color_seg, name="Fleet-segments") + guides(fill =guide_legend(ncol=2, position="right"))+ theme(legend.text = element_text(size = 12),axis.text.x=element_text(angle=60,hjust=1,vjust=1, size=12)),
+              p5_barplot_pelfishing_pel_fpuc_per_stk+ ggtitle("Pelagic fishing") + scale_fill_manual(values=some_color_seg, name="Fleet-segments") + guides(fill =guide_legend(ncol=2, position="right"))+ theme(legend.text = element_text(size = 12),axis.text.x=element_text(angle=60,hjust=1,vjust=1, size=12)),
+          ncol=1, heights=c(1.5,1.5,1.2,1,1, 1), common.legend = FALSE, legend="right")
+
+dev.off()
 
 

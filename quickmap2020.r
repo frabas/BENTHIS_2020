@@ -404,12 +404,29 @@ quickmap <- function(namefile = paste0("LE_KG_COD_2019", ".tif"),
      library(sf)
      mrc_proj <- st_as_sf(fao_areas_lambert)
      mrc <- st_as_sf(fao_areas)
-     plot(mrc_proj["geometry"], axes = TRUE, graticule = st_crs(mrc), key.pos = NULL, reset = FALSE) #  key.pos = NULL, reset = FALSE to avoid pbl with par(mfrow)
+     plot(mrc_proj["geometry"], axes = TRUE, cex.axis=2, graticule = st_crs(mrc), key.pos = NULL, reset = FALSE) #  key.pos = NULL, reset = FALSE to avoid pbl with par(mfrow)
+     #g=st_graticule(mrc_proj["geometry"])
+     #plot(g[1], col="grey", add=TRUE)
   } else{
     plot (sh_coastlines_clipped, add=FALSE, axes=FALSE)
   }
  
+# invisible(lapply(seq_len(nrow(g)), function(i) {
+#if (g$type[i] == "N" && g$x_start[i] - min(g$x_start) < 1000)
+#  text(g[i,"x_start"], g[i,"y_start"], labels = parse(text = g[i,"degree_label"]),
+#    srt = g$angle_start[i], pos = 2, cex = 1.7)
+#if (g$type[i] == "E" && g$y_start[i] - min(g$y_start) < 1000)
+#  text(g[i,"x_start"], g[i,"y_start"], labels = parse(text = g[i,"degree_label"]),
+#    srt = g$angle_start[i] - 90, pos = 1, cex = 1.7)
+#if (g$type[i] == "N" && g$x_end[i] - max(g$x_end) > -1000)
+#  text(g[i,"x_end"], g[i,"y_end"], labels = parse(text = g[i,"degree_label"]),
+#    srt = g$angle_end[i], pos = 4, cex = 1.7)
+#if (g$type[i] == "E" && g$y_end[i] - max(g$y_end) > -1000)
+#  text(g[i,"x_end"], g[i,"y_end"], labels = parse(text = g[i,"degree_label"]),
+#    srt = g$angle_end[i] - 90, pos = 3, cex = 1.7)
+#}))
  
+
   library(rgeos)
   #out2 <- gIntersection(out, bb, byid=TRUE) not returning the data in it(!)...so substitute with:
   out2 <- raster::intersect(out, bb)
@@ -464,7 +481,7 @@ quickmap <- function(namefile = paste0("LE_KG_COD_2019", ".tif"),
    
    } else{
       for(i in 1: length(the_breaks_baseline[-1])){ if(the_breaks_baseline[i]>1) {the_breaks_leg[i] <- round(the_breaks_baseline[i],1)} else{the_breaks_leg[i]<- the_breaks_baseline[i]}}
-      legend("bottomright", legend=the_breaks_leg, fill=Satellite.Palette.baseline(length(the_breaks_baseline[-1])), bty="o", border=NA,  ncol=4, box.col="white", title=a_title_leg)       
+      legend("topright", legend=the_breaks_leg, fill=Satellite.Palette.baseline(length(the_breaks_baseline[-1])), bty="o", border=NA,  ncol=4, box.col="white", title=a_title_leg, cex=2.2)       
    }
   box()
      
@@ -573,8 +590,8 @@ if(FALSE) for (a_met in metiers){
                      use_fao_areas=TRUE,
                      fao_areas= fao_areas,
                      spatial_polys=NULL,
-                     a_width=3000,
-                     a_height=3000,
+                     a_width=5000,
+                     a_height=5000,
                      output_dir=file.path(getwd(), "outputs2020", "output_plots_maps_met")
          ) 
  
@@ -640,8 +657,8 @@ if(FALSE) for (a_met in metiers){
                      use_fao_areas=TRUE,
                      fao_areas= fao_areas,
                      spatial_polys=NULL,
-                     a_width=3000,
-                     a_height=3000,
+                     a_width=5000,
+                     a_height=5000,
                      output_dir=file.path(getwd(), "outputs2020_pel", "output_plots_maps_met")
          )
  }
@@ -670,8 +687,8 @@ if(FALSE) for (a_met in metiers){
                      use_fao_areas=TRUE,
                      fao_areas= fao_areas,
                      spatial_polys=NULL,
-                     a_width=3000,
-                     a_height=3000,
+                     a_width=5000,
+                     a_height=5000,
                      output_dir=file.path(getwd(), "outputs2020_pel", "output_plots_maps_met")
          ) 
 
@@ -733,8 +750,8 @@ if(FALSE) for (a_met in metiers){
                      use_fao_areas=TRUE,
                      fao_areas= fao_areas,
                      spatial_polys=NULL,
-                     a_width=3000,
-                     a_height=3000,
+                     a_width=5000,
+                     a_height=5000,
                      output_dir=file.path(getwd(), "outputs2020", "output_plots_maps_met")
          )
 
@@ -814,8 +831,8 @@ aggall <- agg
                      use_fao_areas=TRUE,
                      fao_areas= fao_areas,
                      spatial_polys=NULL,
-                     a_width=3000,
-                     a_height=3000,
+                     a_width=5000,
+                     a_height=5000,
                      output_dir=file.path(getwd(), "outputs2020_pel", "output_plots_maps_met")
          )
 

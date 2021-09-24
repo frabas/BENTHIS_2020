@@ -797,7 +797,7 @@
    
  
 
- friendly_met_names <- function(dd){
+  friendly_met_names <- function(dd){
      # a more friendly naming of metiers
      dd$met_desc1 <- NA # init
      dd$met_desc2 <- NA # init
@@ -833,14 +833,12 @@
      dd[grepl("CRU_80-99",dd$LE_MET), "met_desc3"] <- "crustaceans (80-99mm)"
      dd[grepl("CRU_>=120_0_0",dd$LE_MET), "met_desc3"] <- "crustaceans (>120mm)"
      dd[grepl("MOL",dd$LE_MET), "met_desc3"] <- "molluscs"
-     dd[grepl("CSH",dd$LE_MET), "met_desc3"] <- "shrimp"
+     dd[grepl("TBB_CRU_16-31",dd$LE_MET), "met_desc3"] <- "shrimp"
      dd$met_desc2[is.na(dd$met_desc2)] <- ""
      dd$met_desc3[is.na(dd$met_desc3)] <- ""
 
     return(paste(dd$met_desc1, dd$met_desc2, dd$met_desc3))
     }
-    
-                                   
                                                                      
 
  #load(file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndVsizeAndRatiosBottContact.RData", sep="")))  # aggResultPerMetAlly
@@ -1705,7 +1703,7 @@ dev.off()
        scale_fill_manual(values=some_color_species, name="Species") + theme_minimal() + guides(fill =guide_legend(ncol=1, position="right"))  + 
         # theme(axis.text.x=element_blank()) 
          theme(axis.text.x=element_text(angle=60,hjust=1,vjust=1, size=12))
-  print(p8)
+  #print(p8)
 
 
  
@@ -1899,7 +1897,6 @@ count <- 0
  the_agg_plot<-  the_agg_plot[! (grepl("NOP", the_agg_plot$Stock) | grepl("OTH", the_agg_plot$Stock) | grepl("HER", the_agg_plot$Stock)  | grepl("WHB", the_agg_plot$Stock) | grepl("SPR", the_agg_plot$Stock) | grepl("HOM", the_agg_plot$Stock) | grepl("CSH", the_agg_plot$Stock) | grepl("PRA", the_agg_plot$Stock) | grepl("MAC", the_agg_plot$Stock) | grepl("SAN", the_agg_plot$Stock) | grepl("ELE", the_agg_plot$Stock)| grepl("MUS", the_agg_plot$Stock) | grepl("WHG", the_agg_plot$Stock)   ),]
 
  
-
  # a visual fix adding all combi--
  dd <- expand.grid(LE_MET=levels(factor(the_agg_plot$LE_MET)), Stock=levels(factor(the_agg_plot$Stock)), Year=levels(factor(the_agg_plot$Year)))
  dd$met_desc <- friendly_met_names(dd)
@@ -1914,6 +1911,11 @@ count <- 0
  #---
 
   the_agg_plot$LE_MET <- gsub("LargeMesh_", "", the_agg_plot$LE_MET)
+  
+   # order fleets in the legend
+  the_agg_plot$met_desc <-  factor(as.character(the_agg_plot$met_desc), levels= levels(the_agg_plot$met_desc)[order(substr(levels(the_agg_plot$met_desc),4,9) )]  )  # reorder the fleet desc in alphabetical order
+
+
   
   the_agg_plot1 <- as.data.frame(the_agg_plot[grep("(a)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot1$LE_MET <- gsub("\\(a)","", the_agg_plot1$LE_MET)
@@ -2107,6 +2109,9 @@ a_unit <- 1
  #---
 
   the_agg_plot$LE_MET <- gsub("LargeMesh_", "", the_agg_plot$LE_MET)
+  
+  # order fleets in the legend
+  the_agg_plot$met_desc <-  factor(as.character(the_agg_plot$met_desc), levels= levels(the_agg_plot$met_desc)[order(substr(levels(the_agg_plot$met_desc),4,9) )]  )  # reorder the fleet desc in alphabetical order
   
   the_agg_plot1 <- as.data.frame(the_agg_plot[grep("(a)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot1$LE_MET <- gsub("\\(a)","", the_agg_plot1$LE_MET)
@@ -2331,6 +2336,9 @@ setwd (file.path("D:","FBA","BENTHIS_2020"))   # adapt to your need
   dd <- orderBy(~ -x,dd)
   stock_ordered <- as.character(dd[,1])
 
+  # order fleets in the legend
+  the_agg_plot$met_desc <-  factor(as.character(the_agg_plot$met_desc), levels= levels(the_agg_plot$met_desc)[order(substr(levels(the_agg_plot$met_desc),4,9) )]  )  # reorder the fleet desc in alphabetical order
+ 
  
  #------------
  the_agg_plot1 <- as.data.frame(the_agg_plot[grep("(a)",the_agg_plot$LE_MET, fixed=TRUE),])
@@ -2366,7 +2374,8 @@ setwd (file.path("D:","FBA","BENTHIS_2020"))   # adapt to your need
         theme(axis.text.x=element_blank())
   #print(p4)
 
-the_agg_plot5 <- as.data.frame(the_agg_plot[grep("(e)",the_agg_plot$LE_MET, fixed=TRUE),])
+
+  the_agg_plot5 <- as.data.frame(the_agg_plot[grep("(e)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot5$LE_MET <- gsub("\\(e)","", the_agg_plot5$LE_MET)
    the_agg_plot5$Stock <- factor(the_agg_plot5$Stock, level=stock_ordered) # reorder
  p5_barplot_bottomfishing_dem_fpuc_per_stk <- ggplot(data=the_agg_plot5, aes(x=Stock, y=value/a_unit, fill=met_desc)) + #  geom_bar(stat="identity", position=position_dodge())
@@ -2377,7 +2386,7 @@ the_agg_plot5 <- as.data.frame(the_agg_plot[grep("(e)",the_agg_plot$LE_MET, fixe
   the_agg_plot6 <- as.data.frame(the_agg_plot[grep("(f)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot6$LE_MET <- gsub("\\(f)","", the_agg_plot6$LE_MET)
   the_agg_plot6$Stock <- factor(the_agg_plot6$Stock, level=stock_ordered) # reorder
-  p6_barplot_bottomfishing_dem_fpuv_per_stk <- ggplot(data=the_agg_plot6, aes(x=Stock, y=value/a_unit, fill=met_desc)) + #  geom_bar(stat="identity", position=position_dodge())
+ p6_barplot_bottomfishing_dem_fpuv_per_stk <- ggplot(data=the_agg_plot6, aes(x=Stock, y=value/a_unit, fill=met_desc)) + #  geom_bar(stat="identity", position=position_dodge())
   geom_bar(stat = "summary", fun = "mean") +  labs(y = "Litre per euro catch", x= "Species") +
        scale_fill_manual(values=some_color_seg, name="Fleet-segments") + theme_minimal() + guides(fill =guide_legend(ncol=1, position="right"))  + 
         theme(axis.text.x=element_text(angle=60,hjust=1,vjust=0.5, size=12))
@@ -2547,6 +2556,9 @@ setwd (file.path("D:","FBA","BENTHIS_2020"))   # adapt to your need
   dd <- orderBy(~ -x,dd)
   stock_ordered <- as.character(dd[,1])
  
+ # order fleets in the legend
+  the_agg_plot$met_desc <-  factor(as.character(the_agg_plot$met_desc), levels= levels(the_agg_plot$met_desc)[order(substr(levels(the_agg_plot$met_desc),4,9) )]  )  # reorder the fleet desc in alphabetical order
+ 
   #------------
   #------------
 #------------
@@ -2586,7 +2598,7 @@ setwd (file.path("D:","FBA","BENTHIS_2020"))   # adapt to your need
 the_agg_plot5 <- as.data.frame(the_agg_plot[grep("(e)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot5$LE_MET <- gsub("\\(e)","", the_agg_plot5$LE_MET)
    the_agg_plot5$Stock <- factor(the_agg_plot5$Stock, level=stock_ordered) # reorder
- p5_barplot_bottomfishing_pel_fpuc_per_stk <- ggplot(data=the_agg_plot5, aes(x=Stock, y=value/a_unit, fill=met_desc)) + #  geom_bar(stat="identity", position=position_dodge())
+ p5_barplot_bottomfishing_pel_fpuc_per_stk <- ggplot(data=the_agg_plot5, aes(x=Stock, y=value/a_unit, fill=met_desc, order=as.numeric(met_desc))) + #  geom_bar(stat="identity", position=position_dodge())
     geom_bar(stat = "summary", fun = "mean") +  labs(y = "Litre per kg catch", x= "Species") +
        scale_fill_manual(values=some_color_seg, name="Fleet-segments") + theme_minimal() + guides(fill =guide_legend(ncol=1, position="right"))  + 
         theme(axis.text.x=element_text(angle=60,hjust=1,vjust=1, size=12))
