@@ -1,6 +1,7 @@
 *.RData
 *.xlsx
 /AIS_data/*
+/FishSilhouettes/*
 /EflaloAndTacsat/*.RData
 !/EflaloAndTacsat/eflalo_2019_example.RData
 !/EflaloAndTacsat/tacsat_2019_example.RData

@@ -101,12 +101,12 @@ some_color_seg <-  c("#7FC97F", "#BEAED4", "#FDC086", "#FFFF99", "#386CB0", "#F0
  tiff(filename=file.path("D:","FBA","BENTHIS_2020", "ggplots", "landAndFuel.tiff"),   width = a_width, height = a_height,
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
 library(ggpubr)
-ggarrange(    p1_barplot_bottomfishing_dem_land_per_stk  + ggtitle("Bottom fishing") + guides(fill =guide_legend(ncol=3, position="right"))+ scale_fill_manual(values=some_color_seg, name="Fleet-segments")+ theme(legend.text = element_text(size = 12),axis.text.x=element_text(angle=60,hjust=1,vjust=1, size=12), plot.title=element_text(hjust = 0.5,margin=margin(t=40,b=-60))),
-              p2_barplot_bottomfishing_dem_fuel_per_stk  + ggtitle("Bottom fishing") + guides(fill =guide_legend(ncol=3, position="right"))+ scale_fill_manual(values=some_color_seg, name="Fleet-segments")+ theme(legend.text = element_text(size = 12),axis.text.x=element_text(angle=60,hjust=1,vjust=1, size=12), plot.title=element_text(hjust = 0.5,margin=margin(t=40,b=-60))),
-              p1_barplot_bottomfishing_pel_land_per_stk  + ggtitle("Bottom fishing with small/no mesh") + guides(fill =guide_legend(ncol=3, position="right"))+ scale_fill_manual(values=some_color_seg, name="Fleet-segments")+ theme(legend.text = element_text(size = 12),axis.text.x=element_text(angle=60,hjust=1,vjust=1, size=12), plot.title=element_text(hjust = 0.5,margin=margin(t=40,b=-60))),
-              p2_barplot_bottomfishing_pel_fuel_per_stk  + ggtitle("Bottom fishing with small/no mesh ") + guides(fill =guide_legend(ncol=3, position="right"))+ scale_fill_manual(values=some_color_seg, name="Fleet-segments")+ theme(legend.text = element_text(size = 12),axis.text.x=element_text(angle=60,hjust=1,vjust=1, size=12), plot.title=element_text(hjust = 0.5,margin=margin(t=40,b=-60))),
-              p1_barplot_pelfishing_pel_land_per_stk  + ggtitle("Pelagic fishing") + guides(fill =guide_legend(ncol=3, position="right")) + scale_fill_manual(values=some_color_seg, name="Fleet-segments")+ theme(legend.text = element_text(size = 12), axis.text.x=element_text(angle=60,hjust=1,vjust=1, size=12), plot.title=element_text(hjust = 0.5,margin=margin(t=40,b=-60))),
-              p2_barplot_pelfishing_pel_fuel_per_stk  + ggtitle("Pelagic fishing") + guides(fill =guide_legend(ncol=3, position="right"))+ scale_fill_manual(values=some_color_seg, name="Fleet-segments")+ theme(legend.text = element_text(size = 12),axis.text.x=element_text(angle=60,hjust=1,vjust=1, size=12), plot.title=element_text(hjust = 0.5,margin=margin(t=40,b=-60))),
+ggarrange(    p1_barplot_bottomfishing_dem_land_per_stk  + ggtitle("Bottom fishing") + guides(fill =guide_legend(ncol=3, position="right"))+ scale_fill_manual(values=some_color_seg, name="Fleet-segments")+ theme(legend.text = element_text(size = 12),axis.text.x=element_text(angle=60,hjust=1,vjust=1, size=12), plot.title=element_text(hjust = 0.5,margin=margin(t=40,b=-55))),
+              p2_barplot_bottomfishing_dem_fuel_per_stk  + ggtitle("Bottom fishing") + guides(fill =guide_legend(ncol=3, position="right"))+ scale_fill_manual(values=some_color_seg, name="Fleet-segments")+ theme(legend.text = element_text(size = 12),axis.text.x=element_text(angle=60,hjust=1,vjust=1, size=12), plot.title=element_text(hjust = 0.5,margin=margin(t=40,b=-55))),
+              p1_barplot_bottomfishing_pel_land_per_stk  + ggtitle("Bottom fishing with small/no mesh") + guides(fill =guide_legend(ncol=3, position="right"))+ scale_fill_manual(values=some_color_seg, name="Fleet-segments")+ theme(legend.text = element_text(size = 12),axis.text.x=element_text(angle=60,hjust=1,vjust=1, size=12), plot.title=element_text(hjust = 0.5,margin=margin(t=40,b=-55))),
+              p2_barplot_bottomfishing_pel_fuel_per_stk  + ggtitle("Bottom fishing with small/no mesh ") + guides(fill =guide_legend(ncol=3, position="right"))+ scale_fill_manual(values=some_color_seg, name="Fleet-segments")+ theme(legend.text = element_text(size = 12),axis.text.x=element_text(angle=60,hjust=1,vjust=1, size=12), plot.title=element_text(hjust = 0.5,margin=margin(t=40,b=-55))),
+              p1_barplot_pelfishing_pel_land_per_stk  + ggtitle("Pelagic fishing") + guides(fill =guide_legend(ncol=3, position="right")) + scale_fill_manual(values=some_color_seg, name="Fleet-segments")+ theme(legend.text = element_text(size = 12), axis.text.x=element_text(angle=60,hjust=1,vjust=1, size=12), plot.title=element_text(hjust = 0.5,margin=margin(t=40,b=-55))),
+              p2_barplot_pelfishing_pel_fuel_per_stk  + ggtitle("Pelagic fishing") + guides(fill =guide_legend(ncol=3, position="right"))+ scale_fill_manual(values=some_color_seg, name="Fleet-segments")+ theme(legend.text = element_text(size = 12),axis.text.x=element_text(angle=60,hjust=1,vjust=1, size=12), plot.title=element_text(hjust = 0.5,margin=margin(t=40,b=-55))),
         ncol=1, heights=c(1,1,1,1,1, 1), common.legend = FALSE, legend="right")
 
 dev.off()
@@ -159,3 +159,42 @@ ggarrange(    p5_barplot_bottomfishing_dem_fpuc_per_stk+ ggtitle("Bottom fishing
 dev.off()
 
 
+if(FALSE){
+# TODO: FIXME
+ library(png)
+ library()
+ img <- readPNG (file.path("D:","FBA","BENTHIS_2020","FishSilhouettes", "Gadus_morhua.png"))
+  plot(1:2, type='n')
+ rasterImage(img, 1.2, 1.27, 1.8, 1.73, interpolate=FALSE)
+ library(ggimage)
+ p5_barplot_bottomfishing_dem_fpuc_per_stk  +
+  #geom_col() +
+  geom_image(aes(image=img, y = 1392), size=.2)
+
+
+ the_agg_plot5$img <-file.path("D:","FBA","BENTHIS_2020","FishSilhouettes", "Gadus_morhua.png")
+ p5_barplot_bottomfishing_dem_fpuc_per_stk <- ggplot(data=the_agg_plot5, aes(x=Stock, y=value/a_unit, fill=met_desc)) + geom_image(aes(image=img),angle=180, size=.1) + #  geom_bar(stat="identity", position=position_dodge())
+    geom_bar(stat = "summary", fun = "mean") +  labs(y = "Litre per kg catch", x= "Species") +
+       scale_fill_manual(values=some_color_seg, name="Fleet-segments") + theme_minimal() + guides(fill =guide_legend(ncol=1, position="right"))  +
+        theme(axis.text.x=element_text(angle=60,hjust=1,vjust=1, size=12))
+
+
+ p5_barplot_bottomfishing_dem_fpuc_per_stk
+ height_bar_max <- apply(tapply(p5_barplot_bottomfishing_dem_fpuc_per_stk$data$value,
+                         list(p5_barplot_bottomfishing_dem_fpuc_per_stk$data$Stock, p5_barplot_bottomfishing_dem_fpuc_per_stk$data$met_desc),mean),
+                            1, sum, na.rm=TRUE)
+ img <- readPNG (file.path("D:","FBA","BENTHIS_2020","FishSilhouettes", "Gadus_morhua.png"))
+ for(sp in 1:length(height_bar_max)){
+ library("grid")
+ grid.points(x = 0.5, y = 0.5, default.units = "npc", pch="+",gp=gpar(cex=5))
+ grid.raster(img, vp = viewport(  x =seq( 0.08, 0.78, length=14)[sp], y = height_bar_max[sp]+0.1, angle=90), height=unit(1.5,"cm"))
+}
+
+                                 ,
+
+dd <- ggplot_build  (p5_barplot_bottomfishing_dem_fpuc_per_stk)
+ unique(dd$data[[1]]$xmin +   dd$data[[1]]$xmax) / 2
+
+dd$layout$panel_scales_x[[1]]$range$range
+
+}

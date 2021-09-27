@@ -1172,6 +1172,7 @@ dev.off()
 
 
 # PEL: for paper:
+ a_width <- 6000 ; a_height <- 6500
  namefile <- paste0("ts_fuel_efficiency_", "mean_fuel_efficiency", "_", years[1], "-", years[length(years)],  a_comment, "_PEL_areaplot_land_and_FPUE_rev.tif")
  tiff(filename=file.path(getwd(), "outputs2020", "output_plots",  namefile),   width = a_width, height = a_height,
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
@@ -1912,7 +1913,8 @@ count <- 0
 
   the_agg_plot$LE_MET <- gsub("LargeMesh_", "", the_agg_plot$LE_MET)
   
-   # order fleets in the legend
+    # order fleets in the legend
+    the_agg_plot$met_desc <- factor(the_agg_plot$met_desc)
   the_agg_plot$met_desc <-  factor(as.character(the_agg_plot$met_desc), levels= levels(the_agg_plot$met_desc)[order(substr(levels(the_agg_plot$met_desc),4,9) )]  )  # reorder the fleet desc in alphabetical order
 
 
@@ -2081,7 +2083,7 @@ count <- 0
 
    
    # select some species
-  the_agg <- the_agg[the_agg$Stock %in% c("HOM 27.4","MAC 27.4","NOP 27.4","PRA 27.3", "SAN 27.4","WHG 27.4"),]
+  the_agg <- the_agg[the_agg$Stock %in% c("NEP 27.3","NEP 27.4", "CSH 27.4", "HOM 27.4","MAC 27.4","NOP 27.4","PRA 27.3", "SAN 27.4","WHG 27.4"),]
 
 
 
@@ -2110,9 +2112,10 @@ a_unit <- 1
 
   the_agg_plot$LE_MET <- gsub("LargeMesh_", "", the_agg_plot$LE_MET)
   
-  # order fleets in the legend
+   # order fleets in the legend
+    the_agg_plot$met_desc <- factor(the_agg_plot$met_desc)
   the_agg_plot$met_desc <-  factor(as.character(the_agg_plot$met_desc), levels= levels(the_agg_plot$met_desc)[order(substr(levels(the_agg_plot$met_desc),4,9) )]  )  # reorder the fleet desc in alphabetical order
-  
+
   the_agg_plot1 <- as.data.frame(the_agg_plot[grep("(a)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot1$LE_MET <- gsub("\\(a)","", the_agg_plot1$LE_MET)
   p1_area_bottomfishing_pel_land_per_stk <- ggplot(the_agg_plot1, aes(x=as.character(Year), y=value/1e3, group=LE_MET)) +
@@ -2158,7 +2161,7 @@ a_unit <- 1
  #print(p6)
  
 
-a_width <- 6200 ; a_height <- 6500
+ a_width <- 6000 ; a_height <- 6500
 namefile <- paste0("ts_fuel_efficiency", a_variable, "_", years[1], "-", years[length(years)],  a_comment, "_PEL_areaplot_per_stk_land_and_FPUC_and_FPUV_per_species.tif")
  tiff(filename=file.path(getwd(), "outputs2020", "output_plots",  namefile),   width = a_width, height = a_height,
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
@@ -2336,9 +2339,10 @@ setwd (file.path("D:","FBA","BENTHIS_2020"))   # adapt to your need
   dd <- orderBy(~ -x,dd)
   stock_ordered <- as.character(dd[,1])
 
-  # order fleets in the legend
+   # order fleets in the legend
+    the_agg_plot$met_desc <- factor(the_agg_plot$met_desc)
   the_agg_plot$met_desc <-  factor(as.character(the_agg_plot$met_desc), levels= levels(the_agg_plot$met_desc)[order(substr(levels(the_agg_plot$met_desc),4,9) )]  )  # reorder the fleet desc in alphabetical order
- 
+
  
  #------------
  the_agg_plot1 <- as.data.frame(the_agg_plot[grep("(a)",the_agg_plot$LE_MET, fixed=TRUE),])

@@ -1515,9 +1515,9 @@ a_unit <- 1
     # caution filter out non-relevant species for these fleets
   the_agg_plot<-  the_agg_plot[ !(grepl("COD", the_agg_plot$Stock) | grepl("DAB", the_agg_plot$Stock)  | grepl("FLE", the_agg_plot$Stock)  | 
                     grepl("HOM", the_agg_plot$Stock)  | grepl("LEM", the_agg_plot$Stock)  | grepl("NEP", the_agg_plot$Stock)  | 
-                    grepl("NOP 27.3", the_agg_plot$Stock) | grepl("PLE", the_agg_plot$Stock) | grepl("SOL", the_agg_plot$Stock) | 
-                    grepl("TUR", the_agg_plot$Stock) | grepl("WIT", the_agg_plot$Stock) | grepl("POK", the_agg_plot$Stock) |
-                     grepl("PRA", the_agg_plot$Stock) | grepl("PRA", the_agg_plot$Stock) |  grepl("HKE", the_agg_plot$Stock) |  grepl("WHB", the_agg_plot$Stock) | grepl("HKE 27.3", the_agg_plot$Stock) |  grepl("CSH 27.4", the_agg_plot$Stock) | grepl("CSH 27.3", the_agg_plot$Stock) | grepl("MON", the_agg_plot$Stock) | grepl("ELE", the_agg_plot$Stock) ),]
+                    grepl("NOP 27.3", the_agg_plot$Stock) | grepl("PLE", the_agg_plot$Stock) | grepl("SOL", the_agg_plot$Stock)  | grepl("OTH", the_agg_plot$Stock) | 
+                    grepl("TUR", the_agg_plot$Stock) | grepl("WIT", the_agg_plot$Stock) | grepl("POK", the_agg_plot$Stock) |   grepl("MUS", the_agg_plot$Stock)  |   grepl("NOP", the_agg_plot$Stock) |
+                     grepl("PRA", the_agg_plot$Stock) | grepl("PRA", the_agg_plot$Stock) |  grepl("HKE", the_agg_plot$Stock) |  grepl("WHB 27.3", the_agg_plot$Stock) | grepl("HKE 27.3", the_agg_plot$Stock) |  grepl("CSH 27.4", the_agg_plot$Stock) | grepl("CSH 27.3", the_agg_plot$Stock) | grepl("MON", the_agg_plot$Stock) | grepl("ELE", the_agg_plot$Stock) ),]
 
     # find order of met
   dd <- as.data.frame(the_agg_plot[grep("(a)",the_agg_plot$LE_MET, fixed=TRUE),])
