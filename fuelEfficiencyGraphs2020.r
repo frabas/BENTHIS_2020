@@ -1326,14 +1326,14 @@ dev.off()
  a_func_mean <- function (x) mean(x[x!=0 & !is.na(x)])
   a_func_cv <- function(x) {sqrt(var(x[x!=0 & !is.na(x)]))/mean(x[x!=0 & !is.na(x)])}
  
-# find order of LE_MET
+  # find order of LE_MET
   dd <- as.data.frame(the_agg_plot[grep("(a)",the_agg_plot$LE_MET, fixed=TRUE),])
   dd$LE_MET <- gsub("\\(a)","", dd$LE_MET)
   dd <- aggregate(dd$Total, by=list(dd$LE_MET), a_func_mean)
   dd <- orderBy(~ -x,dd)
   fleet_segments_ordered <- as.character(dd[,1])
 
- # find order of met_desc
+  # find order of met_desc
   dd <- as.data.frame(the_agg_plot[grep("(a)",the_agg_plot$LE_MET, fixed=TRUE),])
   dd$LE_MET <- gsub("\\(a)","", dd$LE_MET)
   dd <- aggregate(dd$Total, by=list(dd$met_desc), a_func_mean)

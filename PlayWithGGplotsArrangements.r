@@ -170,6 +170,24 @@ ggarrange(    p5_barplot_bottomfishing_dem_fpuc_per_stk+ ggtitle("Bottom fishing
 dev.off()
 
 
+
+
+#small vessels
+ a_width <- 6000 ; a_height <- 4250
+ namefile <- paste0("ggplot.tif")
+ tiff(filename=file.path("D:","FBA","BENTHIS_2020", "ggplots", "fpuc_per_species_and_small_vessels.tiff"),   width = a_width, height = a_height,
+                                   units = "px", pointsize = 12,  res=600, compression = c("lzw"))
+library(ggpubr)
+ggarrange(    p5_barplot_bottomfishing_dem_fpuc_smallvids+ ggtitle("Bottom fishing with small vessels")+  guides(fill =guide_legend(ncol=2, position="right")) + theme(legend.text = element_text(size = 12),axis.text.x=element_text(angle=60,hjust=1,vjust=1, size=12), plot.title=element_text(margin=margin(t=40,b=-20))),
+              p5_barplot_bottomfishing_pel_fpuc_smallvids+ ggtitle("Fishing with small vessels / no mesh") + guides(fill =guide_legend(ncol=2, position="right")) + theme(legend.text = element_text(size = 12),axis.text.x=element_text(angle=60,hjust=1,vjust=1, size=12), plot.title=element_text(margin=margin(t=40,b=-20))),
+          ncol=1, heights=c(1.5,1.5), common.legend = FALSE, legend="right")
+
+dev.off()
+
+
+
+
+
 if(FALSE){
 # TODO: FIXME
  library(png)

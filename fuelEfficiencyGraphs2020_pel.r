@@ -1292,12 +1292,12 @@ spp <- colnames(aggResultPerMetAlly) [grep("LE_EURO_", colnames(aggResultPerMetA
        scale_fill_manual(values=some_color_species, name="Species") + theme_minimal() + guides(fill =guide_legend(ncol=1, position="right"))  + 
         # theme(axis.text.x=element_blank()) 
          theme(axis.text.x=element_text(angle=60,hjust=1,vjust=1, size=12))
-print(p8)
+#print(p8)
 
 
 
 # for paper:
- a_width <- 3200 ; a_height <- 6500
+  a_width <- 6000 ; a_height <- 5500
  namefile <- paste0("barplot_mean_fuel_efficiency_", years[1], "-", years[length(years)], "_PEL_plot_land_and_FPUC_and_FPUV_rev.tif")
  tiff(filename=file.path(getwd(), "outputs2020_pel", "output_plots",  namefile),   width = a_width, height = a_height,
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
