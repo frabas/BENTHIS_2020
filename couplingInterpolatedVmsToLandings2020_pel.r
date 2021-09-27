@@ -702,7 +702,7 @@ if(.Platform$OS.type == "unix") {
        #geom_line(data=dd, aes(x=as.character(Year), y=litre_fuel/10, group=VesselSize, color=VesselSize),size=1 , linetype = "dashed", stat = "summary", fun = "sum") +   
        geom_line(data=dd, aes(x=as.character(Year), y=litre_fuel/100, group=1),size=1.2, color=1, linetype = "dashed", stat = "summary", fun = "sum") +   
         geom_line(data=dd, aes(x=as.character(Year), y=toteuros/100, group=1),size=1.2,  color=5, linetype = "dashed", stat = "summary", fun = "sum") +   
-       scale_y_continuous(name = "fished hours effort; or fuel use (klitres); or keuros", sec.axis = sec_axis(~./2e4, name = "Nb Vessels") )+
+       scale_y_continuous(name = "fished hours effort; or fuel use (litres/100); or euros/100", sec.axis = sec_axis(~./2e4, name = "Nb Vessels") )+
        theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  + 
        labs(x = "Year")     + 
        scale_color_manual(values=some_color_vessel_size, name="VesselSize") +  

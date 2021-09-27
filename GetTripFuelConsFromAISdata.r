@@ -122,3 +122,7 @@ fuel_cons_in_trip_per_level6_per_hour_for_vessels_under_12m <- tapply(ais_profil
 save(fuel_cons_in_trip_per_level6_per_hour_for_vessels_under_12m,
       file=file.path(getwd(), "AIS_data", "fuel_cons_in_trip_per_level6_per_hour_for_vessels_under_12m.RData"))
 
+
+# Note that the following metiers are at NA in the final dataset because sampled AIS vessels are >12m...so there are not relevant.
+# TBB_CRU_16-31_0_0      TBB_DEF_>=120_0_0 OTB_DEF_32-69_0_0   PTB_DEF_>=120_0_0   SDN_DEF_>=105_1_120    SDN_DEF_>=120_0_0
+

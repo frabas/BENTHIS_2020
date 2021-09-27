@@ -22,6 +22,10 @@ load(file=file.path("D:","FBA","BENTHIS_2020", "ggplots.RData"))
      dd[grepl("DRB",dd$LE_MET), "met_desc2"] <- "dredge for\n"
      dd[grepl("TBB",dd$LE_MET), "met_desc2"] <- "beam.trawl for\n"
      dd[grepl("TM",dd$LE_MET), "met_desc2"] <- "midw.trawl for\n"
+     dd[grepl("LLS",dd$LE_MET), "met_desc2"] <- "longline for\n"
+     dd[grepl("LHP",dd$LE_MET), "met_desc2"] <- "handline for\n"
+     dd[grepl("LLD",dd$LE_MET), "met_desc2"] <- "longline for\n"
+     dd[grepl("FPN",dd$LE_MET), "met_desc2"] <- "pots for\n"
      dd[grepl("OTHER",dd$LE_MET), "met_desc2"] <- "misc."
      dd[grepl(">=120_0_0",dd$LE_MET), "met_desc3"] <- "fish (>120mm)"
      dd[grepl(">=105_1_120",dd$LE_MET), "met_desc3"] <- "fish (105-120mm)"
@@ -39,15 +43,22 @@ load(file=file.path("D:","FBA","BENTHIS_2020", "ggplots.RData"))
      dd[grepl("DEF_16-31_0_0",dd$LE_MET), "met_desc3"] <- "d/pelagics (16-31mm)"
      dd[grepl("CRU_32-69",dd$LE_MET), "met_desc3"] <- "crustaceans (32-69mm)"
      dd[grepl("CRU_80-99",dd$LE_MET), "met_desc3"] <- "crustaceans (80-99mm)"
+     dd[grepl("CRU_>0_0",dd$LE_MET), "met_desc3"] <- "crustaceans"
      dd[grepl("CRU_>=120_0_0",dd$LE_MET), "met_desc3"] <- "crustaceans (>120mm)"
+     dd[grepl("LHP_FIF",dd$LE_MET), "met_desc3"] <- "fish"
+     dd[grepl("ANA",dd$LE_MET), "met_desc3"] <- "mig. fish"
+     dd[grepl("CAT",dd$LE_MET), "met_desc3"] <- "catadromus sp"
      dd[grepl("MOL",dd$LE_MET), "met_desc3"] <- "molluscs"
      dd[grepl("TBB_CRU_16-31",dd$LE_MET), "met_desc3"] <- "shrimp"
+     dd[grepl("LLS_DEF_0_0_0",dd$LE_MET), "met_desc3"] <- "fish"
+     dd[grepl("157_0_0",dd$LE_MET), "met_desc3"] <- "fish (>157mm)"
+     dd[grepl("110-156_0_0",dd$LE_MET), "met_desc3"] <- "fish (110-156mm)"
      dd$met_desc2[is.na(dd$met_desc2)] <- ""
      dd$met_desc3[is.na(dd$met_desc3)] <- ""
 
     return(paste(dd$met_desc1, dd$met_desc2, dd$met_desc3))
     }
-    
+
 
 some_color_seg <-  c("#7FC97F", "#BEAED4", "#FDC086", "#FFFF99", "#386CB0", "#F0027F", "#BF5B17", "#666666", "#1B9E77", "#D95F02", "#7570B3", "#E7298A", "#66A61E", "#E6AB02", "#A6761D", "#666666", "#A6CEE3", "#1F78B4", "#B2DF8A", "#33A02C", "#FB9A99", "#E31A1C", "#FDBF6F",
    "#FF7F00", "#CAB2D6", "#6A3D9A", "#FFFF99", "#B15928", "#FBB4AE", "#B3CDE3", "#CCEBC5", "#DECBE4", "#FED9A6", "#FFFFCC", "#E5D8BD", "#FDDAEC", "#F2F2F2", "#B3E2CD", "#FDCDAC", "#CBD5E8", "#F4CAE4", "#E6F5C9", "#FFF2AE", "#F1E2CC", "#CCCCCC", "#E41A1C",
