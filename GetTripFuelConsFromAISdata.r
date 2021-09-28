@@ -97,6 +97,10 @@ levels(ais_profile$Speed)  <- as.character(seq(0.5,19.5, by=1))
 # check
  head(ais_profile,10)
 
+# export for later use
+save(ais_profile,
+      file=file.path(getwd(), "AIS_data", "ais_profile_small_vessels.RData"))
+
                                        
 # add fuel consumption estimates
 # 1. first, apply the discount depending on vessel speed
@@ -104,7 +108,7 @@ table.fuelcons.per.engine       <-  read.table(file= file.path(getwd(),"EflaloAn
 linear.model                    <-  lm(calc_cons_L_per_hr_max_rpm~ kW2, data=table.fuelcons.per.engine)  # conso = a*Kw +b   # to guess its fuel consumption at maximal speed
 ais_profile$max_consumed_per_h        <-  predict(linear.model, newdata=data.frame(kW2=as.numeric(as.character(ais_profile$meankW))))
 fuel_per_h                      <- function (a,x) a*(x^3)  # cubic law
-ais_profile$a                  <- as.numeric(as.character(ais_profile$max_consumed))/ (as.numeric(as.character(ais_profile$max_vessel_speed))^3) # scaling factor
+ais_profile$a                  <- as.numeric(as.character(ais_profile$max_consumed_per_h))/ (as.numeric(as.character(ais_profile$max_vessel_speed))^3) # scaling factor
 ais_profile$fuelcons_per_h     <- fuel_per_h(ais_profile$a, as.numeric(as.character(ais_profile$Speed)))
 
 # 2. Assume max vessel consumption when towing for towed gears (i.e. within a Speed interval assuming fishing) because of the dragging resistance of the towed net

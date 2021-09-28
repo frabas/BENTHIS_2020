@@ -7,7 +7,7 @@ dat1 <- read.table(file=file.path(getwd(), "outputs2020", "output_plots", "barpl
 dat2 <- read.table(file=file.path(getwd(), "outputs2020_pel", "output_plots", "barplot_mean_fuel_efficiency_ 2005 - 2019 _PEL_plot_land_and_FPUC_and_FPUV.dat"), header=TRUE, sep=";")
 
 # read for small vessels
-dat3 <- read.table(file=file.path(getwd(), "outputs2020_lgbkonly", "output_plots", "barplot_mean_fuel_efficiency_2019_DEM_PEL_plot_land_and_FPUC_and_FPUV.dat"), header=TRUE, sep=";")
+dat3 <- read.table(file=file.path(getwd(), "outputs2020_lgbkonly", "output_plots", "barplot_mean_fuel_efficiency_ 2005 - 2019 _DEM_PEL_plot_land_and_FPUC_and_FPUV.dat"), header=TRUE, sep=";")
 
 dat <- rbind.data.frame(dat1, dat2, dat3)
 
@@ -34,7 +34,7 @@ levels(score_table$asterik) <- c('*', '**', '***', '****', '*****')
 
 # add on
 library(doBy)
-score_table <- doBy::orderBy(~ Relative_efficiency_to_5, score_table)
+score_table <- doBy::orderBy(~ type+Relative_efficiency_to_5, score_table)
 
 score_table <- score_table[complete.cases(score_table),]
 
@@ -43,6 +43,8 @@ score_table$seg <- sapply(strsplit(as.character(score_table$seg), " "), function
 score_table$LE_MET <- score_table$seg
 score_table <- cbind.data.frame(met_desc=friendly_met_names (score_table) , score_table)
 
+score_table <- score_table[! grepl("misc", score_table$met_desc),]
+score_table$met_desc <- gsub("\n", " ", score_table$met_desc)
 
 # round and export
 write.table(score_table[, c("type","met_desc", "seg","Litre per euro catch", "Litre per kg catch","CPUF (kg per litre)", "VPUF (euro per litre)", "asterik")],

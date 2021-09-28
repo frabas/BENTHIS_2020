@@ -201,7 +201,7 @@ if(FALSE){
   geom_image(aes(image=img, y = 1392), size=.2)
 
 
- the_agg_plot5$img <-file.path("D:","FBA","BENTHIS_2020","FishSilhouettes", "Gadus_morhua.png")
+ the_agg_plot5$img <-file.path(getwd(),"FishSilhouettes", "Gadus_morhua.png")
  p5_barplot_bottomfishing_dem_fpuc_per_stk <- ggplot(data=the_agg_plot5, aes(x=Stock, y=value/a_unit, fill=met_desc)) + geom_image(aes(image=img),angle=180, size=.1) + #  geom_bar(stat="identity", position=position_dodge())
     geom_bar(stat = "summary", fun = "mean") +  labs(y = "Litre per kg catch", x= "Species") +
        scale_fill_manual(values=some_color_seg, name="Fleet-segments") + theme_minimal() + guides(fill =guide_legend(ncol=1, position="right"))  +
@@ -209,21 +209,59 @@ if(FALSE){
 
 
  p5_barplot_bottomfishing_dem_fpuc_per_stk
- height_bar_max <- apply(tapply(p5_barplot_bottomfishing_dem_fpuc_per_stk$data$value,
+ p_dat <- ggplot_build(p5_barplot_bottomfishing_dem_fpuc_per_stk)
+p_map <- cbind(p_dat$data[[1]],
+               lab = "")
+p_map <- p_map[!duplicated(p_map$x),]
+count <- 0
+height_bar_max <- apply(tapply(p5_barplot_bottomfishing_dem_fpuc_per_stk$data$value,
                          list(p5_barplot_bottomfishing_dem_fpuc_per_stk$data$Stock, p5_barplot_bottomfishing_dem_fpuc_per_stk$data$met_desc),mean),
                             1, sum, na.rm=TRUE)
  img <- readPNG (file.path("D:","FBA","BENTHIS_2020","FishSilhouettes", "Gadus_morhua.png"))
  for(sp in 1:length(height_bar_max)){
  library("grid")
  grid.points(x = 0.5, y = 0.5, default.units = "npc", pch="+",gp=gpar(cex=5))
- grid.raster(img, vp = viewport(  x =seq( 0.08, 0.78, length=14)[sp], y = height_bar_max[sp]+0.1, angle=90), height=unit(1.5,"cm"))
+ grid.raster(img, vp = viewport(  x =p_map$xmin[sp], y = p_map$ymax[sp], angle=90), height=unit(1.5,"cm"))
 }
 
-                                 ,
 
-dd <- ggplot_build  (p5_barplot_bottomfishing_dem_fpuc_per_stk)
- unique(dd$data[[1]]$xmin +   dd$data[[1]]$xmax) / 2
 
-dd$layout$panel_scales_x[[1]]$range$range
+
+# it works ok:
+p_dat <- ggplot_build(p5_barplot_bottomfishing_dem_fpuc_per_stk)
+p_map <- cbind(p_dat$data[[1]],
+               lab = "")
+p_map <- p_map[!duplicated(p_map$x),]
+p_map$spp <- levels(p5_barplot_bottomfishing_dem_fpuc_per_stk$data$Stock)
+p_map$image <-file.path("D:","FBA","BENTHIS_2020","FishSilhouettes", "Gadus_morhua_alpha.png")
+
+p5_barplot_bottomfishing_dem_fpuc_per_stk + geom_image(data = p_map, aes(x=xmax, y=ymax, image = image), size = 0.05)
+
+
+
+
+
+
+
+count <- 0
+for (i in 1:nrow(p_map)) {
+count <- count+1
+spp <- levels(p5_barplot_bottomfishing_dem_fpuc_per_stk$data$Stock) [count]
+print(spp)
+
+ p5_barplot_bottomfishing_dem_fpuc_per_stk <- p5_barplot_bottomfishing_dem_fpuc_per_stk +
+    annotation_custom(rasterGrob(readPNG(file.path("D:","FBA","BENTHIS_2020","FishSilhouettes", "Gadus_morhua_alpha.png")),
+                 width = unit(1, "npc"), #unit(1.5,"cm"),  #
+                 height = unit(1, "npc")), #unit(1, "npc")),   # Use the bar coordinates to place grob in the right place
+      xmin = p_map$xmin[i],
+      xmax = p_map$xmax[i],
+      ymin = p_map$ymin[i],
+      ymax = p_map$ymax[i])
+}
+p5_barplot_bottomfishing_dem_fpuc_per_stk
+
+
+
+
 
 }

@@ -189,10 +189,12 @@ library(vmstools)
   } # end FALSE
   
 
-  if(TRUE){
-  # use AIS data to deduce fuel cons from a typical speed profile (per DCF level6) and apply typical fuel cons per hour (computed from kW and speed) to each trip.
+  if(FALSE){
+  # use AIS data to deduce fuel cons from a typical speed profile (per DCF level6) as we don´t have speed info for small vessels in logbooks
+  # (we also dont have AIS data for all small vessels becuase no mandatory) and deduce and apply typical fuel cons per hour (computed from kW and speed) to each trip.
+  # this is assuning a mean kW for each segment which might be a rough assumption given the kW is driving very much the fuel consumption rate. 
   # for towed gears, this is also assuming 0.9 of max speed when within a certain interval in speed (i.e. when towing...) (see GetTripFuelConsFromAISdata.R for details)
-  load(file=file.path(getwd(), "AIS_data", "fuel_cons_in_trip_per_level6_per_hour_for_vessels_under_12m.RData"))    # get fuel_cons_in_trip_per_level6_per_hour_for_vessels_under_12m
+  load(file=file.path(getwd(), "AIS_data", "fuel_cons_in_trip_per_level6_per_hour_for_vessels_under_12m.RData"))    # get fuel_cons_in_trip_per_level6_per_hour_for_vessels_under_12m (but a rough average)
   eflalo$fuel_cons_in_trip_level_6 <-   fuel_cons_in_trip_per_level6_per_hour_for_vessels_under_12m[ as.character(eflalo$LE_MET) ]
   
   eflalo$LE_MET5 <- substr(as.character(eflalo$LE_MET), 1,7) 
@@ -219,6 +221,80 @@ library(vmstools)
 
   } # end FALSE
   
+ 
+ if(TRUE){
+  load(file=file.path(getwd(), "AIS_data", "ais_profile_small_vessels.RData"))  # ais_profile
+ 
+  table.fuelcons.per.engine       <-  read.table(file= file.path(getwd(),"EflaloAndTacsat", "IBM_datainput_engine_consumption.txt"), header=TRUE,sep="")
+  linear.model                    <-  lm(calc_cons_L_per_hr_max_rpm~ kW2, data=table.fuelcons.per.engine)  # conso = a*Kw +b   # to guess its fuel consumption at maximal speed
+  eflalo$max_consumed_per_h        <-  predict(linear.model, newdata=data.frame(kW2=as.numeric(as.character(eflalo$VE_KW))))
+  fuel_per_h                      <- function (a,x) a*(x^3)  # cubic law, x is vessel speed
+
+  eflalo$a <- NA
+  eflalo$fuelcons_per_h <- NA
+  eflalo$LE_MET <- as.character(eflalo$LE_MET)
+  eflalo$max_consumed_per_h <-   as.numeric(as.character(eflalo$max_consumed_per_h ))
+  ais_profile$max_vessel_speed <- as.numeric(as.character(ais_profile$max_vessel_speed))
+  ais_profile$Speed <- as.numeric(as.character(ais_profile$Speed))
+  ais_profile$Prop <- as.numeric(as.character(ais_profile$Prop))
+  ais_profile$Level6 <- as.character(ais_profile$Level6)
+  ais_profile$Weight <- ais_profile[, "Speed"] * ais_profile[, "Prop"]
+ 
+  library(data.table)
+  ais_profile_dt <- ais_profile[,c('Level6',"Speed", "Prop")]
+  wide_prop <- data.table::dcast(setDT(ais_profile_dt), Level6 ~ Speed, value.var="Prop")
+  wide_prop <- as.data.frame(wide_prop)
+  rownames(wide_prop) <- wide_prop$Level6
+  wide_prop[is.na(wide_prop)] <-0 
+  eflalo <- cbind.data.frame(eflalo, wide_prop[eflalo$LE_MET,])
+
+  maxspeed_per_metier <- ais_profile[!duplicated(ais_profile$Level6),c("Level6", "max_vessel_speed")]
+  rownames(maxspeed_per_metier) <- maxspeed_per_metier$Level6
+  eflalo <- cbind.data.frame(eflalo, max_vessel_speed=maxspeed_per_metier[eflalo$LE_MET,"max_vessel_speed"])
+ 
+  eflalo$a                <- eflalo$max_consumed_per_h /  (eflalo$max_vessel_speed^3)
+  cubic_speed             <- matrix(as.numeric(colnames(wide_prop[,-1]))^3,  ncol=length(colnames(wide_prop[,-1])), nrow=nrow(eflalo), byrow=TRUE)
+  prop_per_speed_bin      <- eflalo[,c(colnames(wide_prop[,-1]))]
+  
+  fuelcons_max_per_speed  <- sweep(cubic_speed, 1, eflalo$a, FUN="*")
+  colnames(fuelcons_max_per_speed)    <- colnames(wide_prop[,-1])
+  
+  # Assume max vessel consumption when towing for towed gears (i.e. within a Speed interval assuming fishing) because of the dragging resistance of the towed net
+  towedGears  <- c("OTB", "PTB", "DRB", "OTM", "PTM", "SSC", "SDN")
+  eflalo$Gear <- substr(eflalo$Level6, 1,3)
+  idx <- eflalo$Gear %in% c(towedGears)
+  fuelcons_max_per_speed [, c("1.5", "2.5", "3.5")] <- eflalo [,"max_consumed_per_h"] *0.9  #assume 90% full load when a towed net is fishing
+  
+  eflalo$fuelcons_per_h   <- apply(fuelcons_max_per_speed*prop_per_speed_bin, 1, sum)
+  # => doing a weighted average of fuel comsumption with standardized vessel speed profile as weight (then lower than assuming vessel always at max_speed)
+  
+ 
+  # back up if some missing metiers in the sampled AIS vessels....
+  load(file=file.path(getwd(), "AIS_data", "fuel_cons_in_trip_per_level6_per_hour_for_vessels_under_12m.RData"))    # get fuel_cons_in_trip_per_level6_per_hour_for_vessels_under_12m (but a rough average)
+  eflalo$LE_MET5 <- substr(as.character(eflalo$LE_MET), 1,7) 
+  fuel_cons_in_trip_per_level5_per_hour_for_vessels_under_12m <-   cbind.data.frame(fuel_cons_in_trip_per_level6_per_hour_for_vessels_under_12m, LE_MET5= substr(names(fuel_cons_in_trip_per_level6_per_hour_for_vessels_under_12m), 1,7)  )
+  fuel_cons_in_trip_per_level5_per_hour_for_vessels_under_12m <- tapply(fuel_cons_in_trip_per_level5_per_hour_for_vessels_under_12m[,1], fuel_cons_in_trip_per_level5_per_hour_for_vessels_under_12m$LE_MET5, mean, na.rm=TRUE)
+  eflalo$fuel_cons_in_trip_level_5 <-   fuel_cons_in_trip_per_level5_per_hour_for_vessels_under_12m[eflalo$LE_MET5 ]
+
+  eflalo$LE_MET4 <- substr(as.character(eflalo$LE_MET), 1,3) 
+  fuel_cons_in_trip_per_level4_per_hour_for_vessels_under_12m <-   cbind.data.frame(fuel_cons_in_trip_per_level6_per_hour_for_vessels_under_12m, LE_MET4= substr(names(fuel_cons_in_trip_per_level6_per_hour_for_vessels_under_12m), 1,3)  )
+  fuel_cons_in_trip_per_level4_per_hour_for_vessels_under_12m <- tapply(fuel_cons_in_trip_per_level4_per_hour_for_vessels_under_12m[,1], fuel_cons_in_trip_per_level4_per_hour_for_vessels_under_12m$LE_MET4, mean, na.rm=TRUE)
+  fuel_cons_in_trip_per_level4_per_hour_for_vessels_under_12m <- c(fuel_cons_in_trip_per_level4_per_hour_for_vessels_under_12m, LHP=as.numeric(fuel_cons_in_trip_per_level4_per_hour_for_vessels_under_12m["LLD"]), GND=as.numeric(fuel_cons_in_trip_per_level4_per_hour_for_vessels_under_12m["GNS"])) # a small fix to avoid loosing vessels
+  eflalo$fuel_cons_in_trip_level_4 <-   fuel_cons_in_trip_per_level4_per_hour_for_vessels_under_12m[eflalo$LE_MET4 ]
+ 
+  # take the best estimate first, then, if NAs, fill the gaps with lower levels
+  eflalo$fuel_cons_in_trip_level <-   eflalo$fuel_cons_in_trip_level_6
+  eflalo[is.na(eflalo$fuel_cons_in_trip_level),"fuel_cons_in_trip_level"] <-   eflalo[is.na(eflalo$fuel_cons_in_trip_level),"fuel_cons_in_trip_level_5"]
+  eflalo[is.na(eflalo$fuel_cons_in_trip_level),"fuel_cons_in_trip_level"] <-   eflalo[is.na(eflalo$fuel_cons_in_trip_level),"fuel_cons_in_trip_level_4"]
+    
+  # check
+  unique(eflalo[is.na(eflalo$fuel_cons_in_trip_level_4) ,"VE_REF"])     # ideally, we should lost 0 vessels
+
+  eflalo$LE_KG_LITRE_FUEL   <- as.numeric(as.character(eflalo$fuel_cons_in_trip_level)) * eflalo$LE_EFF
+ 
+
+}
+ 
   ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
   ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
   ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!##
