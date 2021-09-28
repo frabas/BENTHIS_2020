@@ -38,7 +38,7 @@ plot (westcod$Year, westcod$FishingPressure, type="l")
   a_var <- "VPUF"
 a_var <- "CPUF"
   if(a_var=="VPUF"){ load(file=file.path(getwd(), "outputs2020", paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForBotAllyAndStocks",years[1],"-",years[length(years)],".RData", sep="")))
-  }else{  load(file=file.path(getwd(), "outputs2020", paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatios",a_var,"ForBotAllyAndStocks",years[1],"-",years[length(years)],".RData", sep="")))}
+  }else{  load(file=file.path(getwd(), "outputs2020", paste("AggregatedSweptAreaPlusMet6AndRatios",a_var,"ForBotAllyAndStocks",years[1],"-",years[length(years)],".RData", sep="")))}     # from generateTable.R
   # x
   xx <- tapply(x$value, list(x$Stock, x$Year), mean, na.rm=TRUE) # avrage across grid cells and met...
 
@@ -57,8 +57,8 @@ a_var <- "CPUF"
  f_and_vpuf$StockAndVar <- paste(f_and_vpuf$Stock,f_and_vpuf$Var, sep=".")
 
   
-  # large mesh - dem
-  dat <- f_and_vpuf[f_and_vpuf$Stock%in%c("COD.nsea", "PLE.nsea", "SOL.nsea", "HER.nsea", "POK.nsea", "HAD.nsea", "HKE.nsea", "NEP.kask", "COD.2224", "PLE.2123", "SOL.2024"),]
+  # bottom contacting gears
+  dat <- f_and_vpuf[f_and_vpuf$Stock%in%c("COD.nsea", "PLE.nsea", "SOL.nsea", "PRA.nsea", "NEP.kask", "HER.nsea", "POK.nsea", "HAD.nsea", "HKE.nsea", "NEP.kask", "COD.2224", "PLE.2123", "SOL.2024"),]
   dat$Region <- factor(dat$Region)
   
   
@@ -72,11 +72,12 @@ a_var <- "CPUF"
    
    
   namefile <- paste0("ts_anomalies_f_and_",a_var,"_for_dem1_gridcells",years[1],"-",years[length(years)],".tif")
-  a_width <- 7000; a_height=7000
+  a_width <- 7000; a_height=6000
   tiff(filename=file.path(getwd(), "outputs2020", "output_plots",  namefile),   width = a_width, height = a_height,
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
   library(ggplot2)
-   spp <- c("HER.nsea", "HAD.nsea", "POK.nsea", "SOL.2024") # select those with significant cross-correlation
+  # spp <- c("HER.nsea", "HAD.nsea", "POK.nsea", "SOL.2024") # select those with significant cross-correlation
+   spp <- c("COD.nsea", "PRA.nsea", "POK.nsea", "SOL.nsea", "PLE.2123") # select those with significant cross-correlation
    plots <- list(NULL)
    count <- 0
    for (sp in 1: length(spp)){
@@ -149,7 +150,7 @@ dev.off()
   a_var <- "VPUF"
 a_var <- "CPUF"
   if(a_var=="VPUF"){ load(file=file.path(getwd(), "outputs2020", paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForBotAllyAndStocks",years[1],"-",years[length(years)],".RData", sep="")))
-  }else{  load(file=file.path(getwd(), "outputs2020", paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatios",a_var,"ForBotAllyAndStocks",years[1],"-",years[length(years)],".RData", sep="")))}
+  }else{  load(file=file.path(getwd(), "outputs2020", paste("AggregatedSweptAreaPlusMet6AndRatios",a_var,"ForBotAllyAndStocks",years[1],"-",years[length(years)],".RData", sep="")))}
   # x
   xx <- tapply(x$value, list(x$Stock, x$Year), mean, na.rm=TRUE) # avrage across grid cells and met...
 
@@ -224,8 +225,8 @@ a_var <- "CPUF"
                                    units = "px", pointsize = 12,  res=400, compression = c("lzw"))
  par(mfrow=c(2, length(spp)/2))
  for (a_spp in spp)
-  ccf(x[x$Var=="F/FMSY" & x$Year %in% as.character(2012:2019) & x$Stock %in% a_spp,"value"],  # ideally we would detrended F/FMSY ts but the ts is too short that it creates misleading outcomes if we do so (given we are close to 1 in recent years...)
-       x[x$Var==a_var & x$Year %in% as.character(2012:2019) & x$Stock %in% a_spp,"value"],
+  ccf(x[x$Var=="F/FMSY" & x$Year %in% as.character(2005:2019) & x$Stock %in% a_spp,"value"],  # ideally we would detrended F/FMSY ts but the ts is too short that it creates misleading outcomes if we do so (given we are close to 1 in recent years...)
+       x[x$Var==a_var & x$Year %in% as.character(2005:2019) & x$Stock %in% a_spp,"value"],
          lag.max = 5, type = c("correlation"),
      plot = TRUE, na.action = na.pass, xlab="", main = a_spp, ci.type = "white")
   dev.off()
@@ -241,7 +242,7 @@ a_var <- "CPUF"
  a_var <- "VPUF"
 a_var <- "CPUF"
   if(a_var=="VPUF"){ load(file=file.path(getwd(), "outputs2020_pel", paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPelAllyAndStocks",years[1],"-",years[length(years)],".RData", sep="")))
-  }else{ load(file=file.path(getwd(), "outputs2020_pel", paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatios",a_var,"ForPelAllyAndStocks",years[1],"-",years[length(years)],".RData", sep=""))) }
+  }else{ load(file=file.path(getwd(), "outputs2020_pel", paste("AggregatedSweptAreaPlusMet6AndRatios",a_var,"ForPelAllyAndStocks",years[1],"-",years[length(years)],".RData", sep=""))) }
   # x
   xx <- tapply(x$value, list(x$Stock, x$Year), mean, na.rm=TRUE)
 
@@ -272,11 +273,11 @@ a_var <- "CPUF"
  #!#!#!#!#!#!#
 
    namefile <- paste0("ts_anomalies_f_and_",a_var,"_for_pel_gridcells",years[1],"-",years[length(years)],".tif")
-  a_width <- 7000; a_height=4500
-  tiff(filename=file.path(getwd(), "outputs2020", "output_plots",  namefile),   width = a_width, height = a_height,
+  a_width <- 7000; a_height=3500
+  tiff(filename=file.path(getwd(), "outputs2020_pel", "output_plots",  namefile),   width = a_width, height = a_height,
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
   library(ggplot2)
-   spp <- c("HER.nsea", "SPR.2232", "MAC.nsea") # select those with significant cross-correlation
+   spp <- c("SPR.2232", "MAC.nsea") # select those with significant cross-correlation
    plots <- list(NULL)
    count <- 0
    for (sp in 1: length(spp)){
@@ -388,10 +389,10 @@ a_var <- "CPUF"
 
    namefile <- paste0("ts_anomalies_f_and_",a_var,"_for_smallvids_gridcells",years[1],"-",years[length(years)],".tif")
   a_width <- 7000; a_height=3500
-  tiff(filename=file.path(getwd(), "outputs2020", "output_plots",  namefile),   width = a_width, height = a_height,
+  tiff(filename=file.path(getwd(), "outputs2020_lgbkonly", "output_plots",  namefile),   width = a_width, height = a_height,
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
   library(ggplot2)
-   spp <- c("COD.nsea", "COD.2224") # select those with significant cross-correlation
+   spp <- c("SOL.nsea", "COD.2224") # select those with significant cross-correlation
    plots <- list(NULL)
    count <- 0
    for (sp in 1: length(spp)){

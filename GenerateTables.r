@@ -294,7 +294,8 @@ library(doBy)
   # assign area coding to retrieve stock from species
   # general tables  and plot
   # BOTTOM CONTACTING GEARS
-   load(file=file.path(getwd(), "outputs2020",  paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForBotAlly_",years[1],"-",years[length(years)],".RData", sep="")))
+   #load(file=file.path(getwd(), "outputs2020",  paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForBotAlly_",years[1],"-",years[length(years)],".RData", sep="")))
+   load(file=file.path(getwd(), "outputs2020",  paste("AggregatedSweptAreaPlusMet6AndRatiosForBotAlly_",years[1],"-",years[length(years)],".RData", sep="")))
     x <- AllAggResultsBot
    lon <- "CELL_LONG" ; lat <- "CELL_LATI"
    rm(AllAggResultsBot)
@@ -391,7 +392,8 @@ library(doBy)
    x[ x$Species %in% c("FLE") & (x$F_CODE %in% c('27.3.d.29', '27.3.d.32', '27.3.d.30', '27.3.d.31')), "Stock"] <- 'FLE.2732'
    x[ x$Species %in% c("SOL") & (x$F_CODE %in% c('27.3.a.20','27.3.c.22','27.3.d.24')), "Stock"] <- 'SOL.2024'
 
-  
+   gc()
+    
    # export
    x <- cbind.data.frame(datatype="dem", x)
    #save(x, file=file.path(getwd(), "outputs2020", paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatios",a_comment,"ForBotAllyAndStocks",years[1],"-",years[length(years)],".RData", sep="")))
@@ -442,7 +444,8 @@ library(doBy)
  
   # assign area coding to retrieve stock from species
      # PELAGIC GEARS
-   load(file=file.path(getwd(), "outputs2020_pel",  paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPelAlly",years[1],"-",years[length(years)],".RData", sep="")))
+   #load(file=file.path(getwd(), "outputs2020_pel",  paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPelAlly",years[1],"-",years[length(years)],".RData", sep="")))
+   load(file=file.path(getwd(), "outputs2020_pel",  paste("AggregatedSweptAreaPlusMet6AndRatiosForPelAlly",years[1],"-",years[length(years)],".RData", sep="")))
   x <- AllAggResultsPel
   lon <- "CELL_LONG" ; lat <- "CELL_LATI"
   
@@ -535,7 +538,8 @@ library(doBy)
   
    # export
    x <- cbind.data.frame(datatype="pel", x)
-   save(x, file=file.path(getwd(), "outputs2020_pel", paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatios",a_comment,"ForPelAllyAndStocks",years[1],"-",years[length(years)],".RData", sep="")))
+  # save(x, file=file.path(getwd(), "outputs2020_pel", paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatios",a_comment,"ForPelAllyAndStocks",years[1],"-",years[length(years)],".RData", sep="")))
+   save(x, file=file.path(getwd(), "outputs2020_pel", paste("AggregatedSweptAreaPlusMet6AndRatios",a_comment,"ForPelAllyAndStocks",years[1],"-",years[length(years)],".RData", sep="")))
   
    # e.g. a table...
    xx <- tapply(x$value, list(x$Stock, x$Year), mean, na.rm=TRUE)

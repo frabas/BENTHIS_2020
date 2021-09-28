@@ -550,7 +550,7 @@ dev.off()
 
 
   # capture an export for quickmap2020.r
-  if(per_metier_level6 && per_vessel_size){
+  if(per_metier_level6 && !per_vessel_size){
     save(eflalo, file=file.path(getwd(), "outputs2020_lgbkonly", paste("AggregatedEflaloWithSmallVids",years[1],"-",years[length(years)],".RData", sep="")))
   }
   
