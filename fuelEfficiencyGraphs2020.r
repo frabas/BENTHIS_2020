@@ -1065,7 +1065,7 @@ dev.off()
      dd[grepl("LargeMesh",dd$LE_MET) , paste0(prefixes[count], "SAN")] <- 0 # because SAN creates misleading distorsion on plots...
 
      # debug NOP fishery
-     cols_kgs_to_nullify <- names(dd)[grep("KG_", names(dd))[!grep("KG_", names(dd)) %in%  grep("EURO_NOP", names(dd))]]
+     cols_kgs_to_nullify <- names(dd)[grep("KG_", names(dd))[!grep("KG_", names(dd)) %in%  grep("KG_NOP", names(dd))]]
      dd[dd$LE_MET=="SmallMesh_27.4_OTB_DEF_16-31_0_0", cols_kgs_to_nullify ] <-0  # remove OUTLIERS (e.g. WHG Whiting in 2007) in for Norway pout!
      cols_euros_to_nullify <- names(dd)[grep("EURO_", names(dd))[!grep("EURO_", names(dd)) %in%  grep("EURO_NOP", names(dd))]]
      dd[dd$LE_MET=="SmallMesh_27.4_OTB_DEF_16-31_0_0", cols_euros_to_nullify ] <-0  # remove OUTLIERS (e.g. WHG Whiting in 2007) in for Norway pout!
@@ -1549,7 +1549,7 @@ dev.off()
      dd[grepl("LargeMesh",dd$LE_MET) , paste0(prefixes[count], "SAN")] <- 0 # because SAN creates misleading distorsion on plots...
 
      # debug NOP fishery
-     cols_kgs_to_nullify <- names(dd)[grep("KG_", names(dd))[!grep("KG_", names(dd)) %in%  grep("EURO_NOP", names(dd))]]
+     cols_kgs_to_nullify <- names(dd)[grep("KG_", names(dd))[!grep("KG_", names(dd)) %in%  grep("KG_NOP", names(dd))]]
      dd[dd$LE_MET=="SmallMesh_27.4_OTB_DEF_16-31_0_0", cols_kgs_to_nullify ] <-0  # remove OUTLIERS (e.g. WHG Whiting in 2007) in for Norway pout!
      cols_euros_to_nullify <- names(dd)[grep("EURO_", names(dd))[!grep("EURO_", names(dd)) %in%  grep("EURO_NOP", names(dd))]]
      dd[dd$LE_MET=="SmallMesh_27.4_OTB_DEF_16-31_0_0", cols_euros_to_nullify ] <-0  # remove OUTLIERS (e.g. WHG Whiting in 2007) in for Norway pout!
@@ -1576,7 +1576,7 @@ dev.off()
 
      long$LE_MET <- paste(long$LE_MET, the_names[count])
     
-     head(long[long$LE_MET=="SmallMesh_27.3_OTB_CRU_32-69_0_0 (b)",])
+     head(long[long$LE_MET=="SmallMesh_27.4_OTB_DEF_16-31_0_0 (a)",])
   
      if(y==years[1]){
      agg <- cbind.data.frame(as.data.frame(long), year=y)
@@ -1597,6 +1597,10 @@ dev.off()
      
    # select some species
   the_agg <- the_agg[the_agg$Stock %in% c("NEP","MUS", "CSH", "HOM","MAC","NOP","PRA", "SAN","WHG"),]
+
+  # check Norway pout
+  # the_agg[the_agg$LE_MET=="SmallMesh_27.4_OTB_DEF_16-31_0_0 (f)",]
+  # the_agg[the_agg$LE_MET=="SmallMesh_27.4_OTB_DEF_16-31_0_0 (a)",]
 
  
  library(ggplot2)
@@ -1624,10 +1628,15 @@ dev.off()
 
   the_agg_plot$LE_MET <- gsub("SmallMesh_", "", the_agg_plot$LE_MET)
  
+   # check Norway pout
+  # the_agg_plot[the_agg_plot$LE_MET=="27.4_OTB_DEF_16-31_0_0 (f)",]
+
   # filter out small contribution species 
   ss <- the_agg_plot[grepl ( "(a)",  the_agg_plot$LE_MET)   & as.numeric(as.character(the_agg_plot$value))>200, ]  # < 200tons?
   the_agg_plot <- the_agg_plot[the_agg_plot$Stock %in% unique(ss$Stock),]
 
+  # check Norway pout
+  the_agg_plot[the_agg_plot$LE_MET=="27.4_OTB_DEF_16-31_0_0 (f)",]
   
   the_agg_plot$LE_MET <- factor(the_agg_plot$LE_MET )
   the_agg_plot$met_desc <- factor(the_agg_plot$met_desc )
