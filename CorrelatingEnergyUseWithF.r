@@ -130,7 +130,7 @@ dev.off()
 
  # maybe worth to detrending on F/FMSY ts given we know the MP is targetting a value of 1 deliberately
  spp <- c("COD.nsea", "PLE.nsea", "SOL.nsea", "PRA.nsea", "HER.nsea", "HAD.nsea", "HKE.nsea",  "POK.nsea", "NEP.kask", "COD.2224", "PLE.2123", "SOL.2024")
- a_width <- 6000; a_height=2500
+ a_width <- 4500; a_height=2000
   tiff(filename=file.path(getwd(), "outputs2020", "output_plots",  "crosscorrelation.tif"),   width = a_width, height = a_height,
                                    units = "px", pointsize = 12,  res=400, compression = c("lzw"))
  par(mfrow=c(2, length(spp)/2))

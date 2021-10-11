@@ -1064,7 +1064,13 @@ dev.off()
       # debug SAN
      dd[grepl("LargeMesh",dd$LE_MET) , paste0(prefixes[count], "SAN")] <- 0 # because SAN creates misleading distorsion on plots...
 
-     # debug outlier
+     # debug NOP fishery
+     cols_kgs_to_nullify <- names(dd)[grep("KG_", names(dd))[!grep("KG_", names(dd)) %in%  grep("EURO_NOP", names(dd))]]
+     dd[dd$LE_MET=="SmallMesh_27.4_OTB_DEF_16-31_0_0", cols_kgs_to_nullify ] <-0  # remove OUTLIERS (e.g. WHG Whiting in 2007) in for Norway pout!
+     cols_euros_to_nullify <- names(dd)[grep("EURO_", names(dd))[!grep("EURO_", names(dd)) %in%  grep("EURO_NOP", names(dd))]]
+     dd[dd$LE_MET=="SmallMesh_27.4_OTB_DEF_16-31_0_0", cols_euros_to_nullify ] <-0  # remove OUTLIERS (e.g. WHG Whiting in 2007) in for Norway pout!
+
+    # debug outlier
      aggResultPerMetAlly[aggResultPerMetAlly$FPUCallsp>100, c("FPUCallsp", "FPUVallsp")] <- 0
 
      # get percent per stock for sectorisation
@@ -1108,7 +1114,17 @@ dev.off()
  a_width <- 6200 ; a_height <- 12500
  library(ggplot2)
 
+  
+    # select some species
+  the_agg <- the_agg[the_agg$Stock %in% c("NEP","MUS", "CSH", "HOM","MAC","NOP","PRA", "SAN","WHG"),]
+
+  
+
   the_agg_plot <- as.data.frame(the_agg[grep("SmallMesh",the_agg$LE_MET),])
+
+  
+   
+ 
 
  # a visual fix adding all combi--
  dd <- expand.grid(LE_MET=levels(factor(the_agg_plot$LE_MET)), Stock=levels(factor(the_agg_plot$Stock)), year=levels(factor(the_agg_plot$year)))
@@ -1233,7 +1249,7 @@ dev.off()
 
  ### SUMMARIZE LANDINGS AND CPUF ON THE SAME GRAPH.......
  variables <- c("KEUROallsp","KKGallsp", "LE_KG_LITRE_FUEL", "CPUFallsp",  "VPUFallsp", "FPUCallsp", "FPUVallsp", "VPUFSWAallsp", "mpriceallsp")
- prefixes  <- c("LE_EURO_","LE_KG_","LE_KG_",   "LE_CPUF_",  "LE_VPUF_", "LE_KG_", "LE_KG_", "LE_VPUF_", "LE_MPRICE_")
+ prefixes  <- c("LE_EURO_","LE_KG_","LE_KG_",   "LE_CPUF_",  "LE_VPUF_", "LE_KG_", "LE_EURO_", "LE_VPUF_", "LE_MPRICE_")
  the_names <- c("(z)", "(a)","(b)", "(c)", "(d)", "(e)", "(f)", "(g)", "(h)")
 
  count <- 0
@@ -1517,7 +1533,7 @@ dev.off()
 
  ### SUMMARIZE LANDINGS AND CPUF ON THE SAME GRAPH.......
  variables <- c("KEUROallsp","KKGallsp", "LE_KG_LITRE_FUEL", "CPUFallsp",  "VPUFallsp", "FPUCallsp", "FPUVallsp", "VPUFSWAallsp", "mpriceallsp")
- prefixes  <- c("LE_EURO_","LE_KG_","LE_KG_",   "LE_CPUF_",  "LE_VPUF_", "LE_KG_", "LE_KG_", "LE_VPUF_", "LE_MPRICE_")
+ prefixes  <- c("LE_EURO_","LE_KG_","LE_KG_",   "LE_CPUF_",  "LE_VPUF_", "LE_KG_", "LE_EURO_", "LE_VPUF_", "LE_MPRICE_")
  the_names <- c("(z)", "(a)","(b)", "(c)", "(d)", "(e)", "(f)", "(g)", "(h)")
 
  count <- 0
@@ -1531,6 +1547,12 @@ dev.off()
      
       # debug SAN
      dd[grepl("LargeMesh",dd$LE_MET) , paste0(prefixes[count], "SAN")] <- 0 # because SAN creates misleading distorsion on plots...
+
+     # debug NOP fishery
+     cols_kgs_to_nullify <- names(dd)[grep("KG_", names(dd))[!grep("KG_", names(dd)) %in%  grep("EURO_NOP", names(dd))]]
+     dd[dd$LE_MET=="SmallMesh_27.4_OTB_DEF_16-31_0_0", cols_kgs_to_nullify ] <-0  # remove OUTLIERS (e.g. WHG Whiting in 2007) in for Norway pout!
+     cols_euros_to_nullify <- names(dd)[grep("EURO_", names(dd))[!grep("EURO_", names(dd)) %in%  grep("EURO_NOP", names(dd))]]
+     dd[dd$LE_MET=="SmallMesh_27.4_OTB_DEF_16-31_0_0", cols_euros_to_nullify ] <-0  # remove OUTLIERS (e.g. WHG Whiting in 2007) in for Norway pout!
 
      # debug outlier
      aggResultPerMetAlly[aggResultPerMetAlly$FPUCallsp>100, c("FPUCallsp", "FPUVallsp")] <- 0
@@ -1572,8 +1594,11 @@ dev.off()
 
   the_agg <- the_agg[!grepl("misc.",the_agg$met_desc),] # get rid of OTHER
 
+     
+   # select some species
+  the_agg <- the_agg[the_agg$Stock %in% c("NEP","MUS", "CSH", "HOM","MAC","NOP","PRA", "SAN","WHG"),]
 
-
+ 
  library(ggplot2)
 
  the_agg_plot <- as.data.frame(the_agg[grep("SmallMesh",the_agg$LE_MET),])
@@ -1817,7 +1842,7 @@ write.table(collecting_table2019,
  
  ### SUMMARIZE LANDINGS AND CPUF ON THE SAME GRAPH.......
  variables <- c("KEUROallsp","KKGallsp", "LE_KG_LITRE_FUEL", "CPUFallsp",  "VPUFallsp", "FPUCallsp", "FPUVallsp", "VPUFSWAallsp", "mpriceallsp")
- prefixes  <- c("LE_EURO_","LE_KG_",       "LE_KG_",          "LE_KG_",  "LE_KG_", "LE_KG_", "LE_KG_", "LE_VPUF_", "LE_MPRICE_")
+ prefixes  <- c("LE_EURO_","LE_KG_",       "LE_KG_",          "LE_KG_",  "LE_KG_", "LE_KG_", "LE_EURO_", "LE_VPUF_", "LE_MPRICE_")
  the_names <- c("(z)", "(a)","(b)", "(c)", "(d)", "(e)", "(f)", "(g)", "(h)")
 
 
@@ -2013,7 +2038,7 @@ count <- 0
  
  ### SUMMARIZE LANDINGS AND CPUF ON THE SAME GRAPH.......
  variables <- c("KEUROallsp","KKGallsp", "LE_KG_LITRE_FUEL", "CPUFallsp",  "VPUFallsp", "FPUCallsp", "FPUVallsp", "VPUFSWAallsp", "mpriceallsp")
- prefixes  <- c("LE_EURO_","LE_KG_",       "LE_KG_",          "LE_KG_",  "LE_KG_", "LE_KG_", "LE_KG_", "LE_VPUF_", "LE_MPRICE_")
+ prefixes  <- c("LE_EURO_","LE_KG_",       "LE_KG_",          "LE_KG_",  "LE_KG_", "LE_KG_", "LE_EURO_", "LE_VPUF_", "LE_MPRICE_")
  the_names <- c("(z)", "(a)","(b)", "(c)", "(d)", "(e)", "(f)", "(g)", "(h)")
 
 
@@ -2108,6 +2133,7 @@ a_unit <- 1
    # caution filter out non-relevant species for these fleets
   the_agg_plot<-  the_agg_plot[ !(grepl("COD", the_agg_plot$Stock) | grepl("DAB", the_agg_plot$Stock)  | grepl("FLE", the_agg_plot$Stock)  | grepl("HOM", the_agg_plot$Stock)  | grepl("LEM", the_agg_plot$Stock)  | grepl("NEP", the_agg_plot$Stock)  | grepl("NOP 27.3", the_agg_plot$Stock) | grepl("PLE", the_agg_plot$Stock) | grepl("SOL", the_agg_plot$Stock) | grepl("TUR", the_agg_plot$Stock) | grepl("WIT", the_agg_plot$Stock) | grepl("POK", the_agg_plot$Stock) | grepl("WHB", the_agg_plot$Stock) | grepl("CSH 27.3", the_agg_plot$Stock) | grepl("MON", the_agg_plot$Stock) | grepl("ELE", the_agg_plot$Stock) ),]
 
+    
  # a visual fix adding all combi--
  dd <- expand.grid(LE_MET=levels(factor(the_agg_plot$LE_MET)), Stock=levels(factor(the_agg_plot$Stock)), Year=levels(factor(the_agg_plot$Year)))
   dd$met_desc <- friendly_met_names(dd)
@@ -2164,7 +2190,7 @@ a_unit <- 1
 
  the_agg_plot6 <- as.data.frame(the_agg_plot[grep("(f)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot6$LE_MET <- gsub("\\(f)","", the_agg_plot6$LE_MET)
-  p6_area_bottomfishing_pel_fpuv_per_stk <- ggplot(the_agg_plot6, aes(x=as.character(Year), y=value/a_unit, group=LE_MET)) +
+   p6_area_bottomfishing_pel_fpuv_per_stk <- ggplot(the_agg_plot6, aes(x=as.character(Year), y=value/a_unit, group=LE_MET)) +
      facet_wrap(. ~ Stock, scales = "free_y", ncol=1)  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +   
   geom_area(aes(fill=met_desc))  +     labs(y = "Litre per euro catch", x = "Year")   +
    scale_fill_manual(values=some_color_seg, name="Fleet-segments") +   guides(fill =guide_legend(ncol=1, position="right"))  +
@@ -2221,7 +2247,7 @@ setwd (file.path("D:","FBA","BENTHIS_2020"))   # adapt to your need
  
  ### SUMMARIZE LANDINGS AND CPUF ON THE SAME GRAPH.......
  variables <- c("KEUROallsp","KKGallsp", "LE_KG_LITRE_FUEL", "CPUFallsp",  "VPUFallsp", "FPUCallsp", "FPUVallsp", "VPUFSWAallsp", "mpriceallsp")
- prefixes  <- c("LE_EURO_","LE_KG_",       "LE_KG_",          "LE_KG_",  "LE_KG_", "LE_KG_", "LE_KG_", "LE_VPUF_", "LE_MPRICE_")
+ prefixes  <- c("LE_EURO_","LE_KG_",       "LE_KG_",          "LE_KG_",  "LE_KG_", "LE_KG_", "LE_EURO_", "LE_VPUF_", "LE_MPRICE_")
  the_names <- c("(z)", "(a)","(b)", "(c)", "(d)", "(e)", "(f)", "(g)", "(h)")
  
  
@@ -2446,7 +2472,7 @@ setwd (file.path("D:","FBA","BENTHIS_2020"))   # adapt to your need
  
  ### SUMMARIZE LANDINGS AND CPUF ON THE SAME GRAPH.......
  variables <- c("KEUROallsp","KKGallsp", "LE_KG_LITRE_FUEL", "CPUFallsp",  "VPUFallsp", "FPUCallsp", "FPUVallsp", "VPUFSWAallsp", "mpriceallsp")
- prefixes  <- c("LE_EURO_","LE_KG_",       "LE_KG_",          "LE_KG_",  "LE_KG_", "LE_KG_", "LE_KG_", "LE_VPUF_", "LE_MPRICE_")
+ prefixes  <- c("LE_EURO_","LE_KG_",       "LE_KG_",          "LE_KG_",  "LE_KG_", "LE_KG_", "LE_EURO_", "LE_VPUF_", "LE_MPRICE_")
  the_names <- c("(z)", "(a)","(b)", "(c)", "(d)", "(e)", "(f)", "(g)", "(h)")
  
 
