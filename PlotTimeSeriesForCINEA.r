@@ -203,26 +203,25 @@
  
       ## TODO:
       
-      
-      
+
 
   the_agg_plot3 <- as.data.frame(the_agg_plot[grep("(c)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot3$LE_MET <- gsub("\\(c)","", the_agg_plot3$LE_MET)
  p3_cinea_bottomfishing_dem_cpuf <- ggplot(the_agg_plot3, aes(x=as.character(year), y=value/a_unit, group=Stock)) +
-     facet_wrap(. ~ met_desc, scales = "free_y", ncol=1)  +  theme_minimal() +
-     theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +
-  geom_area(aes(fill=Stock))  +     labs(y = "CPUF (kg per litre)", x = "Year")   +
-   scale_fill_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=1, position="right"))  +
+     facet_wrap(. ~ LE_MET, scales = "free_y", ncol=1)  +  theme_minimal() +
+      theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +
+  geom_line(aes(color=Stock)) +    geom_point(aes(color=Stock), size=3)  +     labs(y = "CPUF (kg per litre)", x = "Year")   +
+  scale_color_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=1, position="right"))  +
     xlab("")
  #print(p3)
 
   the_agg_plot4 <- as.data.frame(the_agg_plot[grep("(d)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot4$LE_MET <- gsub("\\(d)","", the_agg_plot4$LE_MET)
  p4_cinea_bottomfishing_dem_vpuf <- ggplot(the_agg_plot4, aes(x=as.character(year), y=value/a_unit, group=Stock)) +
-     facet_wrap(. ~ met_desc, scales = "free_y", ncol=1)  +  theme_minimal() +
-     theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +
-  geom_area(aes(fill=Stock))  +     labs(y = "VPUF (euro per litre)", x = "Year")   +
-   scale_fill_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=1, position="right"))  +
+     facet_wrap(. ~ LE_MET, scales = "free_y", ncol=1)  +  theme_minimal() +
+      theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +
+  geom_line(aes(color=Stock)) +    geom_point(aes(color=Stock), size=3)  +     labs(y = "VPUF (euro per litre)", x = "Year")   +
+   scale_color_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=1, position="right"))  +
     xlab("")
  #print(p4)
 
@@ -230,9 +229,10 @@
   the_agg_plot5 <- as.data.frame(the_agg_plot[grep("(e)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot5$LE_MET <- gsub("\\(e)","", the_agg_plot5$LE_MET)
  p5_cinea_bottomfishing_dem_fpuc <- ggplot(the_agg_plot5, aes(x=as.character(year), y=value/a_unit, group=Stock)) +
-     facet_wrap(. ~ met_desc, scales = "free_y", ncol=1)  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +
-  geom_area(aes(fill=Stock))  +     labs(y = "Litre per kg catch", x = "Year")   +
-   scale_fill_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=1, position="right"))  +
+     facet_wrap(. ~ LE_MET, scales = "free_y", ncol=1)  +  theme_minimal() +
+      theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +
+  geom_line(aes(color=Stock)) +    geom_point(aes(color=Stock), size=3)  +     labs(y = "Litre per kg catch", x = "Year")   +
+   scale_color_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=1, position="right"))  +
     xlab("")
  #print(p5)
 
@@ -240,9 +240,10 @@
   the_agg_plot6 <- as.data.frame(the_agg_plot[grep("(f)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot6$LE_MET <- gsub("\\(f)","", the_agg_plot6$LE_MET)
  p6_cinea_bottomfishing_dem_fpuv <- ggplot(the_agg_plot6, aes(x=as.character(year), y=value/a_unit, group=Stock)) +
-     facet_wrap(. ~ met_desc, scales = "free_y", ncol=1)  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +
-  geom_area(aes(fill=Stock))  +     labs(y = "Litre per euro catch", x = "Year")   +
-   scale_fill_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=1, position="right"))  +
+     facet_wrap(. ~ LE_MET, scales = "free_y", ncol=1)  +  theme_minimal() +
+      theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +
+  geom_line(aes(color=Stock))+    geom_point(aes(color=Stock), size=3)   +     labs(y = "Litre per euro catch", x = "Year")   +
+   scale_color_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=1, position="right"))  +
     xlab("")
  #print(p6)
 
@@ -250,9 +251,10 @@
   the_agg_plot7 <- as.data.frame(the_agg_plot[grep("(g)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot7$LE_MET <- gsub("\\(g)","", the_agg_plot7$LE_MET)
  p7_cinea_bottomfishing_dem_vswpa <- ggplot(the_agg_plot7, aes(x=as.character(year), y=value/a_unit, group=Stock)) +
-     facet_wrap(. ~ met_desc, scales = "free_y", ncol=1)  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +
-  geom_area(aes(fill=Stock))  +     labs(y = "Euro catch per km-sq", x = "Year")   +
-   scale_fill_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=1, position="right"))  +
+     facet_wrap(. ~ LE_MET, scales = "free_y", ncol=1)  +  theme_minimal() +
+      theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +
+  geom_line(aes(color=Stock)) +    geom_point(aes(color=Stock), size=3)  +     labs(y = "Euro catch per km-sq", x = "Year")   +
+  scale_color_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=1, position="right"))  +
     xlab("")
  #print(p7)
 
@@ -261,9 +263,10 @@
   the_agg_plot8 <- as.data.frame(the_agg_plot[grep("(h)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot8$LE_MET <- gsub("\\(h)","", the_agg_plot8$LE_MET)
  p8_cinea_bottomfishing_dem_price <- ggplot(the_agg_plot8, aes(x=as.character(year), y=value/a_unit, group=Stock)) +
-     facet_wrap(. ~ met_desc, scales = "free_y", ncol=1)  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +
-  geom_area(aes(fill=Stock))  +     labs(y = "Euro catch per kg", x = "Year")   +
-   scale_fill_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=1, position="right"))  +
+     facet_wrap(. ~ LE_MET, scales = "free_y", ncol=1)  +  theme_minimal() +
+      theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +
+  geom_line(aes(color=Stock)) +    geom_point(aes(color=Stock), size=3)  +     labs(y = "Euro catch per kg", x = "Year")   +
+   scale_color_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=1, position="right"))  +
     xlab("")
  #print(p8)
 
@@ -371,37 +374,41 @@ dev.off()
 
   the_agg_plot1 <- as.data.frame(the_agg_plot[grep("(a)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot1$LE_MET <- gsub("\\(a)","", the_agg_plot1$LE_MET)
- p1_cinea_bottomfishing_pel_land <- ggplot(the_agg_plot1, aes(x=as.character(year), y=value/a_unit, group=Stock)) +
-     facet_wrap(. ~ met_desc, scales = "free_y", ncol=1)  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +
-  geom_area(aes(fill=Stock))  +     labs(y = "Landings (tons)", x = "Year")   +
-   scale_fill_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=1))  +
+ p1_cinea_bottomfishing_pel_land <-  ggplot(the_agg_plot1, aes(x=as.character(year), y=value/a_unit, group=Stock)) +
+     facet_wrap(. ~ LE_MET, scales = "free_y", ncol=1)  +  theme_minimal() +
+      theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +
+   geom_line(aes(color=Stock))  +    geom_point(aes(color=Stock), size=3) +   labs(y = "Landings (tons)", x = "Year")   +
+   scale_color_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=1, position="right"))  +
     xlab("")
  #print(p1)
 
   the_agg_plot3 <- as.data.frame(the_agg_plot[grep("(c)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot3$LE_MET <- gsub("\\(c)","", the_agg_plot3$LE_MET)
  p3_cinea_bottomfishing_dem_cpuf <- ggplot(the_agg_plot3, aes(x=as.character(year), y=value/a_unit, group=Stock)) +
-     facet_wrap(. ~ met_desc, scales = "free_y", ncol=1)  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +
-  geom_area(aes(fill=Stock))  +     labs(y = "CPUF (kg per litre)", x = "Year")   +
-   scale_fill_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=1))  +
+     facet_wrap(. ~ LE_MET, scales = "free_y", ncol=1)  +  theme_minimal() +
+      theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +
+  geom_line(aes(color=Stock)) +    geom_point(aes(color=Stock), size=3)  +     labs(y = "CPUF (kg per litre)", x = "Year")   +
+  scale_color_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=1, position="right"))  +
     xlab("")
  #print(p3)
 
   the_agg_plot4 <- as.data.frame(the_agg_plot[grep("(d)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot4$LE_MET <- gsub("\\(d)","", the_agg_plot4$LE_MET)
  p4_cinea_bottomfishing_pel_vpuf <- ggplot(the_agg_plot4, aes(x=as.character(year), y=value/a_unit, group=Stock)) +
-     facet_wrap(. ~ met_desc, scales = "free_y", ncol=1)  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +
-  geom_area(aes(fill=Stock))  +     labs(y = "VPUF (euro per litre)", x = "Year")   +
-   scale_fill_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=1))  +
+     facet_wrap(. ~ LE_MET, scales = "free_y", ncol=1)  +  theme_minimal() +
+      theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +
+  geom_line(aes(color=Stock)) +    geom_point(aes(color=Stock), size=3)  +     labs(y = "VPUF (euro per litre)", x = "Year")   +
+   scale_color_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=1, position="right"))  +
     xlab("")
  #print(p4)
 
   the_agg_plot5 <- as.data.frame(the_agg_plot[grep("(e)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot5$LE_MET <- gsub("\\(e)","", the_agg_plot5$LE_MET)
- p5_cinea_bottomfishing_pel_fpuc <- ggplot(the_agg_plot5, aes(x=as.character(year), y=value/a_unit, group=Stock)) +
-     facet_wrap(. ~ met_desc, scales = "free_y", ncol=1)  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +
-  geom_area(aes(fill=Stock))  +     labs(y = "Litre per kg catch", x = "Year")   +
-   scale_fill_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=1))  +
+ p5_cinea_bottomfishing_pel_fpuc <-ggplot(the_agg_plot5, aes(x=as.character(year), y=value/a_unit, group=Stock)) +
+     facet_wrap(. ~ LE_MET, scales = "free_y", ncol=1)  +  theme_minimal() +
+      theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +
+  geom_line(aes(color=Stock)) +    geom_point(aes(color=Stock), size=3)  +     labs(y = "Litre per kg catch", x = "Year")   +
+   scale_color_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=1, position="right"))  +
     xlab("")
  #print(p5)
 
@@ -409,9 +416,10 @@ dev.off()
   the_agg_plot6 <- as.data.frame(the_agg_plot[grep("(f)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot6$LE_MET <- gsub("\\(f)","", the_agg_plot6$LE_MET)
   p6_cinea_bottomfishing_pel_fpuv <- ggplot(the_agg_plot6, aes(x=as.character(year), y=value/a_unit, group=Stock)) +
-     facet_wrap(. ~ met_desc, scales = "free_y", ncol=1)  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +
-  geom_area(aes(fill=Stock))  +     labs(y = "Litre per euro catch", x = "Year")   +
-   scale_fill_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=1))  +
+     facet_wrap(. ~ LE_MET, scales = "free_y", ncol=1)  +  theme_minimal() +
+      theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +
+  geom_line(aes(color=Stock))+    geom_point(aes(color=Stock), size=3)   +     labs(y = "Litre per euro catch", x = "Year")   +
+   scale_color_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=1, position="right"))  +
     xlab("")
  #print(p6_area_bottomfishing_pel_fpuv)
 
@@ -419,9 +427,10 @@ dev.off()
   the_agg_plot8 <- as.data.frame(the_agg_plot[grep("(h)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot8$LE_MET <- gsub("\\(h)","", the_agg_plot8$LE_MET)
  p8_cinea_bottomfishing_pel_price <- ggplot(the_agg_plot8, aes(x=as.character(year), y=value/a_unit, group=Stock)) +
-     facet_wrap(. ~ met_desc, scales = "free_y", ncol=1)  +  theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +
-  geom_area(aes(fill=Stock))  +     labs(y = "Euro catch per kg", x = "Year")   +
-   scale_fill_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=1))  +
+     facet_wrap(. ~ LE_MET, scales = "free_y", ncol=1)  +  theme_minimal() +
+      theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  +
+  geom_line(aes(color=Stock)) +    geom_point(aes(color=Stock), size=3)  +     labs(y = "Euro catch per kg", x = "Year")   +
+   scale_color_manual(values=some_color_species, name="Species") +   guides(fill =guide_legend(ncol=1, position="right"))  +
     xlab("")
  #print(p8)
 
