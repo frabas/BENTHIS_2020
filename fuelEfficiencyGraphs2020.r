@@ -695,7 +695,7 @@
   colnames(a_summary) <- spp
   rownames(a_summary) <- c("Thousands tons", "Millions euros", "Millions litres", "Thousands hours at sea")
   a_summary
-  
+   #=> supplementary data
   
   # dem
   library(ggplot2)
@@ -1475,6 +1475,15 @@ print(p8)
 dev.off()
 
 
+ # for paper:
+ tiff(filename=file.path(getwd(), "outputs2020", "output_plots",  "Euro_catch_per_kg_DEM_rev.tiff"),   width = a_width, height = 3000,
+                                   units = "px", pointsize = 12,  res=600, compression = c("lzw"))
+
+  library(ggpubr)
+   ggarrange(p8_barplot_bottomfishing_dem_price  + theme(legend.text = element_text(size = 12),axis.text.x=element_text(angle=60,hjust=1,vjust=1, size=12), plot.title=element_text(margin=margin(t=40,b=-20))), heights=c(1), common.legend = TRUE, legend="right")  
+
+dev.off()
+
 
 
 # export underlying data
@@ -1769,7 +1778,7 @@ dev.off()
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
 
   library(ggpubr)
-   ggarrange(p8_barplot_bottomfishing_dem_price, ncol=1, heights=c(1),common.legend = TRUE, legend="bottom")
+   ggarrange(p8_barplot_bottomfishing_pel_price,common.legend = TRUE, legend="right")
 
 dev.off()
 

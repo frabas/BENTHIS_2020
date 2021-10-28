@@ -601,7 +601,8 @@
   colnames(a_summary) <- spp
   rownames(a_summary) <- c("Thousands tons", "Millions euros", "Millions litres", "Thousands hours at sea")
   a_summary
-
+   #=> supplementary data
+   
   # pelagic gears
   a_width <- 2000;  a_height <- 5500
   namefile <- paste0("barplot_fuel_efficiency_pelagics_per_species-2005-2019.tif")

@@ -741,7 +741,7 @@ dev.off()
   colnames(a_summary) <- spp
   rownames(a_summary) <- c("Thousands tons", "Millions euros", "Millions litres", "Thousands hours at sea")
   a_summary
-
+   #=> supplementary data
 
   # dem
       library(data.table)

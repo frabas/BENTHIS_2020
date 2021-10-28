@@ -83,7 +83,8 @@ library(doBy)
   rownames(all_indic) <- rownames(dd)
   library(doBy)
   all_indic <- orderBy(~ - AllMLitres, all_indic)
-  
+  #=> supplementary data
+   
   top5 <- rownames(all_indic[1:5,])
   write.table(round(all_indic[1:5,],2), "clipboard", sep="\t", row.names=TRUE, col.names=TRUE)
 
@@ -160,7 +161,8 @@ library(doBy)
   rownames(all_indic) <- rownames(dd)
   library(doBy)
   all_indic <- orderBy(~ - AllMLitres, all_indic)
-  
+   #=> supplementary data
+   
   top7 <- rownames(all_indic[1:7,])
   write.table(round(all_indic[1:7,],2), "clipboard", sep="\t", row.names=TRUE, col.names=TRUE)
 
@@ -237,7 +239,8 @@ library(doBy)
   rownames(all_indic) <- rownames(dd)
   library(doBy)
   all_indic <- orderBy(~ - AllMLitres, all_indic)
-
+   #=> supplementary data
+   
   top5 <- rownames(all_indic[1:5,])
   write.table(round(all_indic[1:5,],2), "clipboard", sep="\t", row.names=TRUE, col.names=TRUE)
   
@@ -397,11 +400,12 @@ library(doBy)
    # export
    x <- cbind.data.frame(datatype="dem", x)
    #save(x, file=file.path(getwd(), "outputs2020", paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatios",a_comment,"ForBotAllyAndStocks",years[1],"-",years[length(years)],".RData", sep="")))
-   save(x, file=file.path(getwd(), "outputs2020", paste("AggregatedSweptAreaPlusMet6AndRatios",a_comment,"ForBotAllyAndStocks",years[1],"-",years[length(years)],".RData", sep="")))
+   #save(x, file=file.path(getwd(), "outputs2020", paste("AggregatedSweptAreaPlusMet6AndRatios",a_comment,"ForBotAllyAndStocks",years[1],"-",years[length(years)],".RData", sep="")))
+   load(file=file.path(getwd(), "outputs2020", paste("AggregatedSweptAreaPlusMet6AndRatios",a_comment,"ForBotAllyAndStocks",years[1],"-",years[length(years)],".RData", sep="")))
   
    # e.g. a table...
    xx <- tapply(x$value, list(x$Stock, x$Year), mean, na.rm=TRUE)
-
+  
 
 
    # or a plot

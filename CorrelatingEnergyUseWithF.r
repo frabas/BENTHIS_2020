@@ -405,7 +405,7 @@ a_var <- "CPUF"
 } 
     cowplot::plot_grid(plotlist = plots, ncol = 2,
                    align = 'v', labels = rep(c("F/FMSY", "CPUF"), each= length(sp)))
-dev.off()
+dev.off()                                       0
 
 
  
