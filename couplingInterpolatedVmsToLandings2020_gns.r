@@ -245,10 +245,16 @@ if(.Platform$OS.type == "unix") {
     load(file=file.path(outPath, a_year, "interpolated", "plus",
                                                 paste("tacsatSweptAreaPlus_", a_year, ".RData", sep="")))
  
-     idx <- which( tacsatSweptArea$effort_mins & tacsatSweptArea$LE_GEAR %in% netGears > 75) # if interval > 75 min 
+     # compute effective effort in minutes
+     tacsatSweptArea$effort_mins <- c(0,as.numeric(diff(tacsatSweptArea$SI_DATIM), units='mins'))
+     idx <- which( tacsatSweptArea$effort_mins>75 & tacsatSweptArea$LE_GEAR %in% netGears) # if interval > 75 min 
      tacsatSweptArea[ idx, "effort_mins"] <- NA  # exclude change of haul
      idx <- which( tacsatSweptArea$effort_mins <0) #   
      tacsatSweptArea[ idx, "effort_mins"] <- NA  # exclude change of vessel id
+     totkg <- apply(tacsatSweptArea[,grep("LE_KG_", colnames(tacsatSweptArea))[-1]], 1, sum)
+     idx <- which( totkg ==0) 
+     tacsatSweptArea[ idx, "effort_mins"] <- NA   # exclude steaming time for passive gears
+     
   
      # retrieve the harbour dep from FT_REF
      load(file=file.path(outPath, a_year, "cleanEflalo.RData"))  # get tacsatp

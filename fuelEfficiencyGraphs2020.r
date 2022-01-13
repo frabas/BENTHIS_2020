@@ -461,9 +461,10 @@
    aggResult$sp_with_max_vpufswa <-   gsub("LE_VPUFSWA_", "", names(aggResult[,idx_cols])[dd])          
 
  
-    # capture an export for quickmap2020.r
+    # capture an export for quickmap2020.r  (and DISPLACE NorthSea)
      if(per_metier_level6 && per_vessel_size) {
        save(aggResult, file=file.path(getwd(), "outputs2020", paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForBottContact_", y, ".RData", sep=""))) 
+       # caution: cpues in kg per minute here
      }
      if(per_metier_level6 && !per_vessel_size) {
        save(aggResult, file=file.path(getwd(), "outputs2020", paste("AggregatedSweptAreaPlusMet6AndRatiosForBottContact_", y, ".RData", sep=""))) 
@@ -563,8 +564,9 @@
      dd <- cbind.data.frame(Year=y, dd)
      aggResultPerMetAlly <- rbind.data.frame(aggResultPerMetAlly, dd)
   }   
-  #save(aggResultPerMetAlly, file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndVsizeAndRatiosBottContact.RData", sep=""))) 
-  #save(aggResultPerMetAlly, file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndRatiosBottContactAndGNS.RData", sep=""))) 
+  #OLD: if(per_metier_level6 && !per_vessel_size) save(aggResultPerMetAlly, file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndVsizeAndRatiosBottContact.RData", sep=""))) 
+  if(per_metier_level6 && !per_vessel_size) save(aggResultPerMetAlly, file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndRatiosBottContactAndGNS.RData", sep=""))) 
+  if(per_metier_level6 && per_vessel_size) save(aggResultPerMetAlly, file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndVsizeAndRatiosBottContactAndGNS.RData", sep=""))) 
 
 
   #-----------------

@@ -378,7 +378,7 @@
    aggResult$sp_with_max_vpufswa <-   gsub("LE_VPUFSWA_", "", names(aggResult[,idx_cols])[dd])          
 
 
-    # capture an export for quickmap2020.r
+    # capture an export for quickmap2020.r   (and for DISPLACE North Sea)
      if(per_metier_level6 && per_vessel_size) {
        save(aggResult, file=file.path(getwd(), "outputs2020_pel", paste("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPel_", y, ".RData", sep=""))) 
        }
@@ -479,9 +479,10 @@
      dd <- cbind.data.frame(Year=y, dd)
      aggResultPerMetAlly <- rbind.data.frame(aggResultPerMetAlly, dd)
   }   
-  #save(aggResultPerMetAlly, file=file.path(getwd(), "outputs2020_pel", paste("aggResultPerMetAllyMet6AndVsizeAndRatiosForPel.RData", sep=""))) 
-  #save(aggResultPerMetAlly, file=file.path(getwd(), "outputs2020_pel", paste("aggResultPerMetAllyMet6AndRatiosForPel.RData", sep=""))) 
-
+  # save:
+  if(per_metier_level6 && !per_vessel_size) save(aggResultPerMetAlly, file=file.path(getwd(), "outputs2020_pel", paste("aggResultPerMetAllyMet6AndRatiosForPel.RData", sep=""))) 
+  if(per_metier_level6 && per_vessel_size) save(aggResultPerMetAlly, file=file.path(getwd(), "outputs2020_pel", paste("aggResultPerMetAllyMet6AndVsizeAndRatiosForPel.RData", sep=""))) 
+ 
 
   #-----------------
   #-----------------
