@@ -396,14 +396,15 @@ if(.Platform$OS.type == "unix") {
     load(file=file.path(outPath, a_year, "interpolated", "plus",
                                                 paste("tacsatSweptAreaPlus_", a_year, ".RData", sep="")))
  
-     # compute effort in nmin
+      # compute effort in nmin
      tacsatSweptArea$effort_mins <- c(0,as.numeric(diff(tacsatSweptArea$SI_DATIM), units='mins'))
-     idx <- which( tacsatSweptArea$effort_mins & tacsatSweptArea$LE_GEAR %in% towedGears > 15) # if interval > 15 min 
+     idx <- which( tacsatSweptArea$effort_mins>15 & tacsatSweptArea$LE_GEAR %in% towedGears) # if interval > 15 min 
      tacsatSweptArea[ idx, "effort_mins"] <- NA  # exclude change of haul
-     idx <- which( tacsatSweptArea$effort_mins & tacsatSweptArea$LE_GEAR %in% seineGears > 75) # if interval > 75 min 
+     idx <- which( tacsatSweptArea$effort_mins >75 & tacsatSweptArea$LE_GEAR %in% seineGears) # if interval > 75 min 
      tacsatSweptArea[ idx, "effort_mins"] <- NA  # exclude change of haul
      idx <- which( tacsatSweptArea$effort_mins <0) #   
      tacsatSweptArea[ idx, "effort_mins"] <- NA  # exclude change of vessel id
+
     
      # retrieve the harbour dep from FT_REF (LOCODE code for harb)
      load(file=file.path(outPath, a_year, "cleanEflalo.RData"))  # get tacsatp
@@ -485,7 +486,7 @@ if(.Platform$OS.type == "unix") {
      save(aggResult,file=file.path(outPath,  paste("AggregatedSweptAreaPlusPerVidPerMet6PerHarb_", a_year, ".RData", sep=""))) 
 
 
- if(FALSE){  # do not re-run...this takes ages!
+ if(TRUE){  # do not re-run...this takes ages!
 
     
     # aggregate per LE_MET
@@ -592,18 +593,43 @@ if(.Platform$OS.type == "unix") {
     load(file=file.path(outPath, a_year, "interpolated", "plus",
                                                 paste("tacsatSweptAreaPlus_", a_year, ".RData", sep="")))
  
+   
      # compute effort in nmin
      tacsatSweptArea$effort_mins <- c(0,as.numeric(diff(tacsatSweptArea$SI_DATIM), units='mins'))
-     idx <- which( tacsatSweptArea$effort_mins & tacsatSweptArea$LE_GEAR %in% towedGears > 15) # if interval > 15 min 
+     idx <- which( tacsatSweptArea$effort_mins>15 & tacsatSweptArea$LE_GEAR %in% towedGears) # if interval > 15 min 
      tacsatSweptArea[ idx, "effort_mins"] <- NA  # exclude change of haul
-     idx <- which( tacsatSweptArea$effort_mins & tacsatSweptArea$LE_GEAR %in% seineGears > 75) # if interval > 75 min 
+     idx <- which( tacsatSweptArea$effort_mins >75 & tacsatSweptArea$LE_GEAR %in% seineGears) # if interval > 75 min 
      tacsatSweptArea[ idx, "effort_mins"] <- NA  # exclude change of haul
      idx <- which( tacsatSweptArea$effort_mins <0) #   
      tacsatSweptArea[ idx, "effort_mins"] <- NA  # exclude change of vessel id
+
      
+      # number of vessels active this year with this selection (to compare with nb in logbooks)
+     length(unique(tacsatSweptArea$VE_REF))
+     # number of trips
+     length(unique(tacsatSweptArea$FT_REF))
+     
+     # look at the logbooks eflalo:
+     load(file=file.path(dataPath, paste0("eflalo_",a_year,".RData")))
+       if(a_year>=2016){
+       eflalo <- formatEflalo(get(paste0("eflalo_", a_year))) # format each of the columns to the specified class
+    } else{
+       eflalo <- formatEflalo(get(paste0("eflalo"))) # format each of the columns to the specified class
+    }
+     eflalo <- eflalo[eflalo$LE_GEAR %in% gears2keep, ]
+     length(unique(eflalo$VE_REF))
+     length(unique(eflalo$FT_REF))
+     eflalo$VesselSize <- cut(eflalo$VE_LEN, breaks=c(0,14.99,17.99,23.99,39.99,100), right=FALSE)
+     lapply(split(eflalo, eflalo$VesselSize), function (x) length(unique(x$VE_REF)))
+  
+    
      # vessel size
      #15-18, 18-24, 24-40, o40
      tacsatSweptArea$VesselSize <- cut(tacsatSweptArea$VE_LEN, breaks=c(0,14.99,17.99,23.99,39.99,100), right=FALSE)
+     
+     # look at nb of trips per vessel size
+     lapply(split(tacsatSweptArea, tacsatSweptArea$VesselSize), function (x) length(unique(x$FT_REF)))
+     lapply(split(tacsatSweptArea, tacsatSweptArea$VesselSize), function (x) length(unique(x$VE_REF)))
 
        # marginal sum of euros
      tacsatSweptArea$toteuros <- apply(tacsatSweptArea[,grep("EURO", names(tacsatSweptArea))], 1, sum)
@@ -696,14 +722,14 @@ if(.Platform$OS.type == "unix") {
     some_color_vessel_size <- c("[15,18)"="#FFDB6D",  "[18,24)"="#FC4E07",  "[24,40)"="#52854C",  "[40,100)"="#293352")
     some_color_vessel_size2 <- c("[15,18)"="#ffc207",  "[18,24)"="#FC4E07",  "[24,40)"="#52854C",  "[40,100)"="#293352")
       dd <- aggEffortAndFuelAlly[!duplicated(data.frame(aggEffortAndFuelAlly$VE_REF, aggEffortAndFuelAlly$Year)),]
-      dd$nbvessel <- 2e4 
+      dd$nbvessel <- 5e3 
     p4 <-   ggplot() + geom_bar(data=aggEffortAndFuelAlly, aes(x=as.character(Year), y=effective_effort_mins/60, group=VesselSize, fill=VesselSize), size=1.5, position="stack",  stat = "summary", fun = "sum") +
        geom_line(data=dd, aes(x=as.character(Year), y=nbvessel, group=VesselSize, color=VesselSize),size=1.5, stat = "summary", fun = "sum") +   
        #geom_line(data=dd, aes(x=as.character(Year), y=litre_fuel/10, group=VesselSize, color=VesselSize),size=1 , linetype = "dashed", stat = "summary", fun = "sum") +   
-       geom_line(data=dd, aes(x=as.character(Year), y=litre_fuel/100, group=1),size=1.2, color=1, linetype = "dashed", stat = "summary", fun = "sum") +   
-        geom_line(data=dd, aes(x=as.character(Year), y=toteuros/100, group=1),size=1.2,  color=5, linetype = "dashed", stat = "summary", fun = "sum") +   
-       scale_y_continuous(name = "fished hours effort; or fuel use (litres/100); or euros/100", sec.axis = sec_axis(~./2e4, name = "Nb Vessels") )+
-       theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  + 
+       geom_line(data=dd, aes(x=as.character(Year), y=litre_fuel/1000, group=1),size=1.2, color=1, linetype = "dashed", stat = "summary", fun = "sum") +   
+        geom_line(data=dd, aes(x=as.character(Year), y=toteuros/1000, group=1),size=1.2,  color=5, linetype = "dashed", stat = "summary", fun = "sum") +   
+       scale_y_continuous(name = "Fished hours effort; or fuel use ('000 litres); or '000 euros", sec.axis = sec_axis(~./5e3, name = "Nb Vessels") )+
+       theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5), axis.title.y=element_text(size=rel(0.8)))  + 
        labs(x = "Year")     + 
        scale_color_manual(values=some_color_vessel_size, name="VesselSize") +  
        scale_fill_manual(values=some_color_vessel_size2) +
@@ -716,7 +742,7 @@ if(.Platform$OS.type == "unix") {
 #a_width <- 3000; a_height <- 2300
 a_width <- 4000; a_height <- 2500   
  namefile <- paste0("barplot_and_ts_effort_nb_vessels_", years[1], "-", years[length(years)], "_PEL.tif")
- tiff(filename=file.path(getwd(), "outputs2020_pel", "output_plots",  namefile),   width = a_width, height = a_height,
+ tiff(filename=file.path(outPath,  "output_plots",  namefile),   width = a_width, height = a_height,
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
 print(p4)
 dev.off()

@@ -301,9 +301,10 @@
      #dd <- get(paste0("aggResultPerMet_", y))
      dd <- aggResultPerMetAlly[aggResultPerMetAlly$Year==y, ]
 
-     # KEEP ONLY MAIN COD AND PLAICE FISHERIES IN THE SELECTED AREAS
+     # KEEP ONLY MAIN COD AND PLAICE AND HERRING FISHERIES IN THE SELECTED AREAS
      dd <- dd[(dd$LE_KG_COD>50000 & (grepl("27.3.c.22", dd$LE_MET) | grepl("27.3.c.24", dd$LE_MET))) |
-                   (dd$LE_KG_PLE>100000 & (grepl("27.3.a.20", dd$LE_MET) | grepl("27.3.a.21", dd$LE_MET))) ,]
+                   (dd$LE_KG_PLE>100000 & (grepl("27.3.a.20", dd$LE_MET) | grepl("27.3.a.21", dd$LE_MET))) |
+                     (dd$LE_KG_HER>100000 & (grepl("27.3.a.20", dd$LE_MET) | grepl("27.3.a.21", dd$LE_MET))) ,]
 
       # debug SAN
      dd[grepl("LargeMesh",dd$LE_MET) , paste0(prefixes[count], "SAN")] <- 0 # because SAN creates misleading distorsion on plots...
@@ -346,6 +347,9 @@
  }
 
 
+
+   save(the_agg, file=file.path(getwd(), "outputs2020", paste("WestBalticKattegatAggForBottContact_2LCAProject.RData", sep="")))
+  write.table(the_agg, file=file.path(getwd(), "outputs2020", paste("WestBalticKattegatAggForBottContact_2LCAProject_rev.csv", sep="")), col.names=TRUE, row.names=FALSE, quote=FALSE, sep=";")
 
 
 
@@ -822,7 +826,8 @@ spp <- colnames(aggResultPerMetAlly) [grep("LE_EURO_", colnames(aggResultPerMetA
 
 
 
-
+  save(the_agg, file=file.path(getwd(), "outputs2020", paste("WestBalticKattegatAggForPelagics_2LCAProject.RData", sep="")))
+  write.table(the_agg, file=file.path(getwd(), "outputs2020", paste("WestBalticKattegatAggForPelagics_2LCAProject.csv", sep="")), col.names=TRUE, row.names=FALSE, quote=FALSE, sep=";")
 
 
 
