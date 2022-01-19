@@ -3,10 +3,10 @@ setwd(file.path("D:","FBA","BENTHIS_2020"))
 
 
 # read for large vessels/bottom contacting gears
-dat1 <- read.table(file=file.path(getwd(), "outputs2020", "output_plots", "barplot_mean_fuel_efficiency_ 2005 - 2019 _DEM_and_PEL_plot_land_and_FPUC_and_FPUV.dat"), header=TRUE, sep=";")
+dat1 <- read.table(file=file.path(getwd(), "outputs2020", "output_plots_old", "barplot_mean_fuel_efficiency_ 2005 - 2019 _DEM_and_PEL_plot_land_and_FPUC_and_FPUV.dat"), header=TRUE, sep=";")
 
 # read for large vessels/pelagic gears
-dat2 <- read.table(file=file.path(getwd(), "outputs2020_pel", "output_plots", "barplot_mean_fuel_efficiency_ 2005 - 2019 _PEL_plot_land_and_FPUC_and_FPUV.dat"), header=TRUE, sep=";")
+dat2 <- read.table(file=file.path(getwd(), "outputs2020_pel", "output_plots_old", "barplot_mean_fuel_efficiency_ 2005 - 2019 _PEL_plot_land_and_FPUC_and_FPUV.dat"), header=TRUE, sep=";")
 
 # read for small vessels
 dat3 <- read.table(file=file.path(getwd(), "outputs2020_lgbkonly", "output_plots", "barplot_mean_fuel_efficiency_ 2005 - 2019 _DEM_PEL_plot_land_and_FPUC_and_FPUV.dat"), header=TRUE, sep=";")
@@ -18,7 +18,7 @@ library(data.table)
 wide <- data.table::dcast(setDT(dat), type + seg  ~ var, value.var="average")
 
 
-score_table <- as.data.frame(wide)[, c("type", "seg", "Litre per euro catch", "Litre per kg catch", "CPUF (kg per litre)", "VPUF (euro per litre)")]
+score_table <- as.data.frame(wide)[, c("type", "seg", "Litre per euro catch", "Litre per kg catch", "CPUF (kg per litre)", "VPUF (euro per litre)", "Landings (tons)", "Value (KEuros)")]
 
 an <- function(x) as.numeric(as.character(x))
 relative_Litre_per_euro_catch <-  an(score_table$'Litre per euro catch') / sum(an(score_table$'Litre per euro catch'), na.rm=TRUE)*100
@@ -104,8 +104,15 @@ score_table <- score_table[! grepl("misc", score_table$met_desc),]
 score_table$met_desc <- gsub("\n", " ", score_table$met_desc)
 
 write.table(score_table$Relative_efficiency_to_5, "clipboard", sep="\t", row.names=FALSE, col.names=FALSE)
+
+write.table(score_table[,c("seg","asterik","Landings (tons)","Value (KEuros)")], "clipboard", sep="\t", row.names=FALSE, col.names=FALSE)
  
+
 # round and export
-write.table(score_table[, c("type","met_desc", "seg","Litre per euro catch", "Litre per kg catch","CPUF (kg per litre)", "VPUF (euro per litre)", "Relative_efficiency_to_5", "asterik")],
+write.table(score_table[, c("type","met_desc", "seg","Litre per euro catch", "Litre per kg catch","CPUF (kg per litre)", "VPUF (euro per litre)", "Relative_efficiency_to_5", "asterik", "Landings (tons)", "Value (KEuros)")],
                 file=file.path(getwd(), "ggplots", "scoring_table.csv"), col.names=TRUE, row.names=FALSE, sep=";", quote=FALSE)
 
+library(doBy)
+orderBy(~type+Relative_efficiency_to_5, data=score_table)
+# => Table 1 in the paper
+# annual average over 2005-2019

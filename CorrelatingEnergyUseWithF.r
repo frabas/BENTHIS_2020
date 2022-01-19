@@ -53,6 +53,11 @@ a_var <- "CPUF"
     cbind.data.frame(long[,c("Stock","Year", "value")], Var=a_var)
     )
 
+ # a quick visual
+ plot(f_and_vpuf[f_and_vpuf$Stock=="COD.nsea" & f_and_vpuf$Var=="F/FMSY" & f_and_vpuf$Year %in% 2005:2018, "value"],
+   f_and_vpuf[f_and_vpuf$Stock=="COD.nsea" & f_and_vpuf$Var=="CPUF" & f_and_vpuf$Year %in% 2005:2018, "value"], type="p", pch="X", xlab="F/FMSY", ylab="CPUF")
+
+
  f_and_vpuf$Region <- sapply(strsplit(as.character(f_and_vpuf$Stock), split="\\."), function(x) x[2])
  f_and_vpuf$StockAndVar <- paste(f_and_vpuf$Stock,f_and_vpuf$Var, sep=".")
 

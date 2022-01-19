@@ -345,7 +345,7 @@ library(doBy)
   }}}
   x <- x[!is.na(x$F_CODE),] # remove very few records
 
- save(x, file=file.path("C:", "temp", "x.RData"))
+ save(x, file=file.path("C:", "ToTrash", "x.RData"))
  gc()
  
   #  convert to long
