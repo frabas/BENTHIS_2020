@@ -1,41 +1,44 @@
 
 
 
-#save(list=ls()[grepl("barplot",ls()) | grepl("area",ls())], file=file.path("D:","FBA","BENTHIS_2020", "ggplots.RData"))
+#save(list=ls()[grepl("barplot",ls()) | grepl("area",ls())], file=file.path("D:","FBA","BENTHIS_2020", "ggplots_rev.RData"))
 load(file=file.path("D:","FBA","BENTHIS_2020", "ggplots.RData"))
-
+setwd(file.path("D:","FBA","BENTHIS_2020"))
 
  friendly_met_names <- function(dd){
      # a more friendly naming of metiers
      dd$met_desc1 <- NA # init
      dd$met_desc2 <- NA # init
      dd$met_desc3 <- NA # init
-     dd[grepl("27.3",dd$LE_MET), "met_desc1"] <- "BS"
-     dd[grepl("27.4",dd$LE_MET), "met_desc1"] <- "NS"
-     dd[grepl("OTB",dd$LE_MET), "met_desc2"] <- "dem.trawl for\n"
-     dd[grepl("PTB",dd$LE_MET), "met_desc2"] <- "paired trawl for\n"
-     dd[grepl("OTB",dd$LE_MET), "met_desc2"] <- "dem.trawl for\n"
-     dd[grepl("SDN",dd$LE_MET), "met_desc2"] <- "dem.seine for\n"
-     dd[grepl("SSC",dd$LE_MET), "met_desc2"] <- "scot.seine for\n"
-     dd[grepl("PS_",dd$LE_MET), "met_desc2"] <- "purse seine for\n"
-     dd[grepl("GNS",dd$LE_MET), "met_desc2"] <- "gillnet for\n"
-     dd[grepl("DRB",dd$LE_MET), "met_desc2"] <- "dredge for\n"
-     dd[grepl("TBB",dd$LE_MET), "met_desc2"] <- "beam.trawl for\n"
-     dd[grepl("TM",dd$LE_MET), "met_desc2"] <- "midw.trawl for\n"
-     dd[grepl("LLS",dd$LE_MET), "met_desc2"] <- "longline for\n"
-     dd[grepl("LHP",dd$LE_MET), "met_desc2"] <- "handline for\n"
-     dd[grepl("LLD",dd$LE_MET), "met_desc2"] <- "longline for\n"
-     dd[grepl("FPN",dd$LE_MET), "met_desc2"] <- "pots for\n"
-     dd[grepl("OTHER",dd$LE_MET), "met_desc2"] <- "misc."
+     #dd[grepl("27.3",dd$LE_MET), "met_desc1"] <- "BS"
+     #dd[grepl("27.4",dd$LE_MET), "met_desc1"] <- "NS"
+     dd[grepl("27.3",dd$LE_MET), "met_desc1"] <- "Baltic"
+     dd[grepl("27.4",dd$LE_MET), "met_desc1"] <- "North Sea"
+     dd[grepl("OTB",dd$LE_MET), "met_desc2"] <- "Trawl \n"
+     dd[grepl("PTB",dd$LE_MET), "met_desc2"] <- "PairTrawl \n"
+     dd[grepl("OTB",dd$LE_MET), "met_desc2"] <- "Trawl \n"
+     dd[grepl("SDN",dd$LE_MET), "met_desc2"] <- "DanSeine \n"
+     dd[grepl("SSC",dd$LE_MET), "met_desc2"] <- "ScoSeine \n"
+     dd[grepl("PS_",dd$LE_MET), "met_desc2"] <- "PurseSeine \n"
+     dd[grepl("GNS",dd$LE_MET), "met_desc2"] <- "Gillnet \n"
+     dd[grepl("DRB",dd$LE_MET), "met_desc2"] <- "Dredge \n"
+     dd[grepl("TBB",dd$LE_MET), "met_desc2"] <- "BeamTrawl \n"
+     dd[grepl("TM",dd$LE_MET), "met_desc2"] <- "PelTrawl \n"
+     dd[grepl("LLS",dd$LE_MET), "met_desc2"] <- "Longline \n"
+     dd[grepl("LHP",dd$LE_MET), "met_desc2"] <- "Handline \n"
+     dd[grepl("LLD",dd$LE_MET), "met_desc2"] <- "Longline \n"
+     dd[grepl("FPN",dd$LE_MET), "met_desc2"] <- "Pots \n"
+     dd[grepl("OTHER",dd$LE_MET), "met_desc2"] <- "Other"
      dd[grepl(">=120_0_0",dd$LE_MET), "met_desc3"] <- "fish (>120mm)"
      dd[grepl(">=105_1_120",dd$LE_MET), "met_desc3"] <- "fish (105-120mm)"
      dd[grepl(">=105_1_110",dd$LE_MET), "met_desc3"] <- "fish (105-110mm)"
      dd[grepl("120-219_0",dd$LE_MET), "met_desc3"] <- "fish (120-219mm)"
      dd[grepl("90-104_0",dd$LE_MET), "met_desc3"] <- "fish (90-104mm)"
-     dd[grepl("70-99_0",dd$LE_MET), "met_desc3"] <- "fish (70-99mm)"
+     dd[grepl("70-99_0",dd$LE_MET), "met_desc3"] <- "crustaceans (70-99mm)"
      dd[grepl("90-119_0_0",dd$LE_MET), "met_desc3"] <- "fish (90-119mm)"
      dd[grepl("100-119_0_0",dd$LE_MET), "met_desc3"] <- "fish (100-119mm)"
      dd[grepl("120-219_0",dd$LE_MET), "met_desc3"] <- "fish (120-219mm)"
+     dd[grepl("220_0_0",dd$LE_MET), "met_desc3"] <- "fish (>220mm)"
      dd[grepl("<16_0_0",dd$LE_MET), "met_desc3"] <- "forage fish (<16mm)"
      dd[grepl("SPF_16-31_0_0",dd$LE_MET), "met_desc3"] <- "pelagics (16-31mm)"
      dd[grepl("_PS_SPF_>0_0_0",dd$LE_MET), "met_desc3"] <- "pelagics"
@@ -46,7 +49,7 @@ load(file=file.path("D:","FBA","BENTHIS_2020", "ggplots.RData"))
      dd[grepl("CRU_>0_0",dd$LE_MET), "met_desc3"] <- "crustaceans"
      dd[grepl("CRU_>=120_0_0",dd$LE_MET), "met_desc3"] <- "crustaceans (>120mm)"
      dd[grepl("LHP_FIF",dd$LE_MET), "met_desc3"] <- "fish"
-     dd[grepl("ANA",dd$LE_MET), "met_desc3"] <- "mig. fish"
+     dd[grepl("ANA",dd$LE_MET), "met_desc3"] <- "migratory fish"
      dd[grepl("CAT",dd$LE_MET), "met_desc3"] <- "catadromus sp"
      dd[grepl("MOL",dd$LE_MET), "met_desc3"] <- "molluscs"
      dd[grepl("TBB_CRU_16-31",dd$LE_MET), "met_desc3"] <- "shrimp"
@@ -146,15 +149,15 @@ a_unit <- 1
  # paper
  a_width <- 6000 ; a_height <- 7500
  namefile <- paste0("ggplot.tif")
- tiff(filename=file.path("D:","FBA","BENTHIS_2020", "ggplots", "fpuc_per_fleet.tiff"),   width = a_width, height = a_height,
+ tiff(filename=file.path("D:","FBA","BENTHIS_2020", "ggplots", "fpuc_per_fleet_revised.tiff"),   width = a_width, height = a_height,
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
 library(ggpubr)
-ggarrange(    p5_barplot_bottomfishing_dem_fpuc + ggtitle("Bottom fishing") + guides(fill =guide_legend(ncol=2, position="right")) + theme(legend.text = element_text(size = 12),axis.text.x=element_text(angle=60,hjust=1,vjust=1, size=12), plot.title=element_text(margin=margin(t=40,b=-20))),
+ ggarrange(    p5_barplot_bottomfishing_dem_fpuc + ggtitle("Bottom fishing") + guides(fill =guide_legend(ncol=2, position="right")) + theme(legend.text = element_text(size = 12),axis.text.x=element_text(angle=60,hjust=1,vjust=1, size=12), plot.title=element_text(margin=margin(t=40,b=-20))),
               p5_barplot_bottomfishing_pel_fpuc + ggtitle("Bottom fishing small/no mesh")+ guides(fill =guide_legend(ncol=2, position="right")) + theme(legend.text = element_text(size = 12),axis.text.x=element_text(angle=60,hjust=1,vjust=1, size=12)),
               p5_barplot_pelfishing_pel_fpuc + ggtitle("Pelagic fishing") + guides(fill =guide_legend(ncol=2, position="right")) + theme(legend.text = element_text(size = 12),axis.text.x=element_text(angle=60,hjust=1,vjust=1, size=12)),
           ncol=1, heights=c(1.5,1.5,1.2,1,1, 1), common.legend = FALSE, legend="right")
-
 dev.off()
+
 
 #2
  a_width <- 6000 ; a_height <- 7500
@@ -175,7 +178,7 @@ dev.off()
 #small vessels
  a_width <- 6000 ; a_height <- 4250
  namefile <- paste0("ggplot.tif")
- tiff(filename=file.path("D:","FBA","BENTHIS_2020", "ggplots", "fpuc_per_species_and_small_vessels.tiff"),   width = a_width, height = a_height,
+ tiff(filename=file.path("D:","FBA","BENTHIS_2020", "ggplots", "fpuc_per_species_and_small_vessels_revised.tiff"),   width = a_width, height = a_height,
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
 library(ggpubr)
 ggarrange(    p5_barplot_bottomfishing_dem_fpuc_smallvids+ ggtitle("Bottom fishing with small vessels")+  guides(fill =guide_legend(ncol=2, position="right")) + theme(legend.text = element_text(size = 12),axis.text.x=element_text(angle=60,hjust=1,vjust=1, size=12), plot.title=element_text(margin=margin(t=40,b=-20))),

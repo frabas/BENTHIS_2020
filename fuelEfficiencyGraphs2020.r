@@ -1245,6 +1245,17 @@ dev.off()
                          "MAC"="#458B00", "MON"="#F0F8FF", "MUS"="black", "NEP"="#e3dcbf", "NOP"="#CD5B45", "PLE"="lightseagreen",
                          "POK"="#6495ED", "PRA"="#CDC8B1", "SAN"="#00FFFF", "SOL"="#8B0000", "SPR"="#008B8B", "TUR"="#A9A9A9", "WHB"="#76a5c4",
                           "WIT"="red", "WHG"="yellow", "OTH"="blue")
+ Stocknames <-  c("COD"="cod", "CSH"="brown shrimp", "DAB"="dab", "ELE"="eel", "FLE"="flounder",
+                        "HAD"="haddock", "HER"="herring", "HKE"="hake","HOM"="Horse mackerel", "LEM"="lemon sole",
+                         "MAC"="mackerel", "MON"="monkfish", "MUS"="mussel", "NEP"="Nephrops", "NOP"="Norway pout", "PLE"="plaice",
+                         "POK"="saithe", "PRA"="boreal shrimp", "SAN"="sandeel", "SOL"="sole", "SPR"="sprat", "TUR"="turbot", "WHB"="blue whiting",
+                          "WIT"="witch flounder", "WHG"="whiting", "OTH"="other")                         
+ some_color_speciesnames <- c("cod"="#E69F00", "brown shrimp"="hotpink", "dab"="#56B4E9", "eel"="#F0E442", "flounder"="green",
+                        "haddock"="#0072B2", "herring"="mediumorchid4", "hake"="#CC79A7","Horse mackerel"="indianred2", "lemon sole"="#EEC591",
+                         "mackerel"="#458B00", "monkfish"="#F0F8FF", "mussel"="black", "Nephrops"="#e3dcbf", "Norway pout"="#CD5B45", "plaice"="lightseagreen",
+                         "saithe"="#6495ED", "boreal shrimp"="#CDC8B1", "sandeel"="#00FFFF", "sole"="#8B0000", "sprat"="#008B8B", "turbot"="#A9A9A9", "blue whiting"="#76a5c4",
+                          "witch flounder"="red", "whiting"="yellow", "other"="blue")
+                          
  #load(file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndVsizeAndRatiosBottContact.RData", sep="")))  # aggResultPerMetAlly
  #load(file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndRatiosBottContact.RData", sep="")))  # aggResultPerMetAlly
  load(file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndRatiosBottContactAndGNS.RData", sep="")))  # aggResultPerMetAlly
@@ -1339,7 +1350,7 @@ dev.off()
   the_agg_plot$met_desc <- factor(the_agg_plot$met_desc )
   the_agg_plot$Stock <- factor(the_agg_plot$Stock )
 
-
+  the_agg_plot$Stockname <- Stocknames[the_agg_plot$Stock]
 
  a_func_mean <- function (x) mean(x[x!=0 & !is.na(x)])
   a_func_cv <- function(x) {sqrt(var(x[x!=0 & !is.na(x)]))/mean(x[x!=0 & !is.na(x)])}
@@ -1417,10 +1428,10 @@ the_agg_plot1 <- as.data.frame(the_agg_plot[grep("(a)",the_agg_plot$LE_MET, fixe
   the_agg_plot5$LE_MET <- factor(the_agg_plot5$LE_MET, level=fleet_segments_ordered) # reorder
   the_agg_plot5 <- the_agg_plot5[the_agg_plot5$value<1,]  # debug for other
   the_agg_plot5$met_desc <- factor(the_agg_plot5$met_desc, level=fleet_segments_ordered2) # reorder)
-  p5_barplot_bottomfishing_dem_fpuc <- ggplot(data=the_agg_plot5, aes(x=met_desc, y=value/a_unit, fill=Stock)) + #  geom_bar(stat="identity", position=position_dodge())
+  p5_barplot_bottomfishing_dem_fpuc <- ggplot(data=the_agg_plot5, aes(x=met_desc, y=value/a_unit, fill=Stockname)) + #  geom_bar(stat="identity", position=position_dodge())
   geom_bar(stat = "summary", fun = a_func_mean) + 
    labs(y = "Litre per kg catch", x= "Fleet-segments") +
-       scale_fill_manual(values=some_color_species, name="Species") + theme_minimal() + guides(fill =guide_legend(ncol=1, position="right"))  + 
+       scale_fill_manual(values=some_color_speciesnames, name="Species") + theme_minimal() + guides(fill =guide_legend(ncol=1, position="right"))  + 
         # theme(axis.text.x=element_blank()) 
          theme(axis.text.x=element_text(angle=60,hjust=1,vjust=1, size=12))
 
@@ -1538,6 +1549,16 @@ dev.off()
                          "MAC"="#458B00", "MON"="#F0F8FF", "MUS"="black", "NEP"="#e3dcbf", "NOP"="#CD5B45", "PLE"="lightseagreen",
                          "POK"="#6495ED", "PRA"="#CDC8B1", "SAN"="#00FFFF", "SOL"="#8B0000", "SPR"="#008B8B", "TUR"="#A9A9A9", "WHB"="#76a5c4",
                           "WIT"="red", "WHG"="yellow", "OTH"="blue")
+  Stocknames <-  c("COD"="cod", "CSH"="brown shrimp", "DAB"="dab", "ELE"="eel", "FLE"="flounder",
+                        "HAD"="haddock", "HER"="herring", "HKE"="hake","HOM"="Horse mackerel", "LEM"="lemon sole",
+                         "MAC"="mackerel", "MON"="monkfish", "MUS"="mussel", "NEP"="Nephrops", "NOP"="Norway pout", "PLE"="plaice",
+                         "POK"="saithe", "PRA"="boreal shrimp", "SAN"="sandeel", "SOL"="sole", "SPR"="sprat", "TUR"="turbot", "WHB"="blue whiting",
+                          "WIT"="witch flounder", "WHG"="whiting", "OTH"="other")                         
+  some_color_speciesnames <- c("cod"="#E69F00", "brown shrimp"="hotpink", "dab"="#56B4E9", "eel"="#F0E442", "flounder"="green",
+                        "haddock"="#0072B2", "herring"="mediumorchid4", "hake"="#CC79A7","Horse mackerel"="indianred2", "lemon sole"="#EEC591",
+                         "mackerel"="#458B00", "monkfish"="#F0F8FF", "mussel"="black", "Nephrops"="#e3dcbf", "Norway pout"="#CD5B45", "plaice"="lightseagreen",
+                         "saithe"="#6495ED", "boreal shrimp"="#CDC8B1", "sandeel"="#00FFFF", "sole"="#8B0000", "sprat"="#008B8B", "turbot"="#A9A9A9", "blue whiting"="#76a5c4",
+                          "witch flounder"="red", "whiting"="yellow", "other"="blue")
  #load(file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndVsizeAndRatiosBottContact.RData", sep="")))  # aggResultPerMetAlly
  #load(file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndRatiosBottContact.RData", sep="")))  # aggResultPerMetAlly
  load(file=file.path(getwd(), "outputs2020", paste("aggResultPerMetAllyMet6AndRatiosBottContactAndGNS.RData", sep="")))  # aggResultPerMetAlly
@@ -1607,7 +1628,7 @@ dev.off()
 
      
    # select some species
-  the_agg <- the_agg[the_agg$Stock %in% c("NEP","MUS", "CSH", "HOM","MAC","NOP","PRA", "SAN","WHG"),]
+  #the_agg <- the_agg[the_agg$Stock %in% c("NEP","MUS", "CSH", "HOM","MAC","NOP","PRA", "SAN","WHG", "PLE", "COD", "POK"),]
 
   # check Norway pout
   # the_agg[the_agg$LE_MET=="SmallMesh_27.4_OTB_DEF_16-31_0_0 (f)",]
@@ -1617,6 +1638,8 @@ dev.off()
  library(ggplot2)
 
  the_agg_plot <- as.data.frame(the_agg[grep("SmallMesh",the_agg$LE_MET),])
+
+  the_agg_plot$Stockname <- Stocknames[the_agg_plot$Stock]
 
  # a visual fix adding all combi--
  #dd <- expand.grid(LE_MET=levels(factor(the_agg_plot$LE_MET)), Stock=levels(factor(the_agg_plot$Stock)), year=levels(factor(the_agg_plot$year)))
@@ -1645,6 +1668,9 @@ dev.off()
   # filter out small contribution species 
   ss <- the_agg_plot[grepl ( "(a)",  the_agg_plot$LE_MET)   & as.numeric(as.character(the_agg_plot$value))>200, ]  # < 200tons?
   the_agg_plot <- the_agg_plot[the_agg_plot$Stock %in% unique(ss$Stock),]
+  
+  # filter out some gillnet here 
+  the_agg_plot <- the_agg_plot[the_agg_plot$met_desc!="North Sea Gillnet \n ",]
 
   # check Norway pout
   the_agg_plot[the_agg_plot$LE_MET=="27.4_OTB_DEF_16-31_0_0 (f)",]
@@ -1725,10 +1751,10 @@ dev.off()
   the_agg_plot5$LE_MET <- gsub("\\(e)","", the_agg_plot5$LE_MET)
   the_agg_plot5$LE_MET <- factor(the_agg_plot5$LE_MET, level=fleet_segments_ordered) # reorder
   the_agg_plot5$met_desc <- factor(the_agg_plot5$met_desc, level=fleet_segments_ordered2) # reorder)
-  p5_barplot_bottomfishing_pel_fpuc <- ggplot(data=the_agg_plot5, aes(x=met_desc, y=value/a_unit, fill=Stock)) + #  geom_bar(stat="identity", position=position_dodge())
+  p5_barplot_bottomfishing_pel_fpuc <- ggplot(data=the_agg_plot5, aes(x=met_desc, y=value/a_unit, fill=Stockname)) + #  geom_bar(stat="identity", position=position_dodge())
   geom_bar(stat = "summary", fun = a_func_mean) + 
    labs(y = "Litre per kg catch", x= "Fleet-segments") +
-       scale_fill_manual(values=some_color_species, name="Species") + theme_minimal() + guides(fill =guide_legend(ncol=1, position="right"))  + 
+       scale_fill_manual(values=some_color_speciesnames, name="Species") + theme_minimal() + guides(fill =guide_legend(ncol=1, position="right"))  + 
         # theme(axis.text.x=element_blank()) 
          theme(axis.text.x=element_text(angle=60,hjust=1,vjust=1, size=12))
  

@@ -885,7 +885,7 @@ years <- 2005:2019
    
 
    # agg
-    agg_by <- c("LE_MET")
+    agg_by <- c("LE_MET", "Year")
 
    # aggregate ("sum" if absolute value, "mean" if ratio)
     nm <- names(eflalo)
@@ -943,7 +943,7 @@ years <- 2005:2019
     aggResultPerMet[aggResultPerMet$FPUCallsp>50, c("FPUCallsp", "FPUVallsp")] <- 50
     
     
-    aggResultPerMet2LCA <- aggResultPerMet[,c("LE_MET", "LE_KG_LITRE_FUEL",  "LE_KG_COD",  "LE_KG_HER", "LE_KG_PLE", "KKGallsp", "KEUROallsp", "FPUCallsp")]
+    aggResultPerMet2LCA <- aggResultPerMet[,c("LE_MET", "Year", "LE_KG_LITRE_FUEL",  "LE_KG_COD",  "LE_KG_HER", "LE_KG_PLE", "KKGallsp", "KEUROallsp", "FPUCallsp")]
     colnames (aggResultPerMet2LCA)[colnames(aggResultPerMet2LCA) %in% "LE_KG_LITRE_FUEL" ] <- "LITRE_FUEL"
  
  

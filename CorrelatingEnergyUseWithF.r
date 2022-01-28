@@ -53,11 +53,6 @@ a_var <- "CPUF"
     cbind.data.frame(long[,c("Stock","Year", "value")], Var=a_var)
     )
 
- # a quick visual
- plot(f_and_vpuf[f_and_vpuf$Stock=="COD.nsea" & f_and_vpuf$Var=="F/FMSY" & f_and_vpuf$Year %in% 2005:2018, "value"],
-   f_and_vpuf[f_and_vpuf$Stock=="COD.nsea" & f_and_vpuf$Var=="CPUF" & f_and_vpuf$Year %in% 2005:2018, "value"], type="p", pch="X", xlab="F/FMSY", ylab="CPUF")
-
-
  f_and_vpuf$Region <- sapply(strsplit(as.character(f_and_vpuf$Stock), split="\\."), function(x) x[2])
  f_and_vpuf$StockAndVar <- paste(f_and_vpuf$Stock,f_and_vpuf$Var, sep=".")
 
@@ -65,6 +60,8 @@ a_var <- "CPUF"
   # bottom contacting gears
   dat <- f_and_vpuf[f_and_vpuf$Stock%in%c("COD.nsea", "PLE.nsea", "SOL.nsea", "PRA.nsea", "NEP.kask", "HER.nsea", "POK.nsea", "HAD.nsea", "HKE.nsea", "NEP.kask", "COD.2224", "PLE.2123", "SOL.2024"),]
   dat$Region <- factor(dat$Region)
+  
+  collected_data <- cbind.data.frame(dat, Seg="BottomTrawl") 
   
   
   # compute diff for figuring out the anomalies
@@ -173,6 +170,13 @@ a_var <- "CPUF"
  f_and_vpuf$Region <- sapply(strsplit(as.character(f_and_vpuf$Stock), split="\\."), function(x) x[2])
  f_and_vpuf$StockAndVar <- paste(f_and_vpuf$Stock,f_and_vpuf$Var, sep=".")
 
+
+  # bottom contacting gears small mesh
+  dat <- f_and_vpuf[f_and_vpuf$Stock%in%c("SAN.nsea", "NOP.nsea", "HER.nsea"),]
+  dat$Region <- factor(dat$Region)
+ 
+  collected_data <- rbind.data.frame (collected_data, cbind.data.frame(dat, Seg="BottomTrawlSmallMesh")) 
+ 
   
     # compute diff for figuring out the anomalies
   dat<- do.call("rbind.data.frame", lapply(split(f_and_vpuf, f_and_vpuf$StockAndVar), function(x) {
@@ -264,6 +268,14 @@ a_var <- "CPUF"
 
  f_and_vpuf$Region <- sapply(strsplit(as.character(f_and_vpuf$Stock), split="\\."), function(x) x[2])
  f_and_vpuf$StockAndVar <- paste(f_and_vpuf$Stock,f_and_vpuf$Var, sep=".")
+
+
+  # Pelagic small mesh
+  dat <- f_and_vpuf[f_and_vpuf$Stock%in%c( "HER.nsea", "MAC.nsea", "SPR.2232"),]
+  dat$Region <- factor(dat$Region)
+ 
+  collected_data <- rbind.data.frame (collected_data, cbind.data.frame(dat, Seg="PelagicTrawl")) 
+
 
    # compute diff for figuring out the anomalies
   dat<- do.call("rbind.data.frame", lapply(split(f_and_vpuf, f_and_vpuf$StockAndVar), function(x) {
@@ -379,6 +391,11 @@ a_var <- "CPUF"
      f_and_vpuf$Region <- sapply(strsplit(as.character(f_and_vpuf$Stock), split="\\."), function(x) x[2])
    f_and_vpuf$StockAndVar <- paste(f_and_vpuf$Stock,f_and_vpuf$Var, sep=".")
 
+   # Samll vessels
+  dat <- f_and_vpuf[f_and_vpuf$Stock%in%c("COD.nsea", "PLE.nsea", "SOL.nsea", "COD.2224", "PLE.2123"),]
+  dat$Region <- factor(dat$Region)
+ 
+  collected_data <- rbind.data.frame (collected_data, cbind.data.frame(dat, Seg="SmallVessels")) 
 
     # compute diff for figuring out the anomalies
   dat<- do.call("rbind.data.frame", lapply(split(f_and_vpuf, f_and_vpuf$StockAndVar), function(x) {
@@ -468,4 +485,90 @@ dev.off()                                       0
 
 
 
+
+
+
+###!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!###
+ # a plot for a paper 
+ #save(collected_data, file=file.path(getwd(), "outputs2020","forFFMSYvsCPUF.RData"))
+ load(file=file.path(getwd(), "outputs2020","forFFMSYvsCPUF.RData")) # collected_data
+ 
+ 
+ 
+  a_width <- 4800; a_height=4800
+  namefile <- "CPUFvsFFMSY.tif"
+  tiff(filename=file.path(getwd(), "outputs2020",  namefile),   width = a_width, height = a_height,
+                                   units = "px", pointsize = 12,  res=600, compression = c("lzw"))
+ spp <- c("COD.nsea",  "COD.2224", "CSH","DAB","ELE","FLE","HAD.nsea","HER.nsea","HKE.nsea","HOM","LEM","MAC.nsea","MON","MUS","NEP.kask","NOP","PLE.nsea","PLE.2123","POK.nsea","PRA.nsea", "SAN","SOL.nsea","SOL.2024","SPR.2232","TUR","WHB","WIT","WHG","OTH")
+ color_species <- c("#E69F00", "#E69F05", "hotpink","#56B4E9","#F0E442", "green", "#0072B2", "mediumorchid4", "#CC79A7",
+                   "indianred2", "#EEC591", "#458B00", "#F0F8FF", "black", "#e3dcbf", "#CD5B45", "lightseagreen",
+                   "green", "#6495ED", "#CDC8B1", "#00FFFF", "#8B0000", "#008B8B", "#008B7B", "#A9A9A9", "#76a5c4", "red", "yellow", "blue")
+ the_colors <- cbind(spp, color_species) ; rownames(the_colors) <- spp 
+ # a quick visual
+ par(mfrow=c(2,2))
+ par(mar=c(5,4,2.2,1))
+ dat1 <- collected_data[collected_data$Seg =="BottomTrawl" & collected_data$Stock %in% c("COD.nsea", "PLE.nsea", "SOL.nsea", "PRA.nsea", "HER.nsea", "POK.nsea", "HAD.nsea", "HKE.nsea"), ]
+ dat2 <- collected_data[collected_data$Seg =="BottomTrawl" & collected_data$Stock %in% c("NEP.kask", "COD.2224", "PLE.2123", "SOL.2024"), ]
+ dat3 <- collected_data[collected_data$Seg =="PelagicTrawl" & collected_data$Stock %in% c("HER.nsea", "MAC.nsea", "SPR.2232"), ]
+ dat4 <- collected_data[collected_data$Seg =="SmallVessels" & collected_data$Stock %in% c("COD.2224", "COD.nsea", "PLE.2123", "PLE.nsea", "SOL.nsea"), ]
+ # plot1
+ plot(0,0, xlab="F/FMSY", ylab="CPUF", axes=FALSE, xlim=range(dat1[dat1$Var=="F/FMSY" & dat1$Year %in% 2005:2018, "value"]), ylim=c(0,2), type="n")
+ mtext(side=3,paste("(","a", ")", sep=''),line=1.0, adj=0, cex=1.5)
+ for (stk in dat1$Stock)
+   {
+   x <- dat1[dat1$Stock==stk,] 
+   yrange <- intersect (x[x$Var=="F/FMSY", "Year"], x[x$Var=="CPUF", "Year"])
+   points(x[x$Var=="F/FMSY" & x$Year %in% yrange, "value"],  x[x$Var=="CPUF" & x$Year %in% yrange, "value"], type="p", pch=16, xlab="F/FMSY", ylab="CPUF", col=the_colors[stk,2])
+   lines(lowess(x[x$Var=="F/FMSY" & x$Year %in% yrange, "value"], x[x$Var=="CPUF" & x$Year %in% yrange, "value"]),  col=the_colors[stk,2], lwd=2.5, f=0.9)
+   }
+   axis(1);axis(2, las=2) ; box() 
+   legend("topright", legend= unique(dat1$Stock), lty=1, lwd=2, col=as.character(the_colors[unique(dat1$Stock),2]), bty="n")
+ # plot2
+ plot(0,0, xlab="F/FMSY", ylab="CPUF", axes=FALSE, xlim=range(dat2[dat2$Var=="F/FMSY" & dat2$Year %in% 2005:2018, "value"]), ylim=range(dat2[dat2$Var=="CPUF" & dat2$Year %in% 2005:2018, "value"]), type="n")
+ mtext(side=3,paste("(","b", ")", sep=''),line=1.0, adj=0, cex=1.5)
+ for (stk in dat2$Stock)
+   {
+   x <- dat2[dat2$Stock==stk,] 
+   yrange <- intersect (x[x$Var=="F/FMSY", "Year"], x[x$Var=="CPUF", "Year"])
+   points(x[x$Var=="F/FMSY" & x$Year %in% yrange, "value"],  x[x$Var=="CPUF" & x$Year %in% yrange, "value"], type="p", pch=16, xlab="F/FMSY", ylab="CPUF", col=the_colors[stk,2])
+   lines(lowess(x[x$Var=="F/FMSY" & x$Year %in% yrange, "value"], x[x$Var=="CPUF" & x$Year %in% yrange, "value"]),  col=the_colors[stk,2], lwd=2.5, f=0.9)
+   }
+   axis(1);axis(2, las=2)  ; box()
+   legend("topleft", legend= unique(dat2$Stock), lty=1, lwd=2, col=as.character(the_colors[unique(dat2$Stock),2]), bty="n")
+ # plot3
+ plot(0,0, xlab="F/FMSY", ylab="CPUF", axes=FALSE, xlim=range(dat3[dat3$Var=="F/FMSY", "value"]), ylim=range(dat3[dat3$Var=="CPUF", "value"]), type="n")
+ mtext(side=3,paste("(","c", ")", sep=''),line=1.0, adj=0, cex=1.5)
+ for (stk in dat3$Stock)
+   {
+   x <- dat3[dat3$Stock==stk,] 
+   yrange <- intersect (x[x$Var=="F/FMSY", "Year"], x[x$Var=="CPUF", "Year"])
+   points(x[x$Var=="F/FMSY" & x$Year %in% yrange, "value"],  x[x$Var=="CPUF" & x$Year %in% yrange, "value"], type="p", pch=16, xlab="F/FMSY", ylab="CPUF", col=the_colors[stk,2])
+   lines(lowess(x[x$Var=="F/FMSY" & x$Year %in% yrange, "value"], x[x$Var=="CPUF" & x$Year %in% yrange, "value"]),  col=the_colors[stk,2], lwd=2.5, f=0.9)
+   }
+   axis(1);axis(2, las=2) ; box() 
+   legend("topleft", legend= unique(dat3$Stock), lty=1, lwd=2, col=as.character(the_colors[unique(dat3$Stock),2]), bty="n")
+ # plot4
+ plot(0,0, xlab="F/FMSY", ylab="CPUF", axes=FALSE, xlim=range(dat4[dat4$Var=="F/FMSY", "value"]), ylim=range(dat4[dat4$Var=="CPUF", "value"]), type="n")
+ mtext(side=3,paste("(","d", ")", sep=''),line=1.0, adj=0, cex=1.5)
+ for (stk in dat4$Stock)
+   {
+   x <- dat4[dat4$Stock==stk,] 
+   yrange <- intersect (x[x$Var=="F/FMSY", "Year"], x[x$Var=="CPUF", "Year"])
+   points(x[x$Var=="F/FMSY" & x$Year %in% yrange, "value"],  x[x$Var=="CPUF" & x$Year %in% yrange, "value"], type="p", pch=16, xlab="F/FMSY", ylab="CPUF", col=the_colors[stk,2])
+   lines(lowess(x[x$Var=="F/FMSY" & x$Year %in% yrange, "value"], x[x$Var=="CPUF" & x$Year %in% yrange, "value"]),  col=the_colors[stk,2], lwd=2.5, f=0.9)
+   }
+   axis(1);axis(2, las=2) ; box() 
+   legend("bottomright", legend= unique(dat4$Stock), lty=1, lwd=2, col=as.character(the_colors[unique(dat4$Stock),2]), bty="n")
+
+dev.off()
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
         
