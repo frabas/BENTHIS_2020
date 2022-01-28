@@ -503,7 +503,23 @@ dev.off()                                       0
  color_species <- c("#E69F00", "#E69F05", "hotpink","#56B4E9","#F0E442", "green", "#0072B2", "mediumorchid4", "#CC79A7",
                    "indianred2", "#EEC591", "#458B00", "#F0F8FF", "black", "#e3dcbf", "#CD5B45", "lightseagreen",
                    "green", "#6495ED", "#CDC8B1", "#00FFFF", "#8B0000", "#008B8B", "#008B7B", "#A9A9A9", "#76a5c4", "red", "yellow", "blue")
- the_colors <- cbind(spp, color_species) ; rownames(the_colors) <- spp 
+  Stocknames <-  c("COD.nsea"="North Sea cod", "COD.2224"="west Baltic cod", "CSH"="brown shrimp", "DAB"="dab", "ELE"="eel", "FLE"="flounder",
+                        "HAD"="haddock",  "HAD.nsea"="North Sea haddock", "HER"="herring", "HER.nsea"="North Sea herring", "HKE"="hake","HKE.nsea"="North Sea hake", 
+                        "HOM"="Horse mackerel", "LEM"="lemon sole",
+                         "MAC"="mackerel", "MAC.nsea"="North Sea mackerel", "MON"="monkfish", "MUS"="mussel", "NEP"="Nephrops", "NEP.kask"="Kattegat Nephrops", 
+                         "NOP"="Norway pout", "PLE"="plaice", "PLE.nsea"="North Sea plaice", "PLE.2123"="Kattegat plaice",
+                         "POK"="saithe", "POK.nsea"="North Sea saithe", "PRA"="boreal shrimp", "PRA.nsea"="North Sea boreal shrimp", "SAN"="sandeel", "SOL"="sole","SOL.nsea"="North Sea sole",  
+                         "SOL.2024"="Baltic sole", "SPR"="sprat", "SPR.2232"="Baltic sprat", "TUR"="turbot", "WHB"="blue whiting",
+                          "WIT"="witch flounder", "WHG"="whiting", "OTH"="other",
+                          "COC"="cokle", "OYF"="oyster", "LUM"="lumpfish", "SAL"="salmon", "BLL"="brill", "GAR"="garfish")                         
+  some_color_speciesnames <- c("cod"="#E69F00", "brown shrimp"="hotpink", "dab"="#56B4E9", "eel"="#F0E442", "flounder"="green",
+                        "haddock"="#0072B2", "herring"="mediumorchid4", "hake"="#CC79A7","Horse mackerel"="indianred2", "lemon sole"="#EEC591",
+                         "mackerel"="#458B00", "monkfish"="#F0F8FF", "mussel"="black", "Nephrops"="#e3dcbf", "Norway pout"="#CD5B45", "plaice"="lightseagreen",
+                         "saithe"="#6495ED", "boreal shrimp"="#CDC8B1", "sandeel"="#00FFFF", "sole"="#8B0000", "sprat"="#008B8B", "turbot"="#A9A9A9", "blue whiting"="#76a5c4",
+                          "witch flounder"="red", "whiting"="yellow", "other"="blue",
+                          "cockle"="#108291", "oyster"="#6a9110", "lumpfish"="red", "salmon"="#c2a515", "brill"="cyan", "garfish"="grey")
+
+the_colors <- cbind(spp, color_species) ; rownames(the_colors) <- spp 
  # a quick visual
  par(mfrow=c(2,2))
  par(mar=c(5,4,2.2,1))
@@ -512,7 +528,7 @@ dev.off()                                       0
  dat3 <- collected_data[collected_data$Seg =="PelagicTrawl" & collected_data$Stock %in% c("HER.nsea", "MAC.nsea", "SPR.2232"), ]
  dat4 <- collected_data[collected_data$Seg =="SmallVessels" & collected_data$Stock %in% c("COD.2224", "COD.nsea", "PLE.2123", "PLE.nsea", "SOL.nsea"), ]
  # plot1
- plot(0,0, xlab="F/FMSY", ylab="CPUF", axes=FALSE, xlim=range(dat1[dat1$Var=="F/FMSY" & dat1$Year %in% 2005:2018, "value"]), ylim=c(0,2), type="n")
+ plot(0,0, xlab="F/FMSY", ylab="CPUF", cex.lab=1.2, axes=FALSE, xlim=range(dat1[dat1$Var=="F/FMSY" & dat1$Year %in% 2005:2018, "value"]), ylim=c(0,2), type="n")
  mtext(side=3,paste("(","a", ")", sep=''),line=1.0, adj=0, cex=1.5)
  for (stk in dat1$Stock)
    {
@@ -522,9 +538,9 @@ dev.off()                                       0
    lines(lowess(x[x$Var=="F/FMSY" & x$Year %in% yrange, "value"], x[x$Var=="CPUF" & x$Year %in% yrange, "value"]),  col=the_colors[stk,2], lwd=2.5, f=0.9)
    }
    axis(1);axis(2, las=2) ; box() 
-   legend("topright", legend= unique(dat1$Stock), lty=1, lwd=2, col=as.character(the_colors[unique(dat1$Stock),2]), bty="n")
+   legend("topright", legend= Stocknames[unique(dat1$Stock)], lty=1, lwd=2, col=as.character(the_colors[unique(dat1$Stock),2]), bty="n")
  # plot2
- plot(0,0, xlab="F/FMSY", ylab="CPUF", axes=FALSE, xlim=range(dat2[dat2$Var=="F/FMSY" & dat2$Year %in% 2005:2018, "value"]), ylim=range(dat2[dat2$Var=="CPUF" & dat2$Year %in% 2005:2018, "value"]), type="n")
+ plot(0,0, xlab="F/FMSY", ylab="CPUF", cex.lab=1.2, axes=FALSE, xlim=range(dat2[dat2$Var=="F/FMSY" & dat2$Year %in% 2005:2018, "value"]), ylim=range(dat2[dat2$Var=="CPUF" & dat2$Year %in% 2005:2018, "value"]), type="n")
  mtext(side=3,paste("(","b", ")", sep=''),line=1.0, adj=0, cex=1.5)
  for (stk in dat2$Stock)
    {
@@ -534,9 +550,9 @@ dev.off()                                       0
    lines(lowess(x[x$Var=="F/FMSY" & x$Year %in% yrange, "value"], x[x$Var=="CPUF" & x$Year %in% yrange, "value"]),  col=the_colors[stk,2], lwd=2.5, f=0.9)
    }
    axis(1);axis(2, las=2)  ; box()
-   legend("topleft", legend= unique(dat2$Stock), lty=1, lwd=2, col=as.character(the_colors[unique(dat2$Stock),2]), bty="n")
+   legend("topleft", legend= Stocknames[unique(dat2$Stock)], lty=1, lwd=2, col=as.character(the_colors[unique(dat2$Stock),2]), bty="n")
  # plot3
- plot(0,0, xlab="F/FMSY", ylab="CPUF", axes=FALSE, xlim=range(dat3[dat3$Var=="F/FMSY", "value"]), ylim=range(dat3[dat3$Var=="CPUF", "value"]), type="n")
+ plot(0,0, xlab="F/FMSY", ylab="CPUF", cex.lab=1.2, axes=FALSE, xlim=range(dat3[dat3$Var=="F/FMSY", "value"]), ylim=range(dat3[dat3$Var=="CPUF", "value"]), type="n")
  mtext(side=3,paste("(","c", ")", sep=''),line=1.0, adj=0, cex=1.5)
  for (stk in dat3$Stock)
    {
@@ -546,9 +562,9 @@ dev.off()                                       0
    lines(lowess(x[x$Var=="F/FMSY" & x$Year %in% yrange, "value"], x[x$Var=="CPUF" & x$Year %in% yrange, "value"]),  col=the_colors[stk,2], lwd=2.5, f=0.9)
    }
    axis(1);axis(2, las=2) ; box() 
-   legend("topleft", legend= unique(dat3$Stock), lty=1, lwd=2, col=as.character(the_colors[unique(dat3$Stock),2]), bty="n")
+   legend("topleft", legend= Stocknames[unique(dat3$Stock)], lty=1, lwd=2, col=as.character(the_colors[unique(dat3$Stock),2]), bty="n")
  # plot4
- plot(0,0, xlab="F/FMSY", ylab="CPUF", axes=FALSE, xlim=range(dat4[dat4$Var=="F/FMSY", "value"]), ylim=range(dat4[dat4$Var=="CPUF", "value"]), type="n")
+ plot(0,0, xlab="F/FMSY", ylab="CPUF", cex.lab=1.2, axes=FALSE, xlim=range(dat4[dat4$Var=="F/FMSY", "value"]), ylim=range(dat4[dat4$Var=="CPUF", "value"]), type="n")
  mtext(side=3,paste("(","d", ")", sep=''),line=1.0, adj=0, cex=1.5)
  for (stk in dat4$Stock)
    {
@@ -558,7 +574,7 @@ dev.off()                                       0
    lines(lowess(x[x$Var=="F/FMSY" & x$Year %in% yrange, "value"], x[x$Var=="CPUF" & x$Year %in% yrange, "value"]),  col=the_colors[stk,2], lwd=2.5, f=0.9)
    }
    axis(1);axis(2, las=2) ; box() 
-   legend("bottomright", legend= unique(dat4$Stock), lty=1, lwd=2, col=as.character(the_colors[unique(dat4$Stock),2]), bty="n")
+   legend("bottomright", legend= Stocknames[unique(dat4$Stock)], lty=1, lwd=2, col=as.character(the_colors[unique(dat4$Stock),2]), bty="n")
 
 dev.off()
       

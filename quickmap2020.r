@@ -374,6 +374,23 @@ quickmap <- function(namefile = paste0("LE_KG_COD_2019", ".tif"),
                         "MAC"="#458B00", "MON"="#F0F8FF", "MUS"="black", "NEP"="#e3dcbf", "NOP"="#CD5B45", "PLE"="lightseagreen",
                         "POK"="#6495ED", "PRA"="#CDC8B1", "SAN"="#00FFFF", "SOL"="#8B0000", "SPR"="#008B8B", "TUR"="#A9A9A9", "WHB"="#76a5c4",
                          "WIT"="red", "WHG"="yellow", "OTH"="blue")
+     Stocknames <-  c("COD"="cod", "COD.nsea"="North Sea cod", "COD.2224"="west Baltic cod", "CSH"="brown shrimp", "DAB"="dab", "ELE"="eel", "FLE"="flounder",
+                        "HAD"="haddock",  "HAD.nsea"="North Sea haddock", "HER"="herring", "HER.nsea"="North Sea herring", "HKE"="hake","HKE.nsea"="North Sea hake", 
+                        "HOM"="Horse mackerel", "LEM"="lemon sole",
+                         "MAC"="mackerel", "MAC.nsea"="North Sea mackerel", "MON"="monkfish", "MUS"="mussel", "NEP"="Nephrops", "NEP.kask"="Kattegat Nephrops", 
+                         "NOP"="Norway pout", "PLE"="plaice", "PLE.nsea"="North Sea plaice", "PLE.2123"="Kattegat plaice",
+                         "POK"="saithe", "POK.nsea"="North Sea saithe", "PRA"="boreal shrimp", "PRA.nsea"="North Sea boreal shrimp", "SAN"="sandeel", "SOL"="sole","SOL.nsea"="North Sea sole",  
+                         "SOL.2024"="Baltic sole", "SPR"="sprat", "SPR.2232"="Baltic sprat", "TUR"="turbot", "WHB"="blue whiting",
+                          "WIT"="witch flounder", "WHG"="whiting", "OTH"="other",
+                          "COC"="cokle", "OYF"="oyster", "LUM"="lumpfish", "SAL"="salmon", "BLL"="brill", "GAR"="garfish")                         
+    some_color_speciesnames <- c("cod"="#E69F00", "brown shrimp"="hotpink", "dab"="#56B4E9", "eel"="#F0E442", "flounder"="green",
+                        "haddock"="#0072B2", "herring"="mediumorchid4", "hake"="#CC79A7","Horse mackerel"="indianred2", "lemon sole"="#EEC591",
+                         "mackerel"="#458B00", "monkfish"="#F0F8FF", "mussel"="black", "Nephrops"="#e3dcbf", "Norway pout"="#CD5B45", "plaice"="lightseagreen",
+                         "saithe"="#6495ED", "boreal shrimp"="#CDC8B1", "sandeel"="#00FFFF", "sole"="#8B0000", "sprat"="#008B8B", "turbot"="#A9A9A9", "blue whiting"="#76a5c4",
+                          "witch flounder"="red", "whiting"="yellow", "other"="blue",
+                          "cockle"="#108291", "oyster"="#6a9110", "lumpfish"="red", "salmon"="#c2a515", "brill"="cyan", "garfish"="grey")
+                     
+                         
     out$color <- some_color_species[as.character(out$data)] 
      } else{
       out$color <- Satellite.Palette.baseline(length(the_breaks_baseline[-1])) [cut(out$data, the_breaks_baseline)]
@@ -476,8 +493,10 @@ quickmap <- function(namefile = paste0("LE_KG_COD_2019", ".tif"),
   #       legend= the_breaks_leg,
   #       cex=1.3, col="black") 
    if(grepl("sp_with_max_vpuf",a_nametype) || grepl("sp_with_max_cpue",a_nametype) || grepl("sp_with_max_cpuf",a_nametype) ||  grepl("sp_with_max_vpufswa",a_nametype)){
-   
-      legend("topright", legend=names(some_color_species), fill=some_color_species, bty="o", border=NA,  ncol=4, box.col="white", title=a_title_leg)       
+
+      name_leg <- names(some_color_speciesnames[Stocknames[unique(out2$data)]])  ;   name_leg <- name_leg[!is.na(name_leg)]
+      fill_leg <- some_color_speciesnames[Stocknames[unique(out2$data)]]    ;   fill_leg <- fill_leg[!is.na(fill_leg)]
+      legend("topright", legend=name_leg, fill=fill_leg, bty="o", border=NA,  ncol=4, box.col="white", title=a_title_leg)       
    
    } else{
       for(i in 1: length(the_breaks_baseline[-1])){ if(the_breaks_baseline[i]>1) {the_breaks_leg[i] <- round(the_breaks_baseline[i],1)} else{the_breaks_leg[i]<- the_breaks_baseline[i]}}
@@ -734,6 +753,8 @@ if(FALSE) for (a_met in metiers){
  #!#!#!#!#!#!#!#!
  aggall <- agg
  aggall$LE_MET <- "BottomContactingGears"
+ library(maptools)
+ library(sf)
  quickmap (namefile = paste0("ColorSpCodeMapFor_","BottomContactingGears","_",years[1],"-",years[length(years)],".tif"),
                      #a_file   = file.path(getwd(),  "outputs2020_pel", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPel_",y,".RData") ),
                      #nameobj  = "aggResult",
