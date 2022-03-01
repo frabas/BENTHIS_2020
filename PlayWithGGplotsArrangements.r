@@ -1,8 +1,8 @@
 
 
 
-#save(list=ls()[grepl("barplot",ls()) | grepl("area",ls())], file=file.path("D:","FBA","BENTHIS_2020", "ggplots_rev.RData"))
-load(file=file.path("D:","FBA","BENTHIS_2020", "ggplots.RData"))
+#save(list=ls()[grepl("barplot",ls()) | grepl("area",ls())], file=file.path("D:","FBA","BENTHIS_2020", "ggplots_rev2.RData"))
+load(file=file.path("D:","FBA","BENTHIS_2020", "ggplots_rev2.RData"))
 setwd(file.path("D:","FBA","BENTHIS_2020"))
 
  friendly_met_names <- function(dd){
@@ -61,6 +61,35 @@ setwd(file.path("D:","FBA","BENTHIS_2020"))
 
     return(paste(dd$met_desc1, dd$met_desc2, dd$met_desc3))
     }
+
+
+
+
+ # Revised Figure 2
+ load("ggplots_for_pelagic_nb_vessels.Rdata")
+ load("ggplots_for_demersal_nb_vessels.Rdata")
+ # paper
+ a_width <- 8000 ; a_height <- 3500
+ namefile <- paste0("ggplot.tif")
+ tiff(filename=file.path("D:","FBA","BENTHIS_2020", "ggplots", "Figure2_revised_nb_vessels_2005-2019.tiff"),   width = a_width, height = a_height,
+                                   units = "px", pointsize = 12,  res=600, compression = c("lzw"))
+ library(ggpubr)
+ ggarrange(p1+ggtitle("(a) Bottom-contacting gears"),
+           p2+ggtitle("(b)"),
+           p3+ggtitle("(c)"),
+           p4+ggtitle("(d)"), 
+           p1_pel+ggtitle("(e) Pelagic gears"),
+           p2_pel+ggtitle("(f)"),
+           p3_pel+ggtitle("(g)"),
+           p4_pel+ggtitle("(h)"),  ncol=4, nrow=2, heights=c(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1), common.legend = TRUE, legend="right" )
+ dev.off()
+
+
+
+
+
+
+
 
 
 some_color_seg <-  c("#7FC97F", "#BEAED4", "#FDC086", "#FFFF99", "#386CB0", "#F0027F", "#BF5B17", "#666666", "#1B9E77", "#D95F02", "#7570B3", "#E7298A", "#66A61E", "#E6AB02", "#A6761D", "#666666", "#A6CEE3", "#1F78B4", "#B2DF8A", "#33A02C", "#FB9A99", "#E31A1C", "#FDBF6F",
@@ -147,13 +176,13 @@ dev.off()
 #1
 a_unit <- 1
  # paper
- a_width <- 6000 ; a_height <- 7500
+ a_width <- 8000 ; a_height <- 7500
  namefile <- paste0("ggplot.tif")
  tiff(filename=file.path("D:","FBA","BENTHIS_2020", "ggplots", "fpuc_per_fleet_revised.tiff"),   width = a_width, height = a_height,
                                    units = "px", pointsize = 12,  res=600, compression = c("lzw"))
 library(ggpubr)
  ggarrange(    p5_barplot_bottomfishing_dem_fpuc + ggtitle("Bottom fishing") + guides(fill =guide_legend(ncol=2, position="right")) + theme(legend.text = element_text(size = 12),axis.text.x=element_text(angle=60,hjust=1,vjust=1, size=12), plot.title=element_text(margin=margin(t=40,b=-20))),
-              p5_barplot_bottomfishing_pel_fpuc + ggtitle("Bottom fishing small/no mesh")+ guides(fill =guide_legend(ncol=2, position="right")) + theme(legend.text = element_text(size = 12),axis.text.x=element_text(angle=60,hjust=1,vjust=1, size=12)),
+              p5_barplot_bottomfishing_pel_fpuc + ggtitle("Bottom fishing with small/no mesh")+ guides(fill =guide_legend(ncol=2, position="right")) + theme(legend.text = element_text(size = 12),axis.text.x=element_text(angle=60,hjust=1,vjust=1, size=12)),
               p5_barplot_pelfishing_pel_fpuc + ggtitle("Pelagic fishing") + guides(fill =guide_legend(ncol=2, position="right")) + theme(legend.text = element_text(size = 12),axis.text.x=element_text(angle=60,hjust=1,vjust=1, size=12)),
           ncol=1, heights=c(1.5,1.5,1.2,1,1, 1), common.legend = FALSE, legend="right")
 dev.off()
@@ -262,9 +291,6 @@ print(spp)
       ymax = p_map$ymax[i])
 }
 p5_barplot_bottomfishing_dem_fpuc_per_stk
-
-
-
 
 
 }

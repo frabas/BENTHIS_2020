@@ -747,3 +747,54 @@ a_width <- 4000; a_height <- 2500
 print(p4)
 dev.off()
 
+
+
+# revised:
+load(file=file.path(outPath,  paste("AggregatedEffortAlly_PelagicFishing.RData"))) # aggEffortAlly
+some_color_vessel_size <- c("[15,18)"="#FFDB6D",  "[18,24)"="#FC4E07",  "[24,40)"="#52854C",  "[40,100)"="#293352")
+dd <- aggEffortAndFuelAlly[!duplicated(data.frame(aggEffortAndFuelAlly$VE_REF, aggEffortAndFuelAlly$Year)),]
+dd$nbvessel <- 1 
+p1 <- ggplot() + geom_bar(data=aggEffortAndFuelAlly, aes(x=as.character(Year), y=effective_effort_mins/60/1000, group=VesselSize, fill=VesselSize), size=1.5, position="stack",  stat = "summary", fun = "sum")
+p2 <- ggplot() + geom_bar(data=dd, aes(x=as.character(Year), y=nbvessel, group=VesselSize, fill=VesselSize),size=1.5, stat = "summary", fun = "sum")
+p3 <- ggplot() + geom_line(data=dd, aes(x=as.character(Year), y=litre_fuel/1e6, group=VesselSize, color=VesselSize),size=1.5,  stat = "summary", fun = "sum")
+p4 <- ggplot() + geom_line(data=dd, aes(x=as.character(Year), y=toteuros/1e6, group=VesselSize, color=VesselSize),size=1.5,   stat = "summary", fun = "sum")
+p1_pel <- p1 + scale_y_continuous(name = "Fishing effort ('000 hours)")+
+       theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5), axis.title.y=element_text(size=rel(0.8)))  + 
+       labs(x = "Year")     + 
+       scale_fill_manual(values=some_color_vessel_size, name="VesselSize") +  
+       guides(fill =guide_legend(ncol=1)) 
+p2_pel <- p2 + scale_y_continuous(name = "Number of active vessels")+
+       theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5), axis.title.y=element_text(size=rel(0.8)))  + 
+       labs(x = "Year")     + 
+       scale_fill_manual(values=some_color_vessel_size, name="VesselSize") +  
+       guides(fill =guide_legend(ncol=1)) 
+p3_pel <- p3 + scale_y_continuous(name = "Fuel use (million litres)")+
+       theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5), axis.title.y=element_text(size=rel(0.8)))  + 
+       labs(x = "Year")     + 
+       scale_color_manual(values=some_color_vessel_size, name="VesselSize") +  
+       guides(fill =guide_legend(ncol=1)) 
+p4_pel <- p4 + scale_y_continuous(name = "Landings (million euros)")+
+       theme_minimal() + theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5), axis.title.y=element_text(size=rel(0.8)))  + 
+       labs(x = "Year")     + 
+       scale_color_manual(values=some_color_vessel_size, name="VesselSize") +  
+       guides(fill =guide_legend(ncol=1)) 
+       
+       
+       
+        
+save(p1_pel, p2_pel, p3_pel, p4_pel, file="ggplots_for_pelagic_nb_vessels.Rdata")
+# then do a ggarrange later with the pelagics.....
+
+a_unit <- 1
+ # paper
+ a_width <- 8000 ; a_height <- 7500
+ namefile <- paste0("ggplot.tif")
+ tiff(filename=file.path("D:","FBA","BENTHIS_2020", "ggplots", "Figure2_revised_nb_vessels_2005-2019_PEL.tiff"),   width = a_width, height = a_height,
+                                   units = "px", pointsize = 12,  res=600, compression = c("lzw"))
+library(ggpubr)
+ ggarrange(p1_pel, p2_pel, p3_pel, p4_pel,  ncol=1, heights=c(1.5,1.5,1.2,1,1, 1), common.legend = TRUE, legend="right" )
+dev.off()
+
+
+
+

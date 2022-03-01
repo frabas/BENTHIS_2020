@@ -1350,7 +1350,7 @@ dev.off()
   the_agg_plot$met_desc <- factor(the_agg_plot$met_desc )
   the_agg_plot$Stock <- factor(the_agg_plot$Stock )
 
-  the_agg_plot$Stockname <- Stocknames[the_agg_plot$Stock]
+  the_agg_plot$Stockname <- Stocknames[as.character(the_agg_plot$Stock)]
 
  a_func_mean <- function (x) mean(x[x!=0 & !is.na(x)])
   a_func_cv <- function(x) {sqrt(var(x[x!=0 & !is.na(x)]))/mean(x[x!=0 & !is.na(x)])}
@@ -1639,7 +1639,7 @@ dev.off()
 
  the_agg_plot <- as.data.frame(the_agg[grep("SmallMesh",the_agg$LE_MET),])
 
-  the_agg_plot$Stockname <- Stocknames[the_agg_plot$Stock]
+  the_agg_plot$Stockname <- Stocknames[as.character(the_agg_plot$Stock)]
 
  # a visual fix adding all combi--
  #dd <- expand.grid(LE_MET=levels(factor(the_agg_plot$LE_MET)), Stock=levels(factor(the_agg_plot$Stock)), year=levels(factor(the_agg_plot$year)))

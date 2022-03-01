@@ -1174,7 +1174,7 @@ spp <- colnames(aggResultPerMetAlly) [grep("LE_EURO_", colnames(aggResultPerMetA
  the_agg_plot <- as.data.frame(the_agg[grep("SmallMesh",the_agg$LE_MET),])
 
 
- the_agg_plot$Stockname <- Stocknames[the_agg_plot$Stock]
+ the_agg_plot$Stockname <- Stocknames[as.character(the_agg_plot$Stock)]
 
 
  # a visual fix adding all combi--
