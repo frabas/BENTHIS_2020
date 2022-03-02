@@ -215,7 +215,7 @@ quickmap <- function(namefile = paste0("LE_KG_COD_2019", ".tif"),
 
  # ...and map
  Satellite.Palette.baseline <-colorRampPalette(c("cyan","aquamarine","orange","red"))
- #Satellite.Palette.baseline <- colorRampPalette(c("red","orange","aquamarine","cyan"))  # reverse palette
+ if( grepl("FPUCallsp",a_nametype) || grepl("FPUVallsp",a_nametype)) Satellite.Palette.baseline <- colorRampPalette(c("red","orange","aquamarine","cyan"))  # reverse palette
 
    
   if(a_nametype %in% c('SWEPT_AREA_KM2', 'SWEPT_AREA_KM2_LOWER', 'SWEPT_AREA_KM2_UPPER')){
@@ -376,7 +376,7 @@ quickmap <- function(namefile = paste0("LE_KG_COD_2019", ".tif"),
                          "WIT"="red", "WHG"="yellow", "OTH"="blue")
      Stocknames <-  c("COD"="cod", "COD.nsea"="North Sea cod", "COD.2224"="west Baltic cod", "CSH"="brown shrimp", "DAB"="dab", "ELE"="eel", "FLE"="flounder",
                         "HAD"="haddock",  "HAD.nsea"="North Sea haddock", "HER"="herring", "HER.nsea"="North Sea herring", "HKE"="hake","HKE.nsea"="North Sea hake", 
-                        "HOM"="Horse mackerel", "LEM"="lemon sole",
+                        "HOM"="horse mackerel", "LEM"="lemon sole",
                          "MAC"="mackerel", "MAC.nsea"="North Sea mackerel", "MON"="monkfish", "MUS"="mussel", "NEP"="Nephrops", "NEP.kask"="Kattegat Nephrops", 
                          "NOP"="Norway pout", "PLE"="plaice", "PLE.nsea"="North Sea plaice", "PLE.2123"="Kattegat plaice",
                          "POK"="saithe", "POK.nsea"="North Sea saithe", "PRA"="boreal shrimp", "PRA.nsea"="North Sea boreal shrimp", "SAN"="sandeel", "SOL"="sole","SOL.nsea"="North Sea sole",  
@@ -384,7 +384,7 @@ quickmap <- function(namefile = paste0("LE_KG_COD_2019", ".tif"),
                           "WIT"="witch flounder", "WHG"="whiting", "OTH"="other",
                           "COC"="cokle", "OYF"="oyster", "LUM"="lumpfish", "SAL"="salmon", "BLL"="brill", "GAR"="garfish")                         
     some_color_speciesnames <- c("cod"="#E69F00", "brown shrimp"="hotpink", "dab"="#56B4E9", "eel"="#F0E442", "flounder"="green",
-                        "haddock"="#0072B2", "herring"="mediumorchid4", "hake"="#CC79A7","Horse mackerel"="indianred2", "lemon sole"="#EEC591",
+                        "haddock"="#0072B2", "herring"="mediumorchid4", "hake"="#CC79A7","horse mackerel"="indianred2", "lemon sole"="#EEC591",
                          "mackerel"="#458B00", "monkfish"="#F0F8FF", "mussel"="black", "Nephrops"="#e3dcbf", "Norway pout"="#CD5B45", "plaice"="lightseagreen",
                          "saithe"="#6495ED", "boreal shrimp"="#CDC8B1", "sandeel"="#00FFFF", "sole"="#8B0000", "sprat"="#008B8B", "turbot"="#A9A9A9", "blue whiting"="#76a5c4",
                           "witch flounder"="red", "whiting"="yellow", "other"="blue",
@@ -421,7 +421,9 @@ quickmap <- function(namefile = paste0("LE_KG_COD_2019", ".tif"),
      library(sf)
      mrc_proj <- st_as_sf(fao_areas_lambert)
      mrc <- st_as_sf(fao_areas)
-     plot(mrc_proj["geometry"], axes = TRUE, cex.axis=2, graticule = st_crs(mrc), key.pos = NULL, reset = FALSE) #  key.pos = NULL, reset = FALSE to avoid pbl with par(mfrow)
+     a_cex_axis <- 2.0
+     if(nametype == "sp_with_max_vpuf") a_cex_axis<-1.3
+     plot(mrc_proj["geometry"], axes = TRUE, cex.axis=a_cex_axis, graticule = st_crs(mrc), key.pos = NULL, reset = FALSE) #  key.pos = NULL, reset = FALSE to avoid pbl with par(mfrow)
      #g=st_graticule(mrc_proj["geometry"])
      #plot(g[1], col="grey", add=TRUE)
   } else{
@@ -461,8 +463,10 @@ quickmap <- function(namefile = paste0("LE_KG_COD_2019", ".tif"),
  
   #mtext(side=3, namesce[count], cex=1.5, line=0.5)
   #mtext(side=3, someletters[count], cex=2, line=1, adj=0)
-  mtext("Latitude", 1, line=2, cex=1.5, outer=TRUE)
-  mtext(side=2,"Longitude",line=2, cex=1.5, outer=TRUE)
+  a_cex <- 1.3
+  if(a_nametype == "sp_with_max_vpuf" ){ a_cex <- 0.8} 
+  mtext("Latitude", 1, line=2, cex=a_cex, outer=TRUE)
+  mtext(side=2,"Longitude",line=2, cex=a_cex, outer=TRUE)
   #axis(1, cex.axis=1.0)
   #axis(2, las=2, cex.axis=1.0)
   box()
@@ -473,18 +477,18 @@ quickmap <- function(namefile = paste0("LE_KG_COD_2019", ".tif"),
   y = c(ylims[1]-0.5+0.1*(ylims[2]-ylims[1]), ylims[1]-0.5+0.7*(ylims[2]-ylims[1]), ylims[1]-0.5+0.5*(ylims[2]-ylims[1]), ylims[1]-0.7+0.1*(ylims[2]-ylims[1]))
   the_breaks_leg <-NULL
   if(grepl("VPUFSWAallsp", a_nametype)) a_title_leg <- c("euro per area swept") 
-  if(grepl("LE_VPUF", a_nametype)) a_title_leg <- c("euro per litre") 
-  if(grepl("VPUFallsp", a_nametype)) a_title_leg <- c("euro per litre") 
+  if(grepl("LE_VPUF", a_nametype)) a_title_leg <- c("Catch value (euro) per litre of fuel") 
+  if(grepl("VPUFallsp", a_nametype)) a_title_leg <- c("Catch value (euro) per litre of fuel") 
   if(grepl("LE_CPUF", a_nametype)) a_title_leg <- c("kg per litre") 
   if(grepl("CPUFallsp", a_nametype)) a_title_leg <- c("kg per litre") 
-  if(grepl("FPUCallsp", a_nametype)) a_title_leg <- c("litre per kg catch") 
-  if(grepl("FPUVallsp", a_nametype)) a_title_leg <- c("litre per euro catch") 
-  if(grepl("LE_CPUE", a_nametype)) a_title_leg <- c("kg per effective effort") 
-  if(grepl("CPUEallsp", a_nametype)) a_title_leg <- c("kg per effective effort") 
-  if(grepl("LE_VPUE", a_nametype)) a_title_leg <- c("euro per effective effort") 
-  if(grepl("VPUEallsp", a_nametype)) a_title_leg <- c("euro per effective effort") 
+  if(grepl("FPUCallsp", a_nametype)) a_title_leg <- c("Fuel use (litre) per kg catch") 
+  if(grepl("FPUVallsp", a_nametype)) a_title_leg <- c("Fuel use (litre) per euro catch") 
+  if(grepl("LE_CPUE", a_nametype)) a_title_leg <- c("Catch (kg) per effective effort (h)") 
+  if(grepl("CPUEallsp", a_nametype)) a_title_leg <- c("Catch (kg) per effective effort (h)") 
+  if(grepl("LE_VPUE", a_nametype)) a_title_leg <- c("Catch value (euro) per effective effort(h)") 
+  if(grepl("VPUEallsp", a_nametype)) a_title_leg <- c("Catch value (euro) per effective effort(h)") 
   if(grepl("LE_KG", a_nametype)) a_title_leg <- c("kg") 
-  if(grepl("sp_with_max_vpuf", a_nametype)) a_title_leg <- c("Species with max. VPUF") 
+  if(grepl("sp_with_max_vpuf", a_nametype)) a_title_leg <- c("Species caught at highest VPUF") 
   if(grepl("sp_with_max_cpue", a_nametype)) a_title_leg <- c("Species with max. CPUE") 
   if(grepl("sp_with_max_cpuf", a_nametype)) a_title_leg <- c("Species with max. CPUF") 
   if(grepl("sp_with_max_vpufswa", a_nametype)) a_title_leg <- c("Species with max. VPUFSWA") 
@@ -560,36 +564,13 @@ quickmap <- function(namefile = paste0("LE_KG_COD_2019", ".tif"),
  }
  
  
- #PER METIER
-if(FALSE) for (a_met in metiers){
-   quickmap (namefile = paste0("CPUEallspAndCoFor_",a_met,"_",years[1],"-",years[length(years)],".tif"), 
-                     #a_file   = file.path(getwd(),  "outputs2020_pel", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPel_",y,".RData") ), 
-                     #nameobj  = "aggResult", 
-                     aggResult   =  agg, # file.path(getwd(),"outputs2020", paste("AggregatedSweptAreaPlus_2019.RData") ), 
-                     a_unit   = 1, # 1 because 1 year agg
-                     nametype =c("CPUEallsp","FPUCallsp","VPUFallsp"), ## 3 plots
-                     a_met    = a_met,
-                     long     = "CELL_LONG", 
-                     lat      = "CELL_LATI",
-                     plot_per_c_square =FALSE,
-                     grid_agg_res =if(plot_per_c_square){0.05} else {3/60},
-                     xlims    = c(-7,25),
-                     ylims    = c(50,65),
-                     use_fao_areas=TRUE,
-                     fao_areas= fao_areas,
-                     spatial_polys=NULL,
-                     a_width=3000,
-                     a_height=3000,
-                     output_dir=file.path(getwd(), "outputs2020", "output_plots_maps_met")
-         )
- }
- 
  #!#!#!#!#!#!#!#!
  #!#!#!#!#!#!#!#!
  #!PAPER
  #!#!#!#!#!#!#!#!
  #!#!#!#!#!#!#!#!
  #ALL METIERS POOLED
+ library(maptools)
  years <- 2005:2019
  aggall_dem <- agg_dem
  aggall_dem$LE_MET <- "BottomContactingGears"
@@ -613,7 +594,39 @@ if(FALSE) for (a_met in metiers){
                      a_height=5000,
                      output_dir=file.path(getwd(), "outputs2020", "output_plots_maps_met")
          ) 
+ #!#!#!#!#!#!#!#!
+ #!#!#!#!#!#!#!#!
+ #!END FOR PAPER
+ #!#!#!#!#!#!#!#!
+ #!#!#!#!#!#!#!#! 
  
+ 
+ 
+ 
+ 
+ #PER METIER
+if(FALSE) for (a_met in metiers){
+   quickmap (namefile = paste0("CPUEallspAndCoFor_",a_met,"_",years[1],"-",years[length(years)],".tif"), 
+                     #a_file   = file.path(getwd(),  "outputs2020_pel", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPel_",y,".RData") ), 
+                     #nameobj  = "aggResult", 
+                     aggResult   =  agg, # file.path(getwd(),"outputs2020", paste("AggregatedSweptAreaPlus_2019.RData") ), 
+                     a_unit   = 1, # 1 because 1 year agg
+                     nametype =c("CPUEallsp","FPUCallsp","VPUFallsp"), ## 3 plots
+                     a_met    = a_met,
+                     long     = "CELL_LONG", 
+                     lat      = "CELL_LATI",
+                     plot_per_c_square =FALSE,
+                     grid_agg_res =if(plot_per_c_square){0.05} else {3/60},
+                     xlims    = c(-7,25),
+                     ylims    = c(50,65),
+                     use_fao_areas=TRUE,
+                     fao_areas= fao_areas,
+                     spatial_polys=NULL,
+                     a_width=3000,
+                     a_height=3000,
+                     output_dir=file.path(getwd(), "outputs2020", "output_plots_maps_met")
+         )
+ }
  
  
  
@@ -658,29 +671,6 @@ if(FALSE) for (a_met in metiers){
                )  
  }
  
- #PER METIER
-if(FALSE) for (a_met in metiers){
-   quickmap (namefile = paste0("CPUEallspAndCoFor_",a_met,"_",years[1],"-",years[length(years)],".tif"), 
-                     #a_file   = file.path(getwd(),  "outputs2020_pel", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPel_",y,".RData") ), 
-                     #nameobj  = "aggResult", 
-                     aggResult   =  agg_pel, # file.path(getwd(),"outputs2020", paste("AggregatedSweptAreaPlus_2019.RData") ), 
-                     a_unit   = 1, # 1 because 1 year agg
-                     nametype =c("CPUEallsp","FPUCallsp","VPUFallsp"), ## 3 plots
-                     a_met    = a_met,
-                     long     = "CELL_LONG", 
-                     lat      = "CELL_LATI",
-                     plot_per_c_square =FALSE,
-                     grid_agg_res =if(plot_per_c_square){0.05} else {3/60},
-                     xlims    = c(-7,25),
-                     ylims    = c(50,65),
-                     use_fao_areas=TRUE,
-                     fao_areas= fao_areas,
-                     spatial_polys=NULL,
-                     a_width=5000,
-                     a_height=5000,
-                     output_dir=file.path(getwd(), "outputs2020_pel", "output_plots_maps_met")
-         )
- }
  
  #!#!#!#!#!#!#!#!
  #!#!#!#!#!#!#!#!
@@ -711,9 +701,37 @@ if(FALSE) for (a_met in metiers){
                      output_dir=file.path(getwd(), "outputs2020_pel", "output_plots_maps_met")
          ) 
 
+ #!#!#!#!#!#!#!#!
+ #!#!#!#!#!#!#!#!
+ #!END PAPER
+ #!#!#!#!#!#!#!#!
+ #!#!#!#!#!#!#!#!
  
  
  
+ #PER METIER
+if(FALSE) for (a_met in metiers){
+   quickmap (namefile = paste0("CPUEallspAndCoFor_",a_met,"_",years[1],"-",years[length(years)],".tif"), 
+                     #a_file   = file.path(getwd(),  "outputs2020_pel", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPel_",y,".RData") ), 
+                     #nameobj  = "aggResult", 
+                     aggResult   =  agg_pel, # file.path(getwd(),"outputs2020", paste("AggregatedSweptAreaPlus_2019.RData") ), 
+                     a_unit   = 1, # 1 because 1 year agg
+                     nametype =c("CPUEallsp","FPUCallsp","VPUFallsp"), ## 3 plots
+                     a_met    = a_met,
+                     long     = "CELL_LONG", 
+                     lat      = "CELL_LATI",
+                     plot_per_c_square =FALSE,
+                     grid_agg_res =if(plot_per_c_square){0.05} else {3/60},
+                     xlims    = c(-7,25),
+                     ylims    = c(50,65),
+                     use_fao_areas=TRUE,
+                     fao_areas= fao_areas,
+                     spatial_polys=NULL,
+                     a_width=5000,
+                     a_height=5000,
+                     output_dir=file.path(getwd(), "outputs2020_pel", "output_plots_maps_met")
+         )
+ }
  
  
  
@@ -746,11 +764,7 @@ if(FALSE) for (a_met in metiers){
                                                        "sp_with_max_vpuf", "sp_with_max_cpue", "sp_with_max_cpuf", "sp_with_max_vpufswa")])
                )  
  }
- #!#!#!#!#!#!#!#!
- #!#!#!#!#!#!#!#!
- #!PAPER
- #!#!#!#!#!#!#!#!
- #!#!#!#!#!#!#!#!
+ 
  aggall <- agg
  aggall$LE_MET <- "BottomContactingGears"
  library(maptools)
@@ -778,6 +792,13 @@ if(FALSE) for (a_met in metiers){
 
     
 
+ #!#!#!#!#!#!#!#!
+ #!#!#!#!#!#!#!#!
+ #!PAPER
+ #!#!#!#!#!#!#!#!
+ #!#!#!#!#!#!#!#!
+ library(maptools)
+ library(sf)
  aggall <- agg
  aggall$LE_MET <- "BottomContactingGears"
  quickmap (namefile = paste0("ColorSpCodeMapFor_","BottomContactingGears","_",years[1],"-",years[length(years)],"_maxvpuf.tif"),
@@ -800,6 +821,11 @@ if(FALSE) for (a_met in metiers){
                      a_height=5000,
                      output_dir=file.path(getwd(), "outputs2020", "output_plots_maps_met")
          )
+ #!#!#!#!#!#!#!#!
+ #!#!#!#!#!#!#!#!
+ #!END PAPER
+ #!#!#!#!#!#!#!#!
+ #!#!#!#!#!#!#!#!
 
 
 
@@ -836,6 +862,38 @@ agg <- NULL
  #!#!#!#!#!#!#!#!
 aggall <- agg
  aggall$LE_MET <- "PelagicGears"
+ quickmap (namefile = paste0("ColorSpCodeMapFor_","PelagicGears","_",years[1],"-",years[length(years)],"_maxvpuf.tif"),
+                     #a_file   = file.path(getwd(),  "outputs2020_pel", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPel_",y,".RData") ),
+                     #nameobj  = "aggResult",
+                     aggResult   =  aggall, # file.path(getwd(),"outputs2020", paste("AggregatedSweptAreaPlus_2019.RData") ),
+                     a_unit   = 1, # 1 because 1 year agg
+                     nametype =c("sp_with_max_vpuf"), ## 1 plot
+                     a_met    = "PelagicGears",
+                     long     = "CELL_LONG",
+                     lat      = "CELL_LATI",
+                     plot_per_c_square =FALSE,
+                     grid_agg_res =if(plot_per_c_square){0.05} else {3/60},
+                     xlims    = c(-7,25),
+                     ylims    = c(50,65),
+                     use_fao_areas=TRUE,
+                     fao_areas= fao_areas,
+                     spatial_polys=NULL,
+                     a_width=5000,
+                     a_height=5000,
+                     output_dir=file.path(getwd(), "outputs2020_pel", "output_plots_maps_met")
+         )
+
+ #!#!#!#!#!#!#!#!
+ #!#!#!#!#!#!#!#!
+ #!END PAPER
+ #!#!#!#!#!#!#!#!
+ #!#!#!#!#!#!#!#!
+
+
+
+
+aggall <- agg
+ aggall$LE_MET <- "PelagicGears"
  quickmap (namefile = paste0("ColorSpCodeMapFor_","PelagicGears","_",years[1],"-",years[length(years)],".tif"),
                      #a_file   = file.path(getwd(),  "outputs2020_pel", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPel_",y,".RData") ),
                      #nameobj  = "aggResult",
@@ -857,29 +915,6 @@ aggall <- agg
                      output_dir=file.path(getwd(), "outputs2020_pel", "output_plots_maps_met")
          )
 
-
-aggall <- agg
- aggall$LE_MET <- "PelagicGears"
- quickmap (namefile = paste0("ColorSpCodeMapFor_","PelagicGears","_",years[1],"-",years[length(years)],"_maxvpuf.tif"),
-                     #a_file   = file.path(getwd(),  "outputs2020_pel", paste0("AggregatedSweptAreaPlusMet6AndVsizeAndRatiosForPel_",y,".RData") ),
-                     #nameobj  = "aggResult",
-                     aggResult   =  aggall, # file.path(getwd(),"outputs2020", paste("AggregatedSweptAreaPlus_2019.RData") ),
-                     a_unit   = 1, # 1 because 1 year agg
-                     nametype =c("sp_with_max_vpuf"), ## 1 plot
-                     a_met    = "PelagicGears",
-                     long     = "CELL_LONG",
-                     lat      = "CELL_LATI",
-                     plot_per_c_square =FALSE,
-                     grid_agg_res =if(plot_per_c_square){0.05} else {3/60},
-                     xlims    = c(-7,25),
-                     ylims    = c(50,65),
-                     use_fao_areas=TRUE,
-                     fao_areas= fao_areas,
-                     spatial_polys=NULL,
-                     a_width=5000,
-                     a_height=5000,
-                     output_dir=file.path(getwd(), "outputs2020_pel", "output_plots_maps_met")
-         )
 
 
 
