@@ -1697,13 +1697,13 @@ some_color_species<- c("COD"="#E69F00", "CSH"="hotpink", "DAB"="#56B4E9", "ELE"=
                           "WIT"="red", "WHG"="yellow", "OTH"="blue",
                           "COC"="#108291", "OYF"="#6a9110", "LUM"="red", "SAL"="#c2a515", "BLL"="cyan", "GAR"="grey")  # specific to small vids
  Stocknames <-  c("COD"="cod", "CSH"="brown shrimp", "DAB"="dab", "ELE"="eel", "FLE"="flounder",
-                        "HAD"="haddock", "HER"="herring", "HKE"="hake","HOM"="Horse mackerel", "LEM"="lemon sole",
+                        "HAD"="haddock", "HER"="herring", "HKE"="hake","HOM"="horse mackerel", "LEM"="lemon sole",
                          "MAC"="mackerel", "MON"="monkfish", "MUS"="mussel", "NEP"="Nephrops", "NOP"="Norway pout", "PLE"="plaice",
                          "POK"="saithe", "PRA"="boreal shrimp", "SAN"="sandeel", "SOL"="sole", "SPR"="sprat", "TUR"="turbot", "WHB"="blue whiting",
                           "WIT"="witch flounder", "WHG"="whiting", "OTH"="other",
                           "COC"="cokle", "OYF"="oyster", "LUM"="lumpfish", "SAL"="salmon", "BLL"="brill", "GAR"="garfish")                         
   some_color_speciesnames <- c("cod"="#E69F00", "brown shrimp"="hotpink", "dab"="#56B4E9", "eel"="#F0E442", "flounder"="green",
-                        "haddock"="#0072B2", "herring"="mediumorchid4", "hake"="#CC79A7","Horse mackerel"="indianred2", "lemon sole"="#EEC591",
+                        "haddock"="#0072B2", "herring"="mediumorchid4", "hake"="#CC79A7","horse mackerel"="indianred2", "lemon sole"="#EEC591",
                          "mackerel"="#458B00", "monkfish"="#F0F8FF", "mussel"="black", "Nephrops"="#e3dcbf", "Norway pout"="#CD5B45", "plaice"="lightseagreen",
                          "saithe"="#6495ED", "boreal shrimp"="#CDC8B1", "sandeel"="#00FFFF", "sole"="#8B0000", "sprat"="#008B8B", "turbot"="#A9A9A9", "blue whiting"="#76a5c4",
                           "witch flounder"="red", "whiting"="yellow", "other"="blue",
@@ -1867,12 +1867,15 @@ spp <- colnames(aggResultPerMetAlly) [grep("LE_EURO_", colnames(aggResultPerMetA
 
   the_agg_plot3 <- as.data.frame(the_agg_plot[grep("(c)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot3$LE_MET <- gsub("\\(c)","", the_agg_plot3$LE_MET)
+  the_agg_plot3 <- the_agg_plot3[the_agg_plot3$met_desc!="NA Other ",] # clean up
   the_agg_plot3$LE_MET <- factor(the_agg_plot3$LE_MET, level=fleet_segments_ordered) # reorder
   the_agg_plot3$met_desc <- factor(the_agg_plot3$met_desc, level=fleet_segments_ordered2) # reorder)
-  p3_barplot_bottomfishing_dem_cpuf_smallvids <- ggplot(data=the_agg_plot3, aes(x=met_desc, y=value/a_unit, fill=Stock)) + #  geom_bar(stat="identity", position=position_dodge())
-  geom_bar(stat = "summary", fun = a_func_mean) +  labs(y = "CPUF (kg per litre)", x= "Fleet-segments") +
-       scale_fill_manual(values=some_color_species, name="Species")  + theme_minimal() + theme(axis.text.x=element_blank()) + guides(fill =guide_legend(ncol=7))  
-  #print(p3)
+  p3_barplot_bottomfishing_dem_cpuf_smallvids <- ggplot(data=the_agg_plot3, aes(x=met_desc, y=value/a_unit, fill=Stockname)) + #  geom_bar(stat="identity", position=position_dodge())
+  geom_bar(stat = "summary", fun = a_func_mean) +  labs(y = "Landings (kg) per litre fuel", x= "Small vessels (<12m) using bottom-contacting fishing gears") +
+     scale_fill_manual(values=some_color_speciesnames[unique(the_agg_plot3$Stockname)], name="Species") + theme_minimal() + guides(fill =guide_legend(ncol=7))  + 
+       # theme(axis.text.x=element_blank())   
+        theme(axis.text.x=element_text(angle=60,hjust=1,vjust=1, size=12))
+#print(p3_barplot_bottomfishing_dem_cpuf_smallvids)
 
   the_agg_plot4 <- as.data.frame(the_agg_plot[grep("(d)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot4$LE_MET <- gsub("\\(d)","", the_agg_plot4$LE_MET)
@@ -2035,11 +2038,13 @@ dev.off()
  the_agg_plot3 <- as.data.frame(the_agg_plot[grep("(c)",the_agg_plot$LE_MET, fixed=TRUE),])
  the_agg_plot3$LE_MET <- gsub("\\(c)","", the_agg_plot3$LE_MET)
  the_agg_plot3$LE_MET <- factor(the_agg_plot3$LE_MET, level=fleet_segments_ordered) # reorder
+ the_agg_plot3 <- the_agg_plot3[the_agg_plot3$met_desc!="NA Other ",] # clean up
  the_agg_plot3$met_desc <- factor(the_agg_plot3$met_desc, level=fleet_segments_ordered2) # reorder)
- p3_barplot_bottomfishing_pel_cpuf_smallvids <- ggplot(data=the_agg_plot3, aes(x=met_desc, y=value/a_unit, fill=Stock)) + #  geom_bar(stat="identity", position=position_dodge())
-  geom_bar(stat = "summary", fun = "mean") +  labs(y ="CPUF (kg per litre)", x= "") +
-       scale_fill_manual(values=some_color_species, name="Species")  + theme_minimal() + theme(axis.text.x=element_blank()) + guides(fill =guide_legend(ncol=7))  
-  #print(p3)
+ p3_barplot_bottomfishing_pel_cpuf_smallvids <- ggplot(data=the_agg_plot3, aes(x=met_desc, y=value/a_unit, fill=Stockname)) + #  geom_bar(stat="identity", position=position_dodge())
+  geom_bar(stat = "summary", fun = "mean") +  labs(y = "Landings (kg) per litre fuel", x= "Small vessels (<12m) using dredge or passive gears") + 
+          scale_fill_manual(values=some_color_speciesnames[unique(the_agg_plot3$Stockname)], name="Species") + theme_minimal() + guides(fill =guide_legend(ncol=7))  + 
+        theme(axis.text.x=element_text(angle=60,hjust=1,vjust=1, size=12)) 
+  #print(p3_barplot_bottomfishing_pel_cpuf_smallvids)
  
   the_agg_plot4 <- as.data.frame(the_agg_plot[grep("(d)",the_agg_plot$LE_MET, fixed=TRUE),])
   the_agg_plot4$LE_MET <- gsub("\\(d)","", the_agg_plot4$LE_MET)
