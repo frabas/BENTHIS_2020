@@ -1,8 +1,9 @@
 
 
 
-#save(list=ls()[grepl("barplot",ls()) | grepl("area",ls())], file=file.path("D:","FBA","BENTHIS_2020", "ggplots_rev3.RData"))
-load(file=file.path("D:","FBA","BENTHIS_2020", "ggplots_rev3.RData"))
+#save(list=ls()[grepl("barplot",ls()) | grepl("area",ls())], file=file.path("D:","FBA","BENTHIS_2020", "ggplots_rev_noregion.RData"))
+#load(file=file.path("D:","FBA","BENTHIS_2020", "ggplots_rev3.RData"))
+load(file=file.path("D:","FBA","BENTHIS_2020", "ggplots_rev_noregion.RData"))
 setwd(file.path("D:","FBA","BENTHIS_2020"))
 
  friendly_met_names <- function(dd){
@@ -59,7 +60,11 @@ setwd(file.path("D:","FBA","BENTHIS_2020"))
      dd$met_desc2[is.na(dd$met_desc2)] <- ""
      dd$met_desc3[is.na(dd$met_desc3)] <- ""
 
-    return(paste(dd$met_desc1, dd$met_desc2, dd$met_desc3))
+    if (any(!is.na(dd$met_desc1))) {
+      return(paste(dd$met_desc1, dd$met_desc2, dd$met_desc3))
+    }else{ 
+      return(paste(dd$met_desc2, dd$met_desc3))
+      }
     }
 
 
@@ -248,6 +253,38 @@ ggarrange(    p3_barplot_bottomfishing_dem_cpuf_smallvids+  guides(fill =guide_l
           ncol=1, heights=c(1.5,1.5), common.legend = FALSE, legend="right")
 
 dev.off()
+
+
+## ANOTHER ANOTHER REVISION
+# split into two
+#1
+a_unit <- 1
+ # paper
+ a_width <- 8000 ; a_height <- 7500
+ namefile <- paste0("ggplot.tif")
+ tiff(filename=file.path("D:","FBA","BENTHIS_2020", "ggplots", "cpuf_per_fleet_revised_all_reg.tiff"),   width = a_width, height = a_height,
+                                   units = "px", pointsize = 12,  res=600, compression = c("lzw"))
+library(ggpubr)
+ ggarrange(    p3_barplot_bottomfishing_dem_cpuf + guides(fill =guide_legend(ncol=2, position="right")) + theme(legend.text = element_text(size = 12),axis.text.x=element_text(angle=60,hjust=1,vjust=1, size=12), plot.title=element_text(margin=margin(t=40,b=-20))),
+              p3_barplot_bottomfishing_pel_cpuf + guides(fill =guide_legend(ncol=2, position="right")) + theme(legend.text = element_text(size = 12),axis.text.x=element_text(angle=60,hjust=1,vjust=1, size=12)),
+              p3_barplot_pelfishing_pel_cpuf  + guides(fill =guide_legend(ncol=2, position="right")) + theme(legend.text = element_text(size = 12),axis.text.x=element_text(angle=60,hjust=1,vjust=1, size=12)),
+          ncol=1, heights=c(1.5,1.5,1.2,1,1, 1), common.legend = FALSE, legend="right")
+dev.off()
+
+
+
+#small vessels
+ a_width <- 6000 ; a_height <- 4250
+ namefile <- paste0("ggplot.tif")
+ tiff(filename=file.path("D:","FBA","BENTHIS_2020", "ggplots", "cpuf_per_species_and_small_vessels_revised_allreg.tiff"),   width = a_width, height = a_height,
+                                   units = "px", pointsize = 12,  res=600, compression = c("lzw"))
+library(ggpubr)
+ggarrange(    p3_barplot_bottomfishing_dem_cpuf_smallvids+  guides(fill =guide_legend(ncol=2, position="right")) + theme(legend.text = element_text(size = 12),axis.text.x=element_text(angle=60,hjust=1,vjust=1, size=12), plot.title=element_text(margin=margin(t=40,b=-20),hjust=0.5)),
+              p3_barplot_bottomfishing_pel_cpuf_smallvids + guides(fill =guide_legend(ncol=2, position="right")) + theme(legend.text = element_text(size = 12),axis.text.x=element_text(angle=60,hjust=1,vjust=1, size=12), plot.title=element_text(margin=margin(t=40,b=-20),hjust=0.5)),
+          ncol=1, heights=c(1.5,1.5), common.legend = FALSE, legend="right")
+
+dev.off()
+
 
 
 
